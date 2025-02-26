@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/routes/app_pages.dart'; // Importar las rutas generadas
-import 'modules/home/views/home_view.dart';
+import 'home/views/home_view.dart';
 
 void main() {
   runApp(const MyApp());
