@@ -1,7 +1,14 @@
 import 'package:get/get.dart';
+import 'package:zent/home/bindings/home_binding.dart';
+import 'package:zent/home/views/home_view.dart';
+// <<<<<<< HEAD:zent/lib/Core/routes/app_pages.dart
 
-import '../../modules/home/bindings/home_binding.dart';
-import '../../modules/home/views/home_view.dart';
+// import '../../modules/home/bindings/home_binding.dart';
+// import '../../modules/home/views/home_view.dart';
+// // =======
+// import '../modules/home/bindings/home_binding.dart';
+// import '../modules/home/views/home_view.dart';
+// >>>>>>> d3646bcf6827b705d965e15306787007e56dff12:zent/lib/routes/app_pages.dart
 
 part 'app_routes.dart';
 
