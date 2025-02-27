@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:zent/core/theme/app_colors.dart'; // Cambia 'tu_app' y la ruta
+import 'package:zent/core/theme/app_colors.dart'; //  Cambia 'tu_app' por 'zent'
 import 'package:zent/core/theme/text_theme.dart';
 import 'package:get/get.dart';
 
 // Clase abstracta base para los temas
-abstract class AppTheme {
-  final AppColors colors; // <--  Agregamos la propiedad colors
+abstract class AppTheme extends ThemeExtension<AppTheme> {
+  final AppColors colors;
   ThemeData get themeData;
 
-  AppTheme(this.colors); // Constructor modificado
+  AppTheme(this.colors);
 
   ThemeData _applyFont(ThemeData theme) {
     return theme.copyWith(
@@ -26,11 +26,37 @@ abstract class AppTheme {
   static void changeTheme() {
     Get.changeThemeMode(Get.isDarkMode ? ThemeMode.light : ThemeMode.dark);
   }
+
+  // Debes implementar copyWith y lerp (requeridos por ThemeExtension)
+  @override
+  AppTheme copyWith({AppColors? colors}) {
+    return _ConcreteAppTheme(
+      colors ?? this.colors,
+    );
+  }
+
+  @override
+  AppTheme lerp(ThemeExtension<AppTheme>? other, double t) {
+    if (other is! AppTheme) {
+      return this;
+    }
+    return _ConcreteAppTheme(
+      t > 0.5 ? other.colors : colors,
+    );
+  }
+}
+
+// Clase CONCRETA interna para usar con copyWith y lerp
+class _ConcreteAppTheme extends AppTheme {
+  _ConcreteAppTheme(super.colors);
+
+  @override
+  ThemeData get themeData => throw UnimplementedError(); // No se usa
 }
 
 // Tema Claro
 class LightTheme extends AppTheme {
-  LightTheme() : super(AppColors.light()); // <--  Pasamos la instancia correcta
+  LightTheme() : super(AppColors.light());
 
   @override
   ThemeData get themeData {
@@ -47,8 +73,7 @@ class LightTheme extends AppTheme {
         onSurface: colors.black,
         brightness: Brightness.light,
       ),
-      textTheme:
-          CustomTextTheme.lightTextTheme(colors), //Se le pasa el objeto colors
+      textTheme: CustomTextTheme.lightTextTheme(colors),
       appBarTheme: AppBarTheme(
         backgroundColor: colors.white,
         foregroundColor: colors.black,
@@ -72,13 +97,30 @@ class LightTheme extends AppTheme {
         fillColor: colors.white,
         hintStyle: TextStyle(color: colors.black40),
       ),
+      extensions: <ThemeExtension<dynamic>>[
+        this, // <--  IMPORTANTE:  Registra la instancia
+      ],
     ));
+  }
+
+  //Se debe implentar los sig. métodos debido a que se extiende de ThemeExtensions
+  @override
+  AppTheme copyWith({AppColors? colors}) {
+    return LightTheme();
+  }
+
+  @override
+  AppTheme lerp(ThemeExtension<AppTheme>? other, double t) {
+    if (other is! LightTheme) {
+      return this;
+    }
+    return LightTheme();
   }
 }
 
 // Tema Oscuro
 class DarkTheme extends AppTheme {
-  DarkTheme() : super(AppColors.dark()); // <--  Pasamos la instancia correcta
+  DarkTheme() : super(AppColors.dark());
 
   @override
   ThemeData get themeData {
@@ -95,8 +137,7 @@ class DarkTheme extends AppTheme {
         onSurface: colors.greyF2,
         brightness: Brightness.dark,
       ),
-      textTheme:
-          CustomTextTheme.darkTextTheme(colors), //Se le pasa el objeto colors
+      textTheme: CustomTextTheme.darkTextTheme(colors),
       appBarTheme: AppBarTheme(
         backgroundColor: colors.darkBlue,
         foregroundColor: colors.greyF2,
@@ -120,6 +161,23 @@ class DarkTheme extends AppTheme {
         fillColor: colors.darkSecondary,
         hintStyle: TextStyle(color: colors.greyF2.withOpacity(0.6)),
       ),
+      extensions: <ThemeExtension<dynamic>>[
+        this, // <--  IMPORTANTE:  Registra la instancia
+      ],
     ));
+  }
+
+  //Se debe implentar los sig. métodos debido a que se extiende de ThemeExtensions
+  @override
+  AppTheme copyWith({AppColors? colors}) {
+    return DarkTheme();
+  }
+
+  @override
+  AppTheme lerp(ThemeExtension<AppTheme>? other, double t) {
+    if (other is! DarkTheme) {
+      return this;
+    }
+    return DarkTheme();
   }
 }

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/core/theme/app_theme.dart'; // Cambia 'tu_app'
+import 'package:zent/core/theme/app_theme.dart'; //  Cambia 'tu_app' por 'zent'
 import 'package:get_storage/get_storage.dart';
 
 class ThemeController extends GetxController {
   final _themeMode = ThemeMode.system.obs;
   ThemeMode get themeMode => _themeMode.value;
 
-  late AppTheme _currentTheme;
-  AppTheme get currentTheme => _currentTheme;
+  // Usa ThemeMode directamente, ya no necesitas AppTheme
+  late ThemeData _currentThemeData; //  <--  Usa ThemeData directamente
+  ThemeData get currentThemeData =>
+      _currentThemeData; // <--  Getter para ThemeData
 
   final _box = GetStorage();
-  final _themeKey = 'themeMode'; // Clave para guardar en GetStorage
+  final _themeKey = 'themeMode';
 
   @override
   void onInit() {
@@ -20,25 +22,25 @@ class ThemeController extends GetxController {
   }
 
   Future<void> _loadTheme() async {
-    // Lee el valor de GetStorage.  Si no existe, usa 0 (system).
     final themeIndex = _box.read<int>(_themeKey) ?? 0;
 
     switch (themeIndex) {
       case 1:
         _themeMode.value = ThemeMode.light;
-        _currentTheme = LightTheme();
+        _currentThemeData = LightTheme().themeData; // <--  Guarda el ThemeData
         break;
       case 2:
         _themeMode.value = ThemeMode.dark;
-        _currentTheme = DarkTheme();
+        _currentThemeData = DarkTheme().themeData; // <--  Guarda el ThemeData
         break;
       default:
         _themeMode.value = ThemeMode.system;
         final brightness = WidgetsBinding.instance.window.platformBrightness;
-        _currentTheme =
-            brightness == Brightness.dark ? DarkTheme() : LightTheme();
+        _currentThemeData = brightness == Brightness.dark
+            ? DarkTheme().themeData
+            : LightTheme().themeData; // <--  Guarda el ThemeData
     }
-    update();
+    update(); // Notifica a los listeners
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -46,29 +48,28 @@ class ThemeController extends GetxController {
 
     switch (mode) {
       case ThemeMode.light:
-        _currentTheme = LightTheme();
-        await _box.write(_themeKey, 1); // Guarda 1 para light
+        _currentThemeData = LightTheme().themeData; //  <-- Guarda el ThemeData
+        await _box.write(_themeKey, 1);
         break;
       case ThemeMode.dark:
-        _currentTheme = DarkTheme();
-        await _box.write(_themeKey, 2); // Guarda 2 para dark
+        _currentThemeData = DarkTheme().themeData; //  <-- Guarda el ThemeData
+        await _box.write(_themeKey, 2);
         break;
       case ThemeMode.system:
-        _currentTheme =
-            WidgetsBinding.instance.window.platformBrightness == Brightness.dark
-                ? DarkTheme()
-                : LightTheme();
-        await _box.write(_themeKey, 0); // Guarda 0 para system
+        final brightness = WidgetsBinding.instance.window.platformBrightness;
+        _currentThemeData = brightness == Brightness.dark
+            ? DarkTheme().themeData
+            : LightTheme().themeData; // <-- Guarda el ThemeData
+        await _box.write(_themeKey, 0);
         break;
     }
-    Get.changeThemeMode(mode);
-    Get.changeTheme(_currentTheme.themeData);
-    update();
+    Get.changeThemeMode(mode); // Cambia el ThemeMode
+    Get.changeTheme(_currentThemeData); //  <--  Aplica el ThemeData COMPLETO
+    update(); // Notifica a GetX
   }
 
   void toggleTheme() {
     setThemeMode(
-      themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
-    );
+        themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
   }
 }
