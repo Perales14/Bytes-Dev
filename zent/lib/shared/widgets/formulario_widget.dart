@@ -134,9 +134,10 @@ class FormularioCompleto extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Button(texto: 'CANCELAR', onPressed: () {}),
+              Button(texto: 'CANCELAR', onPressed: () { print('boton cancelado');}) ,
               SizedBox(width: 100),
-              Button(texto: 'AGREGAR', onPressed: () {}),
+              Button(
+                texto: 'AGREGAR', onPressed: () {print('boton agregado');}, icon: Icons.add,),
             ],
           ),
         ],
