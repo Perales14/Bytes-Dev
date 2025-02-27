@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/core/theme/app_theme.dart';
-import 'package:zent/controllers/sidebar_controller.dart'; // Controlador
-import 'package:zent/models/sidebar_item.dart'; // Modelo
-import 'package:zent/shared/widgets/sidebar_button.dart'; // Widget del botón
-import 'package:zent/shared/widgets/sidebar_user_header.dart'; // Widget del encabezado
+import 'package:zent/controllers/sidebar_controller.dart';
+import 'package:zent/models/sidebar_item.dart';
+import 'package:zent/shared/widgets/sidebar_button.dart';
+import 'package:zent/shared/widgets/sidebar_user_header.dart';
 
 class Sidebar extends GetView<SidebarController> {
   const Sidebar({super.key});
@@ -12,6 +12,7 @@ class Sidebar extends GetView<SidebarController> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppTheme>()!.colors;
+
     return Container(
       width: 212,
       constraints: const BoxConstraints(
@@ -48,19 +49,21 @@ class Sidebar extends GetView<SidebarController> {
             ),
           ),
           // Botones dinámicos (según el rol)
-          Obx(() => Column(
-                children: controller.visibleSidebarItems
-                    .map((item) => SidebarButton(
-                          item: item,
-                          isSelected: Get.currentRoute == item.routeName,
-                          onPressed: () => Get.toNamed(item.routeName),
-                        ))
-                    .toList(),
-              )),
+          // QUITAMOS el Obx exterior
+          Column(
+            children: controller.visibleSidebarItems
+                .map((item) => SidebarButton(
+                      item: item,
+                      isSelected: Get.currentRoute == item.routeName,
+                      onPressed: () => Get.toNamed(item.routeName),
+                    ))
+                .toList(),
+          ),
 
           const Spacer(), // Empuja los siguientes elementos hacia abajo
 
           // Botones estáticos (Perfil y Cerrar Sesión)
+          // QUITAMOS el Obx exterior
           Column(
             children: controller.staticSidebarItems
                 .map((item) => SidebarButton(
@@ -68,9 +71,6 @@ class Sidebar extends GetView<SidebarController> {
                       isSelected: Get.currentRoute == item.routeName,
                       onPressed: () {
                         if (item.label == 'Cerrar Sesión') {
-                          // Lógica para cerrar sesión (usando tu AuthController)
-                          // Get.find<AuthController>().signOut();
-                          //Por ahora simular cierre de sesion:
                           Get.offAllNamed('/');
                         } else {
                           Get.toNamed(item.routeName);
@@ -85,7 +85,7 @@ class Sidebar extends GetView<SidebarController> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Image.asset(
-                'assets/logo.png', //  Asegúrate de tener esta imagen en tu carpeta assets
+                'assets/logo.png',
                 width: 70,
                 height: 70,
               ),
