@@ -84,11 +84,11 @@ class Sidebar extends GetView<SidebarController> {
           Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Image.asset(
+              /*child: Image.asset(
                 'assets/logo.png',
                 width: 70,
                 height: 70,
-              ),
+              ),*/
             ),
           ),
         ],

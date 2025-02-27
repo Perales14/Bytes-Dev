@@ -54,19 +54,7 @@ class SidebarController extends GetxController {
 
   // Método para filtrar los elementos visibles según el rol del usuario.
   List<SidebarItem> get visibleSidebarItems {
-    // Simulamos un rol de usuario.  En una app real, obtendrías esto
-    // de tu AuthController o similar.
-
-    String? userRole; //Este sería nulo en la pantalla de login.
-    //Descomentar cuando tengamos auth_controller
-    // String? userRole = Get.find<AuthController>().user?.role;
-
-    //Si el usuario no esta logueado, que muestre solo los botones estaticos
-    //return [];
-
-    return allSidebarItems
-        .where((item) => item.roles.contains(userRole))
-        .toList();
+    return allSidebarItems;
   }
 
   // Ítems estáticos del sidebar (Perfil y Cerrar Sesión)
