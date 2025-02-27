@@ -7,8 +7,8 @@ import '../controllers/form_controller.dart';
 import '../../../shared/widgets/formulario_widget.dart';
 
 
-class HomeView extends StatelessWidget {
-  const HomeView({super.key});
+class FormView extends StatelessWidget {
+  const FormView({super.key});
 
   @override
   Widget build(BuildContext context) {

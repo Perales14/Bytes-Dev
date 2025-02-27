@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Mi App con GetX',
-      initialRoute: AppPages.INITIAL, // Ruta inicial
+      initialRoute: AppPages.FORM, // Ruta inicial
       getPages: AppPages.routes, // Rutas de la aplicación
     );
   }

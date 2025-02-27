@@ -2,11 +2,11 @@ import 'package:get/get.dart';
 
 import '../controllers/form_controller.dart';
 
-class HomeBinding extends Bindings {
+class FormBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<HomeController>(
-      () => HomeController(),
+    Get.lazyPut<FormController>(
+      () => FormController(),
     );
   }
 }
