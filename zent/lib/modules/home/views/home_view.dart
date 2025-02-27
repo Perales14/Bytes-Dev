@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/modules/home/controllers/home_controller.dart'; // Cambia 'tu_app' por 'zent'
-import 'package:zent/modules/sidebar/views/sidebar.dart'; // Importa el Sidebar
+import 'package:zent/shared/widgets/sidebar/sidebar.dart'; // Importa el Sidebar
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key}); // Usa Key? key

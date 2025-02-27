@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:zent/core/theme/app_theme.dart';
 import 'package:zent/controllers/sidebar_controller.dart';
 import 'package:zent/models/sidebar_item.dart';
-import 'package:zent/shared/widgets/sidebar_button.dart';
-import 'package:zent/shared/widgets/sidebar_user_header.dart';
+import 'package:zent/shared/widgets/sidebar/sidebar_button.dart';
+import 'package:zent/shared/widgets/sidebar/sidebar_user_header.dart';
 
 class Sidebar extends GetView<SidebarController> {
   const Sidebar({super.key});
