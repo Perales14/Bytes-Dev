@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
-import 'package:zent/home/bindings/home_binding.dart';
-import 'package:zent/home/views/home_view.dart';
+import 'package:zent/modules/home/bindings/home_binding.dart';
+import 'package:zent/modules/home/views/home_view.dart';
 // <<<<<<< HEAD:zent/lib/Core/routes/app_pages.dart
 
 // import '../../modules/home/bindings/home_binding.dart';
