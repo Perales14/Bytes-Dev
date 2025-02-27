@@ -49,33 +49,43 @@ class Sidebar extends GetView<SidebarController> {
             ),
           ),
           // Botones dinámicos (según el rol)
-          // QUITAMOS el Obx exterior
+
           Column(
             children: controller.visibleSidebarItems
-                .map((item) => SidebarButton(
-                      item: item,
-                      isSelected: Get.currentRoute == item.routeName,
-                      onPressed: () => Get.toNamed(item.routeName),
+                .map((item) => Column(
+                      //  <-- Envuelve cada botón en un Column
+                      children: [
+                        SidebarButton(
+                          item: item,
+                          isSelected: Get.currentRoute == item.routeName,
+                          onPressed: () => Get.toNamed(item.routeName),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ))
                 .toList(),
           ),
 
-          const Spacer(), // Empuja los siguientes elementos hacia abajo
+          const Spacer(),
 
-          // Botones estáticos (Perfil y Cerrar Sesión)
-          // QUITAMOS el Obx exterior
           Column(
             children: controller.staticSidebarItems
-                .map((item) => SidebarButton(
-                      item: item,
-                      isSelected: Get.currentRoute == item.routeName,
-                      onPressed: () {
-                        if (item.label == 'Cerrar Sesión') {
-                          Get.offAllNamed('/');
-                        } else {
-                          Get.toNamed(item.routeName);
-                        }
-                      },
+                .map((item) => Column(
+                      // <-- Envuelve en Column
+                      children: [
+                        SidebarButton(
+                          item: item,
+                          isSelected: Get.currentRoute == item.routeName,
+                          onPressed: () {
+                            if (item.label == 'Cerrar Sesión') {
+                              Get.offAllNamed('/');
+                            } else {
+                              Get.toNamed(item.routeName);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                     ))
                 .toList(),
           ),
@@ -84,11 +94,11 @@ class Sidebar extends GetView<SidebarController> {
           Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              /*child: Image.asset(
-                'assets/logo.png',
+              child: Image.asset(
+                'assets/images/Logo_Consultoria.png',
                 width: 70,
                 height: 70,
-              ),*/
+              ),
             ),
           ),
         ],

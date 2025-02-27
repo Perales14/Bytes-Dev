@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/core/theme/app_theme.dart'; //  Cambia 'tu_app' por 'zent'
 import 'package:get_storage/get_storage.dart';
+import 'package:zent/core/theme/app_theme.dart';
 
 class ThemeController extends GetxController {
   final _themeMode = ThemeMode.system.obs;
@@ -60,7 +60,9 @@ class ThemeController extends GetxController {
         _currentThemeData = brightness == Brightness.dark
             ? DarkTheme().themeData
             : LightTheme().themeData; // <-- Guarda el ThemeData
+
         await _box.write(_themeKey, 0);
+
         break;
     }
     Get.changeThemeMode(mode); // Cambia el ThemeMode
