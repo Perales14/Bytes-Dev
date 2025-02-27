@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/Core/routes/app_pages.dart';
+import 'package:zent/routes/app_pages.dart';
 // import 'package:zent/routes/app_pages.dart'; // Importar las rutas generadas
-import 'home/views/home_view.dart';
+import 'modules/home/views/home_view.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Mi App con GetX',
       initialRoute: AppPages.INITIAL, // Ruta inicial
-      getPages: AppPages.routes, // Rutas de la aplicación
+      getPages: AppPages.routes,
     );
   }
 }
