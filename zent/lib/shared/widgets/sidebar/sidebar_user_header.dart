@@ -1,11 +1,11 @@
+// shared/widgets/sidebar/sidebar_user_header.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/core/theme/app_theme.dart'; // Asegúrate de que la ruta sea correcta
 
 class SidebarUserHeader extends StatelessWidget {
-  final String userName; // Nombre del usuario
-  final String? userRole; // Rol del usuario (opcional)
-  final String? userImageUrl; // URL de la imagen de perfil (opcional)
+  final String userName;
+  final String? userRole;
+  final String? userImageUrl;
 
   const SidebarUserHeader({
     super.key,
@@ -16,13 +16,19 @@ class SidebarUserHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppTheme>()!.colors;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Colores dinámicos según el tema
+    final primaryColor = theme.colorScheme.primary;
+    final textColor = theme.colorScheme.onSurface;
+    final secondaryTextColor = isDark
+        ? theme.colorScheme.onSurface.withOpacity(0.7)
+        : theme.colorScheme.onSurface.withOpacity(0.6);
 
     return Container(
       width: 180,
-      padding: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 16), // Padding consistente
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
@@ -30,45 +36,44 @@ class SidebarUserHeader extends StatelessWidget {
         children: [
           // Foto de perfil (o placeholder)
           Container(
-            width: 40, // Tamaño fijo para la imagen
+            width: 40,
             height: 40,
             decoration: BoxDecoration(
-              shape: BoxShape.circle, // Imagen circular
-              color: colors.tealBlue80, // Color de fondo (ajústalo)
+              shape: BoxShape.circle,
+              color: primaryColor.withOpacity(0.8),
               image: userImageUrl != null
                   ? DecorationImage(
                       image: NetworkImage(userImageUrl!),
                       fit: BoxFit.cover,
                     )
-                  : null, // Muestra la imagen solo si la URL existe
+                  : null,
             ),
             child: userImageUrl == null
-                ? Icon(Icons.person, color: colors.white, size: 24)
-                : null, // Icono si no hay imagen
+                ? Icon(Icons.person, color: Colors.white, size: 24)
+                : null,
           ),
 
-          const SizedBox(width: 12), // Espacio entre la imagen y el texto
+          const SizedBox(width: 12),
 
           // Nombre y rol del usuario
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment:
-                  CrossAxisAlignment.start, // Alinea el texto a la izquierda
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   userName,
-                  style: textTheme.headlineMedium!.copyWith(
-                      color: Get.isDarkMode ? colors.greyF2 : colors.black),
-                  overflow: TextOverflow.ellipsis, // Evita desbordamiento
+                  style: theme.textTheme.headlineMedium!.copyWith(
+                    color: textColor,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                if (userRole != null) // Muestra el rol solo si existe
+                if (userRole != null)
                   Text(
                     userRole!,
-                    style: textTheme.bodyMedium!.copyWith(
-                        color: Get.isDarkMode
-                            ? colors.greyF2.withOpacity(0.7)
-                            : colors.black40),
+                    style: theme.textTheme.bodyMedium!.copyWith(
+                      color: secondaryTextColor,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
               ],

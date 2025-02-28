@@ -1,6 +1,6 @@
+// shared/widgets/sidebar/sidebar.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/core/theme/app_theme.dart';
 import 'package:zent/controllers/sidebar_controller.dart';
 import 'package:zent/models/sidebar_item.dart';
 import 'package:zent/shared/widgets/sidebar/sidebar_button.dart';
@@ -11,7 +11,9 @@ class Sidebar extends GetView<SidebarController> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<AppTheme>()!.colors;
+    // Accedemos a los colores directamente del Theme
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       width: 212,
@@ -19,10 +21,14 @@ class Sidebar extends GetView<SidebarController> {
         minHeight: 750,
       ),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
+        // Usamos la superficie como color de fondo del sidebar
+        color: theme.colorScheme.surface,
         border: Border(
           right: BorderSide(
-            color: colors.black20,
+            // Usamos un color con opacidad para el borde
+            color: isDark
+                ? Colors.white.withOpacity(0.2)
+                : Colors.black.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -39,21 +45,21 @@ class Sidebar extends GetView<SidebarController> {
               userImageUrl: null,
             ),
           ),
+
           // Título "Dashboards"
           Padding(
             padding:
                 const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: Text(
               'Dashboards',
-              style: Theme.of(context).textTheme.titleSmall,
+              style: theme.textTheme.titleSmall,
             ),
           ),
-          // Botones dinámicos (según el rol)
 
+          // Botones dinámicos (según el rol)
           Column(
             children: controller.visibleSidebarItems
                 .map((item) => Column(
-                      //  <-- Envuelve cada botón en un Column
                       children: [
                         SidebarButton(
                           item: item,
@@ -71,7 +77,6 @@ class Sidebar extends GetView<SidebarController> {
           Column(
             children: controller.staticSidebarItems
                 .map((item) => Column(
-                      // <-- Envuelve en Column
                       children: [
                         SidebarButton(
                           item: item,

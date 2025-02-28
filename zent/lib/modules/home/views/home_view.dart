@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/modules/home/controllers/home_controller.dart'; // Cambia 'tu_app' por 'zent'
-import 'package:zent/shared/widgets/sidebar/sidebar.dart'; // Importa el Sidebar
+import 'package:zent/modules/home/controllers/home_controller.dart';
+import 'package:zent/shared/widgets/layout/app_layout.dart'; // Importar el layout común
 
 class HomeView extends GetView<HomeController> {
-  const HomeView({super.key}); // Usa Key? key
+  const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: AppBar(  //  <--  Comentamos o eliminamos el AppBar
-      //   title: const Text('HomeView'),
-      //   centerTitle: true,
-      // ),
-      body: Row(
-        // Usamos un Row para el Sidebar y el contenido principal
-        children: [
-          const Sidebar(), //  <--  Agregamos el Sidebar
-          Expanded(
-            //  <--  El contenido principal ocupa el resto del espacio
-            child: Center(
-              child: Text(
-                'HomeView is working',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
+    return AppLayout(
+      title: 'Panel Principal', // Título de la página
+      // showBackButton: false, // No es necesario, es false por defecto
+      // Puedes añadir acciones adicionales si lo necesitas
+      // actions: [
+      //   IconButton(
+      //     icon: Icon(Icons.notifications),
+      //     onPressed: () => {},
+      //   ),
+      // ],
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Text(
+            'HomeView is working',
+            style: TextStyle(fontSize: 20),
           ),
-        ],
+        ),
       ),
     );
   }

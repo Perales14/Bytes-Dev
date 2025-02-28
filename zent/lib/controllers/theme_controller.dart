@@ -1,77 +1,50 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:zent/core/theme/app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeController extends GetxController {
-  final _themeMode = ThemeMode.system.obs;
-  ThemeMode get themeMode => _themeMode.value;
-
-  // Usa ThemeMode directamente, ya no necesitas AppTheme
-  late ThemeData _currentThemeData; //  <--  Usa ThemeData directamente
-  ThemeData get currentThemeData =>
-      _currentThemeData; // <--  Getter para ThemeData
-
-  final _box = GetStorage();
-  final _themeKey = 'themeMode';
+  // Usamos Rx para manejar reactivamente el tema
+  Rx<ThemeMode> theme = ThemeMode.system.obs;
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
-    _loadTheme();
+    // Cargamos la preferencia de tema al iniciar
+    theme.value = await _loadThemeFromPreferences();
+    update();
   }
 
-  Future<void> _loadTheme() async {
-    final themeIndex = _box.read<int>(_themeKey) ?? 0;
+  Future<ThemeMode> _loadThemeFromPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    final themeIndex = prefs.getInt('themeMode') ?? -1;
 
-    switch (themeIndex) {
-      case 1:
-        _themeMode.value = ThemeMode.light;
-        _currentThemeData = LightTheme().themeData; // <--  Guarda el ThemeData
-        break;
-      case 2:
-        _themeMode.value = ThemeMode.dark;
-        _currentThemeData = DarkTheme().themeData; // <--  Guarda el ThemeData
-        break;
-      default:
-        _themeMode.value = ThemeMode.system;
-        final brightness = WidgetsBinding.instance.window.platformBrightness;
-        _currentThemeData = brightness == Brightness.dark
-            ? DarkTheme().themeData
-            : LightTheme().themeData; // <--  Guarda el ThemeData
-    }
-    update(); // Notifica a los listeners
+    // Devolvemos el tema según la preferencia guardada
+    if (themeIndex == 1) return ThemeMode.light;
+    if (themeIndex == 2) return ThemeMode.dark;
+
+    // Si no hay preferencia, usamos el tema del sistema
+    var brightness =
+        SchedulerBinding.instance.platformDispatcher.platformBrightness;
+    return brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
   }
 
-  Future<void> setThemeMode(ThemeMode mode) async {
-    _themeMode.value = mode;
-
-    switch (mode) {
-      case ThemeMode.light:
-        _currentThemeData = LightTheme().themeData; //  <-- Guarda el ThemeData
-        await _box.write(_themeKey, 1);
-        break;
-      case ThemeMode.dark:
-        _currentThemeData = DarkTheme().themeData; //  <-- Guarda el ThemeData
-        await _box.write(_themeKey, 2);
-        break;
-      case ThemeMode.system:
-        final brightness = WidgetsBinding.instance.window.platformBrightness;
-        _currentThemeData = brightness == Brightness.dark
-            ? DarkTheme().themeData
-            : LightTheme().themeData; // <-- Guarda el ThemeData
-
-        await _box.write(_themeKey, 0);
-
-        break;
-    }
-    Get.changeThemeMode(mode); // Cambia el ThemeMode
-    Get.changeTheme(_currentThemeData); //  <--  Aplica el ThemeData COMPLETO
-    update(); // Notifica a GetX
+  Future<void> _saveThemeToPreferences(ThemeMode themeMode) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setInt('themeMode', themeMode == ThemeMode.light ? 1 : 2);
   }
 
   void toggleTheme() {
-    setThemeMode(
-        themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark);
+    theme.value =
+        theme.value == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+    _saveThemeToPreferences(theme.value);
+    update();
+  }
+
+  // Método para establecer modo sistema
+  void setSystemTheme() {
+    theme.value = ThemeMode.system;
+    _saveThemeToPreferences(theme.value);
+    update();
   }
 }

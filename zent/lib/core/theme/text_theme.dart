@@ -1,120 +1,116 @@
-import 'package:zent/core/theme/app_colors.dart'; //  <-- Importa AppColors
+// core/theme/text_theme.dart
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'colors.dart';
 
-class CustomTextTheme {
-  // Tema de texto para el modo claro
-  static TextTheme lightTextTheme(AppColors colors) {
-    // <--- Recibe AppColors
-    return TextTheme(
-      displayLarge: TextStyle(
-        //  Titulo
-        color: colors.black, // Usamos colors
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        height: 0.83,
-        letterSpacing: 3.60,
-      ),
-      headlineMedium: TextStyle(
-        // Encabezado 1
-        color: colors.black, // Usamos colors
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        height: 1.25,
-      ),
-      headlineSmall: TextStyle(
-        // Encabezado 2:
-        color: colors.black, // Usamos colors
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-      titleMedium: TextStyle(
-        // Encabezado 3:
-        color: colors.black, // Usamos colors
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      titleSmall: TextStyle(
-        // Encabezado 4:
-        color: colors.black60, // Usamos colors
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
-      bodyLarge: TextStyle(
-        // Subtitulo 1
-        color: colors.black60, // Usamos colors
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      bodyMedium: TextStyle(
-        // Subtitulo 2:
-        color: colors.black40, // Usamos colors
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-      labelSmall: TextStyle(
-        //bodySmall // Subtitulo 3:
-        color: colors.lightGrey, // Usamos colors
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
+TextTheme getLightTextTheme() {
+  return TextTheme(
+    displayLarge: GoogleFonts.montserrat(
+      // Titulo
+      color: textBlack,
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      height: 0.83,
+      letterSpacing: 3.60,
+    ),
+    headlineMedium: GoogleFonts.montserrat(
+      // Encabezado 1
+      color: textBlack,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      height: 1.25,
+    ),
+    headlineSmall: GoogleFonts.montserrat(
+      // Encabezado 2
+      color: textBlack,
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    ),
+    titleMedium: GoogleFonts.montserrat(
+      // Encabezado 3
+      color: textBlack,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    ),
+    titleSmall: GoogleFonts.montserrat(
+      // Encabezado 4
+      color: textGrey60,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
+    bodyLarge: GoogleFonts.montserrat(
+      // Subtitulo 1
+      color: textGrey60,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    ),
+    bodyMedium: GoogleFonts.montserrat(
+      // Subtitulo 2
+      color: textGrey40,
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+    ),
+    labelSmall: GoogleFonts.montserrat(
+      // Subtitulo 3 (bodySmall)
+      color: lightScaffoldBackground,
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+    ),
+  );
+}
 
-  // Tema de texto para el modo oscuro
-  static TextTheme darkTextTheme(AppColors colors) {
-    // <--- Recibe AppColors
-    return TextTheme(
-      displayLarge: TextStyle(
-        // Titulo
-        color: colors.white, // Usamos colors
-        fontSize: 24,
-        fontWeight: FontWeight.w600,
-        height: 0.83,
-        letterSpacing: 3.60,
-      ),
-      headlineMedium: TextStyle(
-        // Encabezado 1
-        color: colors.white, // Usamos colors
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        height: 1.25,
-      ),
-      headlineSmall: TextStyle(
-          // Encabezado 2:
-          color: colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(
-        // Encabezado 3:
-        color: colors.white, // Usamos colors
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      titleSmall: TextStyle(
-        // Encabezado 4:
-        color: colors.black60, // Usamos colors
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
-      bodyLarge: TextStyle(
-        // Subtitulo 1
-        color: colors.greyF2, // Usamos colors
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      bodyMedium: TextStyle(
-        // Subtitulo 2:
-        color: colors.greyF2.withOpacity(0.6), // Usamos colors
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-      labelSmall: TextStyle(
-        //bodySmall// Subtitulo 3:
-        color: colors.greyF2, // Usamos colors
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-      ),
-    );
-  }
+TextTheme getDarkTextTheme() {
+  return TextTheme(
+    displayLarge: GoogleFonts.montserrat(
+      // Titulo
+      color: textWhite,
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      height: 0.83,
+      letterSpacing: 3.60,
+    ),
+    headlineMedium: GoogleFonts.montserrat(
+      // Encabezado 1
+      color: textWhite,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
+      height: 1.25,
+    ),
+    headlineSmall: GoogleFonts.montserrat(
+      // Encabezado 2
+      color: textWhite,
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    ),
+    titleMedium: GoogleFonts.montserrat(
+      // Encabezado 3
+      color: textWhite,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    ),
+    titleSmall: GoogleFonts.montserrat(
+      // Encabezado 4
+      color: textGrey60,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
+    bodyLarge: GoogleFonts.montserrat(
+      // Subtitulo 1
+      color: textGreyF2,
+      fontSize: 14,
+      fontWeight: FontWeight.w400,
+    ),
+    bodyMedium: GoogleFonts.montserrat(
+      // Subtitulo 2
+      color: textGreyF2.withOpacity(0.6),
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+    ),
+    labelSmall: GoogleFonts.montserrat(
+      // Subtitulo 3 (bodySmall)
+      color: textGreyF2,
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+    ),
+  );
 }
