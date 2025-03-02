@@ -8,6 +8,9 @@ class SidebarController extends GetxController {
   // Lista observable de elementos estáticos (siempre visibles)
   final RxList<SidebarItem> _staticSidebarItems = <SidebarItem>[].obs;
 
+  // Add an observable to track sidebar state
+  final RxBool isOpen = true.obs;
+
   // Getters para acceder a las listas desde la vista
   List<SidebarItem> get visibleSidebarItems => _visibleSidebarItems;
   List<SidebarItem> get staticSidebarItems => _staticSidebarItems;
@@ -126,5 +129,10 @@ class SidebarController extends GetxController {
     } else {
       Get.toNamed(routeName);
     }
+  }
+
+  // Toggle sidebar visibility
+  void toggleSidebar() {
+    isOpen.value = !isOpen.value;
   }
 }

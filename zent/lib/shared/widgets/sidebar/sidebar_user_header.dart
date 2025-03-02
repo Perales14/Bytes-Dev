@@ -1,4 +1,3 @@
-// shared/widgets/sidebar/sidebar_user_header.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
