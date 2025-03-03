@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/modules/home/controllers/home_controller.dart';
-import 'package:zent/shared/widgets/form/form.dart';
+import 'package:zent/shared/factories/form_factory.dart';
 import 'package:zent/shared/widgets/main_layout.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -23,17 +23,30 @@ class HomeView extends GetView<HomeController> {
               ),
               const SizedBox(height: 20),
 
-              // Add the refactored form to test it
-              const Card(
+              // Example of creating a form dynamically - Here Employee Form
+              Card(
                 elevation: 2,
-                margin: EdgeInsets.symmetric(vertical: 16),
-                child: CustomForm(
-                  showSalario: true,
-                ),
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                child: FormFactory.createForm(FormType.employee),
               ),
 
-              // Space after form
               const SizedBox(height: 40),
+
+              // Example of creating another form type - Here Client Form
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                child: FormFactory.createForm(FormType.client),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Add Provider Form
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.symmetric(vertical: 16),
+                child: FormFactory.createForm(FormType.provider),
+              ),
             ],
           ),
         ),

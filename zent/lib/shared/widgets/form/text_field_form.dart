@@ -9,6 +9,7 @@ class TextFieldForm extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final TextInputType keyboardType;
   final int? maxLines;
+  final Widget? suffixIcon;
 
   const TextFieldForm({
     required this.label,
@@ -18,6 +19,7 @@ class TextFieldForm extends StatelessWidget {
     this.onChanged,
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
+    this.suffixIcon,
     super.key,
   });
 
@@ -43,7 +45,7 @@ class TextFieldForm extends StatelessWidget {
           validator: validator,
           onChanged: onChanged,
           keyboardType: keyboardType,
-          maxLines: maxLines,
+          maxLines: obscureText ? 1 : maxLines,
           style: theme.textTheme.bodyMedium,
           decoration: InputDecoration(
             contentPadding:
@@ -78,6 +80,7 @@ class TextFieldForm extends StatelessWidget {
                 width: 1.5,
               ),
             ),
+            suffixIcon: suffixIcon,
           ),
         ),
       ],

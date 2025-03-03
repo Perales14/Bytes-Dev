@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/shared/widgets/form/file_upload_panel.dart';
 
-class FormController extends GetxController {
-  // Form data
+class EmployeeFormController extends GetxController {
+  // Form key
   final formKey = GlobalKey<FormState>();
 
   // Password visibility
@@ -21,13 +22,20 @@ class FormController extends GetxController {
 
   // Company data fields
   final id = ''.obs;
-  final fechaIngreso = ''.obs;
+  final fechaRegistro = ''.obs;
   final salario = ''.obs;
   final rol = Rx<String?>(null);
   final tipoContrato = Rx<String?>(null);
 
   // Observations
   final observaciones = ''.obs;
+
+  // Files
+  final files = <FileData>[].obs;
+
+  // Non-reactive files list for direct UI updates
+  final ValueNotifier<List<FileData>> filesNotifier =
+      ValueNotifier<List<FileData>>([]);
 
   // Toggle password visibility
   void togglePasswordVisibility() => showPassword.value = !showPassword.value;
@@ -89,6 +97,58 @@ class FormController extends GetxController {
     return null;
   }
 
+  String? validateNSS(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'El NSS es requerido';
+    }
+    if (value.length != 11) {
+      return 'El NSS debe tener 11 caracteres';
+    }
+    return null;
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // Sync the filesNotifier with the reactive files list
+    ever(files, (filesList) {
+      filesNotifier.value = filesList;
+    });
+  }
+
+  // File handling methods
+  void addFile(FileData file) {
+    final List<FileData> currentFiles =
+        List<FileData>.from(filesNotifier.value);
+    currentFiles.add(file);
+    filesNotifier.value = currentFiles;
+
+    // If using GetX, also update the reactive list
+    files.add(file);
+  }
+
+  void removeFile(FileData file) {
+    final List<FileData> currentFiles =
+        List<FileData>.from(filesNotifier.value);
+    currentFiles.removeWhere((f) => f.id == file.id);
+    filesNotifier.value = currentFiles;
+
+    // If using GetX, also update the reactive list
+    files.removeWhere((f) => f.id == file.id);
+  }
+
+  // Mock file upload function that could be called from the UI
+  void uploadNewFile() {
+    // In a real app, you'd show a file picker here
+    // For now, create a dummy file
+    addFile(FileData(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: 'Document_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        type: FileType.pdf,
+        uploadDate: DateTime.now()));
+  }
+
   // Form submission
   void submitForm() {
     if (formKey.currentState?.validate() ?? false) {
@@ -96,7 +156,7 @@ class FormController extends GetxController {
       // Process the form data
       Get.snackbar(
         'Éxito',
-        'Formulario enviado correctamente',
+        'Empleado registrado correctamente',
         snackPosition: SnackPosition.BOTTOM,
       );
     }
@@ -113,12 +173,13 @@ class FormController extends GetxController {
     password.value = '';
     confirmPassword.value = '';
     id.value = '';
-    fechaIngreso.value = '';
+    fechaRegistro.value = '';
     salario.value = '';
     rol.value = null;
     tipoContrato.value = null;
     observaciones.value = '';
     showPassword.value = false;
     showConfirmPassword.value = false;
+    files.clear();
   }
 }
