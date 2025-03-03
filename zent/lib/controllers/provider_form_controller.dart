@@ -12,24 +12,11 @@ class ProviderFormController extends BaseFormController {
   final colonia = ''.obs;
   final cp = ''.obs;
 
-  // Personal data
-  final nombre = ''.obs;
-  final apellidoPaterno = ''.obs;
-  final apellidoMaterno = ''.obs;
-
   // Contact info
-  final correo = ''.obs;
-  final telefono = ''.obs;
   final rfc = ''.obs;
 
-  // Company assigned data
-  final id = ''.obs;
-  final fechaRegistro = ''.obs;
-  final rol = ''.obs;
-  final tipoServicio = ''.obs;
-
-  // Observations
-  final observaciones = ''.obs;
+  // Provider specific data
+  final tipoServicio = Rx<String?>(null);
 
   // Lists for dropdowns
   final List<String> roles = ['Admin', 'Usuario', 'Proveedor'];
@@ -45,23 +32,7 @@ class ProviderFormController extends BaseFormController {
     super.onInit();
     // Set default values
     fechaRegistro.value = DateTime.now().toString().split(' ')[0];
-    rol.value = roles.first;
     tipoServicio.value = tiposServicio.first;
-  }
-
-  // Validation methods
-  String? validateRequired(String? value) {
-    return (value == null || value.isEmpty) ? 'Este campo es requerido' : null;
-  }
-
-  String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El correo electrónico es requerido';
-    }
-    if (!GetUtils.isEmail(value)) {
-      return 'Ingrese un correo electrónico válido';
-    }
-    return null;
   }
 
   String? validateRFC(String? value) {
@@ -85,11 +56,53 @@ class ProviderFormController extends BaseFormController {
   }
 
   @override
+  void submitForm() {
+    if (formKey.currentState?.validate() ?? false) {
+      formKey.currentState?.save();
+
+      Get.snackbar(
+        'Éxito',
+        'Proveedor registrado correctamente',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  @override
+  void resetForm() {
+    formKey.currentState?.reset();
+    // Company data
+    nombreEmpresa.value = '';
+    cargo.value = '';
+
+    // Address data
+    calle.value = '';
+    colonia.value = '';
+    cp.value = '';
+
+    // Personal data
+    nombre.value = '';
+    apellidoPaterno.value = '';
+    apellidoMaterno.value = '';
+
+    // Contact info
+    correo.value = '';
+    telefono.value = '';
+    rfc.value = '';
+
+    // Other fields
+    id.value = '';
+    observaciones.value = '';
+    tipoServicio.value = tiposServicio.first;
+
+    // Reset fecha registro to current date
+    fechaRegistro.value = DateTime.now().toString().split(' ')[0];
+  }
+
   Map<String, dynamic> getFormData() {
     return {
       'id': id.value,
       'fechaRegistro': fechaRegistro.value,
-      'rol': rol.value,
       'tipoServicio': tipoServicio.value,
       'nombreEmpresa': nombreEmpresa.value,
       'cargo': cargo.value,
@@ -104,23 +117,5 @@ class ProviderFormController extends BaseFormController {
       'rfc': rfc.value,
       'observaciones': observaciones.value,
     };
-  }
-
-  @override
-  void resetForm() {
-    nombreEmpresa.value = '';
-    cargo.value = '';
-    calle.value = '';
-    colonia.value = '';
-    cp.value = '';
-    nombre.value = '';
-    apellidoPaterno.value = '';
-    apellidoMaterno.value = '';
-    correo.value = '';
-    telefono.value = '';
-    rfc.value = '';
-    observaciones.value = '';
-    rol.value = roles.first;
-    tipoServicio.value = tiposServicio.first;
   }
 }

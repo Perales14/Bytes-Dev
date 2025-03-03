@@ -1,23 +1,11 @@
 import 'package:get/get.dart';
+import 'package:zent/shared/factories/form_factory.dart';
 
 class HomeController extends GetxController {
-  //TODO: Implement HomeController
+  // Tipo de formulario seleccionado actualmente
+  final selectedFormType = FormType.employee.obs;
 
   final count = 0.obs;
-  @override
-  void onInit() {
-    super.onInit();
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
 
   void increment() => count.value++;
 }

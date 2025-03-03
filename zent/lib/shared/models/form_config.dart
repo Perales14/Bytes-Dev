@@ -3,19 +3,19 @@ import 'package:flutter/material.dart';
 /// Configuration model for all form types
 class FormConfig {
   final String title;
+  final bool showObservations;
+  final int observationsFlex;
+  final bool showFiles; // Add this property
   final String primaryButtonText;
   final String secondaryButtonText;
-  final bool showObservations;
-  final bool showFiles;
-  final int observationsFlex;
 
   const FormConfig({
     required this.title,
+    this.showObservations = true,
+    this.observationsFlex = 1,
+    this.showFiles = false, // Default to false
     this.primaryButtonText = 'AGREGAR',
     this.secondaryButtonText = 'CANCELAR',
-    this.showObservations = true,
-    this.showFiles = false,
-    this.observationsFlex = 1,
   });
 
   // Employee form configuration

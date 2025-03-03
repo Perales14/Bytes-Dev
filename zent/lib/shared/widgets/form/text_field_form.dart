@@ -10,6 +10,9 @@ class TextFieldForm extends StatelessWidget {
   final TextInputType keyboardType;
   final int? maxLines;
   final Widget? suffixIcon;
+  final FocusNode? focusNode;
+  final bool readOnly;
+  final bool autofocus;
 
   const TextFieldForm({
     required this.label,
@@ -20,6 +23,9 @@ class TextFieldForm extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.maxLines = 1,
     this.suffixIcon,
+    this.focusNode,
+    this.readOnly = false,
+    this.autofocus = false,
     super.key,
   });
 
@@ -47,43 +53,40 @@ class TextFieldForm extends StatelessWidget {
           keyboardType: keyboardType,
           maxLines: obscureText ? 1 : maxLines,
           style: theme.textTheme.bodyMedium,
-          decoration: InputDecoration(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-            filled: true,
-            fillColor: theme.colorScheme.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.secondary.withOpacity(0.6),
-                width: 1.2,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.secondary.withOpacity(0.4),
-                width: 1.2,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.secondary,
-                width: 1.5,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: theme.colorScheme.error,
-                width: 1.5,
-              ),
-            ),
-            suffixIcon: suffixIcon,
-          ),
+          focusNode: focusNode,
+          readOnly: readOnly,
+          autofocus: autofocus,
+          decoration: _buildInputDecoration(theme),
         ),
       ],
+    );
+  }
+
+  InputDecoration _buildInputDecoration(ThemeData theme) {
+    return InputDecoration(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      filled: true,
+      fillColor: theme.colorScheme.surface,
+      border: _buildBorderStyle(
+          theme, theme.colorScheme.secondary.withOpacity(0.6)),
+      enabledBorder: _buildBorderStyle(
+          theme, theme.colorScheme.secondary.withOpacity(0.4)),
+      focusedBorder:
+          _buildBorderStyle(theme, theme.colorScheme.secondary, width: 1.5),
+      errorBorder:
+          _buildBorderStyle(theme, theme.colorScheme.error, width: 1.5),
+      suffixIcon: suffixIcon,
+    );
+  }
+
+  OutlineInputBorder _buildBorderStyle(ThemeData theme, Color color,
+      {double width = 1.2}) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
+      ),
     );
   }
 }

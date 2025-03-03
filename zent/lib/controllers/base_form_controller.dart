@@ -1,44 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/shared/widgets/form/file_upload_panel.dart';
 
-/// Base controller for all forms
 abstract class BaseFormController extends GetxController {
   // Form key
   final formKey = GlobalKey<FormState>();
 
-  // External submit handler - changing from private to protected
-  Function(Map<String, dynamic>)? externalSubmitHandler;
+  // Password visibility
+  final showPassword = false.obs;
+  final showConfirmPassword = false.obs;
 
-  /// Set an external submit handler to be called when the form is submitted
-  void setExternalSubmitHandler(Function(Map<String, dynamic>) handler) {
-    externalSubmitHandler = handler;
+  // Personal data fields
+  final nombre = ''.obs;
+  final apellidoPaterno = ''.obs;
+  final apellidoMaterno = ''.obs;
+  final correo = ''.obs;
+  final telefono = ''.obs;
+
+  // Common company data
+  final id = ''.obs;
+  final fechaRegistro = ''.obs;
+
+  // Observations
+  final observaciones = ''.obs;
+
+  // Files
+  final files = <FileData>[].obs;
+  late final ValueNotifier<List<FileData>> filesNotifier;
+
+  // Toggle password visibility
+  void togglePasswordVisibility() => showPassword.value = !showPassword.value;
+  void toggleConfirmPasswordVisibility() =>
+      showConfirmPassword.value = !showConfirmPassword.value;
+
+  // Validation methods
+  String? validateRequired(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Este campo es requerido';
+    }
+    return null;
   }
 
-  /// Get form data as a map
-  Map<String, dynamic> getFormData();
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'El correo electrónico es requerido';
+    }
+    if (!GetUtils.isEmail(value)) {
+      return 'Ingrese un correo electrónico válido';
+    }
+    return null;
+  }
 
-  /// Reset form fields to initial values
+  // File handling methods
+  void addFile(FileData file) {
+    files.add(file);
+  }
+
+  void removeFile(FileData file) {
+    files.removeWhere((f) => f.id == file.id);
+  }
+
+  // Abstract methods that must be implemented by subclasses
+  void submitForm();
   void resetForm();
 
-  /// Validate and submit the form
-  void submitForm() {
-    if (formKey.currentState?.validate() ?? false) {
-      formKey.currentState?.save();
+  @override
+  void onInit() {
+    super.onInit();
+    filesNotifier = ValueNotifier<List<FileData>>([]);
 
-      // Get the form data
-      final formData = getFormData();
+    // Sync files with notifier
+    ever(files, (filesList) {
+      filesNotifier.value = List<FileData>.from(filesList);
+    });
+  }
 
-      // Call external handler if provided
-      if (externalSubmitHandler != null) {
-        externalSubmitHandler!(formData);
-      } else {
-        // Default success message
-        Get.snackbar(
-          'Éxito',
-          'Formulario enviado correctamente',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      }
-    }
+  @override
+  void onClose() {
+    filesNotifier.dispose();
+    super.onClose();
   }
 }

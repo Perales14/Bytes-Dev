@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 /// A wrapper that correctly handles reactive properties in GetX
 /// This solves the common "[Get] the improper use of a GetX has been detected" error
+/// and improves reusability across form components
 class ReactiveFormField<T> extends StatelessWidget {
   /// The reactive value to observe
   final Rx<T> value;
@@ -18,8 +19,6 @@ class ReactiveFormField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(
-      () => builder(value.value),
-    );
+    return Obx(() => builder(value.value));
   }
 }

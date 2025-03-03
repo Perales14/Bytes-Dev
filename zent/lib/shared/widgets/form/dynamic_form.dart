@@ -3,69 +3,112 @@ import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
 import 'package:zent/controllers/client_form_controller.dart';
 import 'package:zent/controllers/employee_form_controller.dart';
+import 'package:zent/controllers/provider_form_controller.dart';
 import 'package:zent/shared/factories/form_factory.dart';
 import 'package:zent/shared/models/form_config.dart';
-import 'package:zent/shared/widgets/form/employee_form.dart';
 import 'package:zent/shared/widgets/form/client_form.dart';
+import 'package:zent/shared/widgets/form/employee_form.dart';
+import 'package:zent/shared/widgets/form/provider_form.dart';
 
-/// A dynamic form that can render different form types
-/// This is a higher-level abstraction that simplifies form usage
-class DynamicForm extends StatefulWidget {
-  /// The type of form to display
+/// Un componente que renderiza formularios dinámicamente
+class DynamicForm extends StatelessWidget {
+  /// El tipo de formulario a mostrar
   final FormType formType;
 
-  /// Optional callback for handling form submission
-  final Function(Map<String, dynamic>)? onSubmit;
-
-  /// Optional custom configuration for the form
+  /// Configuración personalizada opcional
   final FormConfig? customConfig;
+
+  /// Tag único para el controlador con GetX
+  final String? controllerTag;
 
   const DynamicForm({
     required this.formType,
-    this.onSubmit,
     this.customConfig,
+    this.controllerTag,
     super.key,
   });
 
   @override
-  State<DynamicForm> createState() => _DynamicFormState();
-}
-
-class _DynamicFormState extends State<DynamicForm> {
-  late BaseFormController controller;
-  late FormConfig config;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeController();
-  }
-
-  void _initializeController() {
-    switch (widget.formType) {
-      case FormType.employee:
-        // Use custom config or default employee config
-        config = widget.customConfig ?? FormConfig.employee;
-        controller = Get.put(EmployeeFormController() as BaseFormController);
-        break;
-      case FormType.client:
-        // Use custom config or default client config
-        config = widget.customConfig ?? FormConfig.client;
-        controller = Get.put(ClientFormController());
-        break;
-      default:
-        throw Exception('Unsupported form type: ${widget.formType}');
-    }
-
-    // Set the onSubmit callback if provided
-    if (widget.onSubmit != null) {
-      controller.setExternalSubmitHandler(widget.onSubmit!);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    switch (widget.formType) {
+    // Inicializa el controlador con un tag único si se proporciona
+    final controller = _initializeController();
+
+    // Determina la configuración a usar
+    final config = customConfig ?? _getDefaultConfig();
+
+    // Renderiza el formulario apropiado
+    return _buildFormByType(controller, config);
+  }
+
+  BaseFormController _initializeController() {
+    // Crea o encuentra el controlador adecuado
+    switch (formType) {
+      case FormType.employee:
+        return _getOrCreateController<EmployeeFormController>(
+          () => EmployeeFormController(),
+        );
+      case FormType.client:
+        return _getOrCreateController<ClientFormController>(
+          () => ClientFormController(),
+        );
+      case FormType.provider:
+        return _getOrCreateController<ProviderFormController>(
+          () => ProviderFormController(),
+        );
+    }
+  }
+
+  T _getOrCreateController<T extends BaseFormController>(
+      T Function() createFn) {
+    // Si hay un tag, usarlo para registrar/recuperar el controlador
+    final tag = controllerTag;
+
+    if (tag != null) {
+      if (!Get.isRegistered<T>(tag: tag)) {
+        Get.put<T>(createFn(), tag: tag);
+      }
+      return Get.find<T>(tag: tag);
+    } else {
+      // Sin tag, crear instancia efímera para uso local
+      if (!Get.isRegistered<T>()) {
+        Get.put<T>(createFn());
+      }
+      return Get.find<T>();
+    }
+  }
+
+  FormConfig _getDefaultConfig() {
+    switch (formType) {
+      case FormType.employee:
+        return FormConfig(
+          title: 'REGISTRO DE EMPLEADO',
+          showObservations: true,
+          showFiles: true,
+          observationsFlex: 1,
+          primaryButtonText: 'Agregar',
+          secondaryButtonText: 'Cancelar',
+        );
+      case FormType.client:
+        return FormConfig(
+          title: 'REGISTRO DE CLIENTE',
+          showObservations: true,
+          observationsFlex: 1,
+          primaryButtonText: 'Agregar',
+          secondaryButtonText: 'Cancelar',
+        );
+      case FormType.provider:
+        return FormConfig(
+          title: 'REGISTRO DE PROVEEDOR',
+          showObservations: true,
+          observationsFlex: 1,
+          primaryButtonText: 'Agregar',
+          secondaryButtonText: 'Cancelar',
+        );
+    }
+  }
+
+  Widget _buildFormByType(BaseFormController controller, FormConfig config) {
+    switch (formType) {
       case FormType.employee:
         return EmployeeForm(
           controller: controller as EmployeeFormController,
@@ -76,23 +119,11 @@ class _DynamicFormState extends State<DynamicForm> {
           controller: controller as ClientFormController,
           config: config,
         );
-      default:
-        return Center(
-          child: Text(
-            'Tipo de formulario no soportado: ${widget.formType}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
-          ),
+      case FormType.provider:
+        return ProviderForm(
+          controller: controller as ProviderFormController,
+          config: config,
         );
     }
-  }
-
-  @override
-  void dispose() {
-    // Clean up the controller when the form is disposed
-    // This prevents memory leaks for forms created temporarily
-    Get.delete<BaseFormController>();
-    super.dispose();
   }
 }
