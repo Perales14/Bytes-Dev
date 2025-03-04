@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
+import 'package:zent/controllers/employee_form_controller.dart';
 import 'package:zent/shared/widgets/form/text_field_form.dart';
 
 class PersonalDataSection extends StatelessWidget {
@@ -10,8 +11,8 @@ class PersonalDataSection extends StatelessWidget {
 
   const PersonalDataSection({
     required this.controller,
-    this.showNSS = true,
-    this.showPassword = true,
+    this.showNSS = false,
+    this.showPassword = false,
     super.key,
   });
 
@@ -38,9 +39,9 @@ class PersonalDataSection extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Nombre',
                 controller:
-                    TextEditingController(text: controller.nombre.value),
+                    TextEditingController(text: controller.model_base.nombre),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.nombre.value = value,
+                onChanged: (value) => controller.updateBaseModel(nombre: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -48,9 +49,10 @@ class PersonalDataSection extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: controller.apellidoPaterno.value),
+                    text: controller.model_base.apellidoPaterno),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.apellidoPaterno.value = value,
+                onChanged: (value) =>
+                    controller.updateBaseModel(apellidoPaterno: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -58,9 +60,10 @@ class PersonalDataSection extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: controller.apellidoMaterno.value),
+                    text: controller.model_base.apellidoMaterno),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.apellidoMaterno.value = value,
+                onChanged: (value) =>
+                    controller.updateBaseModel(apellidoMaterno: value),
               ),
             ),
           ],
@@ -81,9 +84,10 @@ class PersonalDataSection extends StatelessWidget {
         Expanded(
           child: TextFieldForm(
             label: 'Correo Electrónico',
-            controller: TextEditingController(text: controller.correo.value),
+            controller:
+                TextEditingController(text: controller.model_base.correo),
             validator: controller.validateEmail,
-            onChanged: (value) => controller.correo.value = value,
+            onChanged: (value) => controller.updateBaseModel(correo: value),
             keyboardType: TextInputType.emailAddress,
           ),
         ),
@@ -91,9 +95,10 @@ class PersonalDataSection extends StatelessWidget {
         Expanded(
           child: TextFieldForm(
             label: 'Teléfono',
-            controller: TextEditingController(text: controller.telefono.value),
+            controller:
+                TextEditingController(text: controller.model_base.telefono),
             validator: controller.validateRequired,
-            onChanged: (value) => controller.telefono.value = value,
+            onChanged: (value) => controller.updateBaseModel(telefono: value),
             keyboardType: TextInputType.phone,
           ),
         ),
@@ -106,68 +111,57 @@ class PersonalDataSection extends StatelessWidget {
   }
 
   Widget _buildNSSField() {
-    // Aquí necesitamos un cast seguro para acceder al método validateNSS
-    // Esto asume que el controller sea EmployeeFormController
-    final employeeController = controller as dynamic;
+    // Verificar que el controller sea un EmployeeFormController
+    if (controller is EmployeeFormController) {
+      final employeeController = controller as EmployeeFormController;
 
-    return TextFieldForm(
-      label: 'NSS',
-      controller:
-          TextEditingController(text: employeeController.nss?.value ?? ''),
-      validator: employeeController.validateNSS,
-      onChanged: (value) => employeeController.nss?.value = value,
-    );
+      return TextFieldForm(
+        label: 'NSS',
+        controller: TextEditingController(text: employeeController.model.nss),
+        validator: employeeController.validateNSS,
+        onChanged: (value) => employeeController.updateEmployee(nss: value),
+      );
+    }
+
+    // Fallback si no es el tipo correcto
+    return Container();
   }
 
   Widget _buildPasswordFields(ThemeData theme) {
-    // Aquí necesitamos un cast seguro para acceder a los campos de contraseña
-    final employeeController = controller as dynamic;
+    // Verificar que el controller sea un EmployeeFormController
+    if (controller is EmployeeFormController) {
+      final employeeController = controller as EmployeeFormController;
 
-    return Row(
-      children: [
-        Expanded(
-          child: Obx(() => TextFieldForm(
-                label: 'Contraseña',
-                obscureText: !controller.showPassword.value,
-                controller: TextEditingController(
-                    text: employeeController.password?.value ?? ''),
-                validator: employeeController.validatePassword,
-                onChanged: (value) =>
-                    employeeController.password?.value = value,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    controller.showPassword.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    color: theme.colorScheme.secondary,
+      return Row(
+        children: [
+          Expanded(
+            child: Obx(() => TextFieldForm(
+                  label: 'Contraseña',
+                  obscureText: !controller.showPassword.value,
+                  controller: TextEditingController(
+                      text: employeeController.model.password),
+                  validator: employeeController.validatePassword,
+                  onChanged: (value) =>
+                      employeeController.updateEmployee(password: value),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      controller.showPassword.value
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: theme.colorScheme.secondary,
+                    ),
+                    onPressed: () => controller.togglePasswordVisibility(),
                   ),
-                  onPressed: () => controller.togglePasswordVisibility(),
-                ),
-              )),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Obx(() => TextFieldForm(
-                label: 'Confirmar Contraseña',
-                obscureText: !controller.showConfirmPassword.value,
-                controller: TextEditingController(
-                    text: employeeController.confirmPassword?.value ?? ''),
-                validator: employeeController.validateConfirmPassword,
-                onChanged: (value) =>
-                    employeeController.confirmPassword?.value = value,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    controller.showConfirmPassword.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    color: theme.colorScheme.secondary,
-                  ),
-                  onPressed: () => controller.toggleConfirmPasswordVisibility(),
-                ),
-              )),
-        ),
-        Expanded(child: Container()),
-      ],
-    );
+                )),
+          ),
+          const SizedBox(width: 10),
+          Expanded(child: Container()),
+          Expanded(child: Container()),
+        ],
+      );
+    }
+
+    // Fallback si no es el tipo correcto
+    return Container();
   }
 }

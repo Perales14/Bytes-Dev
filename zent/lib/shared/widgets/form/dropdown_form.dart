@@ -6,18 +6,24 @@ class DropdownForm extends StatelessWidget {
   final List<String> opciones;
   final String? value;
   final Function(String?) onChanged;
+  final String? Function(String?)? validator;
 
   const DropdownForm({
     required this.label,
     required this.opciones,
     required this.value,
     required this.onChanged,
+    this.validator,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // Validar que el value esté en la lista de opciones
+    final String? validValue =
+        (value != null && opciones.contains(value)) ? value : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,32 +46,37 @@ class DropdownForm extends StatelessWidget {
               width: 1,
             ),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: value,
-              hint: Text(
-                'Seleccione $label',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.hintColor,
-                ),
-              ),
-              items: opciones.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                );
-              }).toList(),
-              onChanged: onChanged,
-              icon: Icon(
-                Icons.arrow_drop_down,
-                color: theme.colorScheme.secondary,
-              ),
-              dropdownColor: theme.colorScheme.surface,
+          child: DropdownButtonFormField<String>(
+            isExpanded: true,
+            value: validValue,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
             ),
+            hint: Text(
+              'Seleccione $label',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.hintColor,
+              ),
+            ),
+            items: opciones.map((String option) {
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(
+                  option,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            validator: validator,
+            icon: Icon(
+              Icons.arrow_drop_down,
+              color: theme.colorScheme.secondary,
+            ),
+            dropdownColor: theme.colorScheme.surface,
           ),
         ),
       ],

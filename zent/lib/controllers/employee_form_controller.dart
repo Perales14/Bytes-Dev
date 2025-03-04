@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
+import 'package:zent/controllers/validators/validators.dart';
+import 'package:zent/shared/models/employee_model.dart';
 import 'package:zent/shared/widgets/form/file_upload_panel.dart';
 
 class EmployeeFormController extends BaseFormController {
-  // Employee-specific fields
-  final nss = ''.obs;
-  final password = ''.obs;
-  final confirmPassword = ''.obs;
-  final salario = ''.obs;
-  final rol = Rx<String?>(null);
-  final tipoContrato = Rx<String?>(null);
+  // Modelo central que almacena todos los datos del empleado
+  late EmployeeModel model;
 
   // Roles and contract types
   final List<String> roles = [
@@ -27,41 +24,58 @@ class EmployeeFormController extends BaseFormController {
     'Capacitación'
   ];
 
-  // Employee-specific validations
-  String? validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'La contraseña es requerida';
-    }
-    if (value.length < 6) {
-      return 'La contraseña debe tener al menos 6 caracteres';
-    }
-    return null;
+  @override
+  void onInit() {
+    super.onInit();
+    _initializeEmployee();
   }
 
-  String? validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Confirme su contraseña';
-    }
-    if (value != password.value) {
-      return 'Las contraseñas no coinciden';
-    }
-    return null;
+  // Inicializa el modelo de empleado con valores por defecto
+  void _initializeEmployee() {
+    model = EmployeeModel(
+      nombre: '',
+      apellidoPaterno: '',
+      apellidoMaterno: '',
+      correo: '',
+      telefono: '',
+      fechaRegistro: DateTime.now().toString().split(' ')[0],
+      observaciones: '',
+      nss: '',
+      password: '',
+      salario: '',
+      rol: '',
+      tipoContrato: '',
+    );
+  }
+
+  // Employee-specific validations
+  String? validatePassword(String? value) {
+    return validate_Password(value);
   }
 
   String? validateNSS(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El NSS es requerido';
-    }
-    if (value.length != 11) {
-      return 'El NSS debe tener 11 caracteres';
-    }
-    return null;
+    return validate_NSS(value);
+  }
+
+  // Validación para el rol de empleado
+  String? validateRol(String? value) {
+    return validateInList(value, roles, fieldName: 'rol');
+  }
+
+  // Validación para el tipo de contrato
+  String? validateTipoContrato(String? value) {
+    return validateInList(value, tiposContrato, fieldName: 'tipo de contrato');
+  }
+
+  String? validateSalario(String? value) {
+    return validateSalary(value);
   }
 
   @override
   void submitForm() {
-    if (formKey.currentState?.validate() ?? false) {
-      formKey.currentState?.save();
+    if (_validateEmployeeForm()) {
+      // Aquí se podría enviar el empleado a un servicio o repositorio
+      // employeeRepository.save(employee);
 
       Get.snackbar(
         'Éxito',
@@ -71,25 +85,89 @@ class EmployeeFormController extends BaseFormController {
     }
   }
 
+  /// Valida el formulario de empleado antes de enviar
+  ///
+  /// Este método realiza múltiples validaciones:
+  /// 1. Verifica que todos los campos del formulario pasen sus validaciones individuales
+  /// 2. Verifica específicamente que se haya seleccionado un rol
+  /// 3. Verifica específicamente que se haya seleccionado un tipo de contrato
+  ///
+  /// @return true si todas las validaciones pasan, false en caso contrario
+  bool _validateEmployeeForm() {
+    // Validar todos los campos del formulario
+    if (!formKey.currentState!.validate()) {
+      return false;
+    }
+
+    // Validación específica para el rol
+    if (model.rol.isEmpty) {
+      Get.snackbar(
+        'Error de validación',
+        'Debe seleccionar un rol',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+      return false;
+    }
+
+    // Validación específica para el tipo de contrato
+    if (model.tipoContrato.isEmpty) {
+      Get.snackbar(
+        'Error de validación',
+        'Debe seleccionar un tipo de contrato',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
   @override
   void resetForm() {
     formKey.currentState?.reset();
-    nombre.value = '';
-    apellidoPaterno.value = '';
-    apellidoMaterno.value = '';
-    correo.value = '';
-    telefono.value = '';
-    nss.value = '';
-    password.value = '';
-    confirmPassword.value = '';
-    id.value = '';
-    fechaRegistro.value = '';
-    salario.value = '';
-    rol.value = null;
-    tipoContrato.value = null;
-    observaciones.value = '';
+    _initializeEmployee();
     showPassword.value = false;
     showConfirmPassword.value = false;
     files.clear();
+  }
+
+  // Actualiza el modelo del empleado con nuevos valores
+  void updateEmployee({
+    String? nombre,
+    String? apellidoPaterno,
+    String? apellidoMaterno,
+    String? correo,
+    String? telefono,
+    String? observaciones,
+    String? nss,
+    String? password,
+    String? salario,
+    String? rol,
+    String? tipoContrato,
+    String? fechaRegistro,
+  }) {
+    model = model.copyWith(
+      nombre: nombre,
+      apellidoPaterno: apellidoPaterno,
+      apellidoMaterno: apellidoMaterno,
+      correo: correo,
+      telefono: telefono,
+      observaciones: observaciones,
+      nss: nss,
+      password: password,
+      salario: salario,
+      rol: rol,
+      tipoContrato: tipoContrato,
+      fechaRegistro: fechaRegistro,
+    );
+  }
+
+  // Obtener el modelo actual para guardarlo o enviarlo
+  EmployeeModel getEmployeeModel() {
+    return model;
   }
 }

@@ -106,6 +106,8 @@ class EmployeeForm extends StatelessWidget {
   }
 
   Widget _buildObservationsSection() {
+    final theme = Theme.of(Get.context!);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -113,21 +115,19 @@ class EmployeeForm extends StatelessWidget {
           padding: const EdgeInsets.only(top: 0),
           child: Text(
             'Observaciones',
-            style: Theme.of(Get.context!).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(Get.context!).colorScheme.secondary,
-                  fontWeight: FontWeight.bold,
-                ),
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.secondary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 20),
         SizedBox(
           height: 200,
-          child: ReactiveFormField<String>(
-            value: controller.observaciones,
-            builder: (observaciones) => ObservationsField(
-              initialValue: observaciones,
-              onChanged: (value) => controller.observaciones.value = value,
-            ),
+          child: ObservationsField(
+            initialValue: controller.model.observaciones,
+            onChanged: (value) =>
+                controller.updateEmployee(observaciones: value),
           ),
         ),
       ],
@@ -176,28 +176,25 @@ class EmployeeForm extends StatelessWidget {
             Expanded(
               child: LabelDisplay(
                 label: 'ID',
-                value: controller.id.value.isEmpty
-                    ? 'Auto-generado'
-                    : controller.id.value,
+                value: controller.model.id ?? 'Auto-generado',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: LabelDisplay(
                 label: 'Fecha de Registro',
-                value: controller.fechaRegistro.value.isEmpty
-                    ? DateTime.now().toString().split(' ')[0]
-                    : controller.fechaRegistro.value,
+                value: controller.model.fechaRegistro,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Obx(() => DropdownForm(
-                    label: 'Rol',
-                    opciones: controller.roles,
-                    value: controller.rol.value,
-                    onChanged: (value) => controller.rol.value = value,
-                  )),
+              child: DropdownForm(
+                label: 'Rol',
+                opciones: controller.roles,
+                value: controller.model.rol,
+                onChanged: (value) => controller.updateEmployee(rol: value),
+                // validator: controller.validateRol,
+              ),
             ),
           ],
         ),
@@ -207,21 +204,24 @@ class EmployeeForm extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Obx(() => DropdownForm(
-                    label: 'Tipo de Contrato',
-                    opciones: controller.tiposContrato,
-                    value: controller.tipoContrato.value,
-                    onChanged: (value) => controller.tipoContrato.value = value,
-                  )),
+              child: DropdownForm(
+                label: 'Tipo de Contrato',
+                opciones: controller.tiposContrato,
+                value: controller.model.tipoContrato,
+                onChanged: (value) =>
+                    controller.updateEmployee(tipoContrato: value),
+                // validator: controller.validateTipoContrato,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Salario',
                 controller:
-                    TextEditingController(text: controller.salario.value),
+                    TextEditingController(text: controller.model.salario),
                 keyboardType: TextInputType.number,
-                onChanged: (value) => controller.salario.value = value,
+                onChanged: (value) => controller.updateEmployee(salario: value),
+                validator: controller.validateSalario,
               ),
             ),
             const SizedBox(width: 10),
@@ -248,19 +248,14 @@ class EmployeeForm extends StatelessWidget {
         const SizedBox(height: 20),
         SizedBox(
           height: 200,
-          child: ValueListenableBuilder<List<FileData>>(
-            valueListenable: controller.filesNotifier,
-            builder: (context, files, _) {
-              return FileUploadPanel(
-                files: files,
-                onRemove: controller.removeFile,
-                onAdd: () => controller.addFile(FileData(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    name: 'Nuevo documento.pdf',
-                    type: FileType.pdf,
-                    uploadDate: DateTime.now())),
-              );
-            },
+          child: FileUploadPanel(
+            files: controller.model.files,
+            onRemove: controller.removeFile,
+            onAdd: () => controller.addFile(FileData(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                name: 'Nuevo documento.pdf',
+                type: FileType.pdf,
+                uploadDate: DateTime.now())),
           ),
         ),
       ],
