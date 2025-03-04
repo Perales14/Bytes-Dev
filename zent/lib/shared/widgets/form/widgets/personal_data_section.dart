@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
 import 'package:zent/controllers/employee_form_controller.dart';
-import 'package:zent/shared/widgets/form/text_field_form.dart';
+import 'package:zent/shared/widgets/form/widgets/text_field_form.dart';
 
 class PersonalDataSection extends StatelessWidget {
   final BaseFormController controller;
