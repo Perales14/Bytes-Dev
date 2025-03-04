@@ -113,26 +113,26 @@ class ClientForm extends StatelessWidget {
             Expanded(
               child: LabelDisplay(
                 label: 'ID',
-                value: controller.id.value.isEmpty
-                    ? 'Auto-generado'
-                    : controller.id.value,
+                value: controller.model.id ?? 'Auto-generado',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: LabelDisplay(
                 label: 'Fecha de Registro',
-                value: controller.fechaRegistro.value,
+                value: controller.model.fechaRegistro,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Obx(() => DropdownForm(
-                    label: 'Tipo de Cliente',
-                    opciones: controller.tiposCliente,
-                    value: controller.tipoCliente.value,
-                    onChanged: (value) => controller.tipoCliente.value = value,
-                  )),
+              child: DropdownForm(
+                label: 'Tipo de Cliente',
+                opciones: controller.tiposCliente,
+                value: controller.model.tipoCliente,
+                onChanged: (value) {
+                  controller.updateClient(tipoCliente: value);
+                },
+              ),
             ),
           ],
         ),
@@ -145,9 +145,9 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Nombre',
                 controller:
-                    TextEditingController(text: controller.nombre.value),
+                    TextEditingController(text: controller.model.nombre),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.nombre.value = value,
+                onChanged: (value) => controller.updateClient(nombre: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -155,9 +155,10 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: controller.apellidoPaterno.value),
+                    text: controller.model.apellidoPaterno),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.apellidoPaterno.value = value,
+                onChanged: (value) =>
+                    controller.updateClient(apellidoPaterno: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -165,9 +166,10 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: controller.apellidoMaterno.value),
+                    text: controller.model.apellidoMaterno),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.apellidoMaterno.value = value,
+                onChanged: (value) =>
+                    controller.updateClient(apellidoMaterno: value),
               ),
             ),
           ],
@@ -181,9 +183,9 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Correo Electrónico',
                 controller:
-                    TextEditingController(text: controller.correo.value),
+                    TextEditingController(text: controller.model.correo),
                 validator: controller.validateEmail,
-                onChanged: (value) => controller.correo.value = value,
+                onChanged: (value) => controller.updateClient(correo: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -192,9 +194,9 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Teléfono',
                 controller:
-                    TextEditingController(text: controller.telefono.value),
+                    TextEditingController(text: controller.model.telefono),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.telefono.value = value,
+                onChanged: (value) => controller.updateClient(telefono: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -202,9 +204,9 @@ class ClientForm extends StatelessWidget {
             Expanded(
               child: TextFieldForm(
                 label: 'RFC',
-                controller: TextEditingController(text: controller.rfc.value),
+                controller: TextEditingController(text: controller.model.rfc),
                 validator: controller.validateRFC,
-                onChanged: (value) => controller.rfc.value = value,
+                onChanged: (value) => controller.updateClient(rfc: value),
               ),
             ),
           ],
@@ -227,12 +229,9 @@ class ClientForm extends StatelessWidget {
         const SizedBox(height: 20),
         SizedBox(
           height: 230,
-          child: ReactiveFormField<String>(
-            value: controller.observaciones,
-            builder: (observaciones) => ObservationsField(
-              initialValue: observaciones,
-              onChanged: (value) => controller.observaciones.value = value,
-            ),
+          child: ObservationsField(
+            initialValue: controller.model.observaciones,
+            onChanged: (value) => controller.updateClient(observaciones: value),
           ),
         ),
       ],
@@ -259,18 +258,19 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Nombre de la empresa',
                 controller:
-                    TextEditingController(text: controller.nombreEmpresa.value),
+                    TextEditingController(text: controller.model.nombreEmpresa),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.nombreEmpresa.value = value,
+                onChanged: (value) =>
+                    controller.updateClient(nombreEmpresa: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Cargo',
-                controller: TextEditingController(text: controller.cargo.value),
+                controller: TextEditingController(text: controller.model.cargo),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.cargo.value = value,
+                onChanged: (value) => controller.updateClient(cargo: value),
               ),
             ),
           ],
@@ -283,9 +283,9 @@ class ClientForm extends StatelessWidget {
             Expanded(
               child: TextFieldForm(
                 label: 'Calle y Número',
-                controller: TextEditingController(text: controller.calle.value),
+                controller: TextEditingController(text: controller.model.calle),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.calle.value = value,
+                onChanged: (value) => controller.updateClient(calle: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -293,18 +293,18 @@ class ClientForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Colonia',
                 controller:
-                    TextEditingController(text: controller.colonia.value),
+                    TextEditingController(text: controller.model.colonia),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.colonia.value = value,
+                onChanged: (value) => controller.updateClient(colonia: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'CP',
-                controller: TextEditingController(text: controller.cp.value),
+                controller: TextEditingController(text: controller.model.cp),
                 validator: controller.validateCP,
-                onChanged: (value) => controller.cp.value = value,
+                onChanged: (value) => controller.updateClient(cp: value),
                 keyboardType: TextInputType.number,
               ),
             ),

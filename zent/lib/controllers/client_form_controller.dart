@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
+import 'package:zent/shared/models/client_model.dart';
 import 'validators/validators.dart';
-// import 'validators/rfc_validator.dart';
 
 /// Controller for the client registration form
 class ClientFormController extends BaseFormController {
-  // Client specific fields
-  final nombreEmpresa = ''.obs;
-  final cargo = ''.obs;
-  final calle = ''.obs;
-  final colonia = ''.obs;
-  final cp = ''.obs;
-  final rfc = ''.obs;
-  final tipoCliente = Rx<String?>(null);
+  // Modelo central que almacena todos los datos del cliente
+  late ClientModel model;
 
   // Client types
   final List<String> tiposCliente = ['Nuevo', 'Regular', 'VIP', 'Corporativo'];
@@ -21,8 +15,27 @@ class ClientFormController extends BaseFormController {
   @override
   void onInit() {
     super.onInit();
-    // Initialize date with current date
-    fechaRegistro.value = DateTime.now().toString().split(' ')[0];
+    _initializeClient();
+  }
+
+  // Inicializa el modelo de cliente con valores por defecto
+  void _initializeClient() {
+    model = ClientModel(
+      nombre: '',
+      apellidoPaterno: '',
+      apellidoMaterno: '',
+      correo: '',
+      telefono: '',
+      fechaRegistro: DateTime.now().toString().split(' ')[0],
+      observaciones: '',
+      nombreEmpresa: '',
+      cargo: '',
+      calle: '',
+      colonia: '',
+      cp: '',
+      rfc: '',
+      tipoCliente: '',
+    );
   }
 
   // Validation methods
@@ -41,29 +54,15 @@ class ClientFormController extends BaseFormController {
   @override
   void resetForm() {
     formKey.currentState?.reset();
-    // Common fields
-    nombre.value = '';
-    apellidoPaterno.value = '';
-    apellidoMaterno.value = '';
-    correo.value = '';
-    telefono.value = '';
-    observaciones.value = '';
-    id.value = '';
-
-    // Client specific fields
-    nombreEmpresa.value = '';
-    cargo.value = '';
-    calle.value = '';
-    colonia.value = '';
-    cp.value = '';
-    rfc.value = '';
-    tipoCliente.value = null;
-    fechaRegistro.value = DateTime.now().toString().split(' ')[0];
+    _initializeClient();
   }
 
   @override
   void submitForm() {
     if (_validateClientForm()) {
+      // Aquí se podría enviar el cliente a un servicio o repositorio
+      // clientRepository.save(client);
+
       Get.snackbar(
         'Éxito',
         'Cliente registrado correctamente',
@@ -72,12 +71,21 @@ class ClientFormController extends BaseFormController {
     }
   }
 
+  /// Valida el formulario de cliente antes de enviar
+  ///
+  /// Este método realiza dos validaciones:
+  /// 1. Verifica que todos los campos del formulario pasen sus validaciones individuales
+  /// 2. Verifica específicamente que se haya seleccionado un tipo de cliente
+  ///
+  /// @return true si todas las validaciones pasan, false en caso contrario
   bool _validateClientForm() {
+    // Validar todos los campos del formulario (nombre, correo, etc.)
     if (!formKey.currentState!.validate()) {
       return false;
     }
 
-    if (tipoCliente.value == null) {
+    // Validación específica para el tipo de cliente
+    if (model.tipoCliente.isEmpty) {
       Get.snackbar(
         'Error de validación',
         'Debe seleccionar un tipo de cliente',
@@ -89,5 +97,45 @@ class ClientFormController extends BaseFormController {
     }
 
     return true;
+  }
+
+  // Actualiza el modelo del cliente con nuevos valores
+  void updateClient({
+    String? nombre,
+    String? apellidoPaterno,
+    String? apellidoMaterno,
+    String? correo,
+    String? telefono,
+    String? observaciones,
+    String? nombreEmpresa,
+    String? cargo,
+    String? calle,
+    String? colonia,
+    String? cp,
+    String? rfc,
+    String? tipoCliente,
+    String? fechaRegistro,
+  }) {
+    model = model.copyWith(
+      nombre: nombre,
+      apellidoPaterno: apellidoPaterno,
+      apellidoMaterno: apellidoMaterno,
+      correo: correo,
+      telefono: telefono,
+      observaciones: observaciones,
+      nombreEmpresa: nombreEmpresa,
+      cargo: cargo,
+      calle: calle,
+      colonia: colonia,
+      cp: cp,
+      rfc: rfc,
+      tipoCliente: tipoCliente,
+      fechaRegistro: fechaRegistro,
+    );
+  }
+
+  // Obtener el modelo actual para guardarlo o enviarlo
+  ClientModel getClientModel() {
+    return model;
   }
 }

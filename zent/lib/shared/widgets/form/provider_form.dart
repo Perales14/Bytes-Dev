@@ -4,7 +4,6 @@ import 'package:zent/controllers/provider_form_controller.dart';
 import 'package:zent/shared/models/form_config.dart';
 import 'package:zent/shared/widgets/form/button_form.dart';
 import 'package:zent/shared/widgets/form/observations_field.dart';
-import 'package:zent/shared/widgets/form/reactive_form_field.dart';
 import 'package:zent/shared/widgets/form/label_display.dart';
 import 'package:zent/shared/widgets/form/dropdown_form.dart';
 import 'package:zent/shared/widgets/form/text_field_form.dart';
@@ -121,26 +120,25 @@ class ProviderForm extends StatelessWidget {
             Expanded(
               child: LabelDisplay(
                 label: 'ID',
-                value: controller.id.value.isEmpty
-                    ? 'Auto-generado'
-                    : controller.id.value,
+                value: controller.provider.id ?? 'Auto-generado',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: LabelDisplay(
                 label: 'Fecha de Registro',
-                value: controller.fechaRegistro.value,
+                value: controller.provider.fechaRegistro,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: Obx(() => DropdownForm(
-                    label: 'Tipo de Servicio',
-                    opciones: controller.tiposServicio,
-                    value: controller.tipoServicio.value,
-                    onChanged: (value) => controller.tipoServicio.value = value,
-                  )),
+              child: DropdownForm(
+                label: 'Tipo de Servicio',
+                opciones: controller.tiposServicio,
+                value: controller.provider.tipoServicio,
+                onChanged: (value) =>
+                    controller.updateProvider(tipoServicio: value),
+              ),
             ),
           ],
         ),
@@ -153,9 +151,9 @@ class ProviderForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Nombre',
                 controller:
-                    TextEditingController(text: controller.nombre.value),
+                    TextEditingController(text: controller.provider.nombre),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.nombre.value = value,
+                onChanged: (value) => controller.updateProvider(nombre: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -163,9 +161,10 @@ class ProviderForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: controller.apellidoPaterno.value),
+                    text: controller.provider.apellidoPaterno),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.apellidoPaterno.value = value,
+                onChanged: (value) =>
+                    controller.updateProvider(apellidoPaterno: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -173,9 +172,10 @@ class ProviderForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: controller.apellidoMaterno.value),
+                    text: controller.provider.apellidoMaterno),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.apellidoMaterno.value = value,
+                onChanged: (value) =>
+                    controller.updateProvider(apellidoMaterno: value),
               ),
             ),
           ],
@@ -189,9 +189,9 @@ class ProviderForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Correo Electrónico',
                 controller:
-                    TextEditingController(text: controller.correo.value),
+                    TextEditingController(text: controller.provider.correo),
                 validator: controller.validateEmail,
-                onChanged: (value) => controller.correo.value = value,
+                onChanged: (value) => controller.updateProvider(correo: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -200,9 +200,10 @@ class ProviderForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Teléfono',
                 controller:
-                    TextEditingController(text: controller.telefono.value),
+                    TextEditingController(text: controller.provider.telefono),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.telefono.value = value,
+                onChanged: (value) =>
+                    controller.updateProvider(telefono: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -210,9 +211,10 @@ class ProviderForm extends StatelessWidget {
             Expanded(
               child: TextFieldForm(
                 label: 'RFC',
-                controller: TextEditingController(text: controller.rfc.value),
+                controller:
+                    TextEditingController(text: controller.provider.rfc),
                 validator: controller.validateRFC,
-                onChanged: (value) => controller.rfc.value = value,
+                onChanged: (value) => controller.updateProvider(rfc: value),
               ),
             ),
           ],
@@ -237,12 +239,10 @@ class ProviderForm extends StatelessWidget {
         const SizedBox(height: 20),
         SizedBox(
           height: 230, // Altura equivalente a aprox. tres filas de campos
-          child: ReactiveFormField<String>(
-            value: controller.observaciones,
-            builder: (observaciones) => ObservationsField(
-              initialValue: observaciones,
-              onChanged: (value) => controller.observaciones.value = value,
-            ),
+          child: ObservationsField(
+            initialValue: controller.provider.observaciones,
+            onChanged: (value) =>
+                controller.updateProvider(observaciones: value),
           ),
         ),
       ],
@@ -268,19 +268,21 @@ class ProviderForm extends StatelessWidget {
             Expanded(
               child: TextFieldForm(
                 label: 'Nombre de la Empresa',
-                controller:
-                    TextEditingController(text: controller.nombreEmpresa.value),
+                controller: TextEditingController(
+                    text: controller.provider.nombreEmpresa),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.nombreEmpresa.value = value,
+                onChanged: (value) =>
+                    controller.updateProvider(nombreEmpresa: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Cargo',
-                controller: TextEditingController(text: controller.cargo.value),
+                controller:
+                    TextEditingController(text: controller.provider.cargo),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.cargo.value = value,
+                onChanged: (value) => controller.updateProvider(cargo: value),
               ),
             ),
           ],
@@ -293,9 +295,10 @@ class ProviderForm extends StatelessWidget {
             Expanded(
               child: TextFieldForm(
                 label: 'Calle y Número',
-                controller: TextEditingController(text: controller.calle.value),
+                controller:
+                    TextEditingController(text: controller.provider.calle),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.calle.value = value,
+                onChanged: (value) => controller.updateProvider(calle: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -303,18 +306,18 @@ class ProviderForm extends StatelessWidget {
               child: TextFieldForm(
                 label: 'Colonia',
                 controller:
-                    TextEditingController(text: controller.colonia.value),
+                    TextEditingController(text: controller.provider.colonia),
                 validator: controller.validateRequired,
-                onChanged: (value) => controller.colonia.value = value,
+                onChanged: (value) => controller.updateProvider(colonia: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Código Postal',
-                controller: TextEditingController(text: controller.cp.value),
+                controller: TextEditingController(text: controller.provider.cp),
                 validator: controller.validateCP,
-                onChanged: (value) => controller.cp.value = value,
+                onChanged: (value) => controller.updateProvider(cp: value),
                 keyboardType: TextInputType.number,
               ),
             ),
