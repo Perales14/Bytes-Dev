@@ -1,4 +1,4 @@
-import 'package:zent/shared/widgets/form/file_upload_panel.dart';
+import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
 
 class BaseModel {
   final String? id;

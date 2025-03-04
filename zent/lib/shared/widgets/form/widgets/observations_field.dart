@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:zent/shared/widgets/form/widgets/base_form_field.dart';
 
 class ObservationsField extends StatefulWidget {
   final String initialValue;
@@ -24,8 +24,6 @@ class _ObservacionesFieldState extends State<ObservationsField> {
     super.initState();
     _controller =
         TextEditingController(text: _processBulletPoints(widget.initialValue));
-
-    // Add listener to handle Enter key presses
     _controller.addListener(_handleTextChange);
   }
 
@@ -37,7 +35,6 @@ class _ObservacionesFieldState extends State<ObservationsField> {
     super.dispose();
   }
 
-  // Process the text to add bullet points at each new line
   String _processBulletPoints(String text) {
     if (text.isEmpty) return '';
 
@@ -90,40 +87,15 @@ class _ObservacionesFieldState extends State<ObservationsField> {
     return TextField(
       controller: _controller,
       focusNode: _focusNode,
-      maxLines: null, // Allow unlimited lines
-      expands: true, // Make it expand to fill space
-      textAlignVertical: TextAlignVertical.top, // Align text to top
+      maxLines: null,
+      expands: true,
+      textAlignVertical: TextAlignVertical.top,
       style: theme.textTheme.bodyMedium,
-      decoration: InputDecoration(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        filled: true,
-        fillColor: theme.colorScheme.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(
-            color: theme.colorScheme.secondary.withOpacity(0.6),
-            width: 1.2,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(
-            color: theme.colorScheme.secondary.withOpacity(0.4),
-            width: 1.2,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(
-            color: theme.colorScheme.secondary,
-            width: 1.5,
-          ),
-        ),
+      decoration: BaseFormField.buildInputDecoration(
+        theme: theme,
+      ).copyWith(
         hintText: 'Agregar observaciones...',
-        hintStyle: TextStyle(
-          color: theme.hintColor,
-        ),
+        hintStyle: TextStyle(color: theme.hintColor),
       ),
     );
   }

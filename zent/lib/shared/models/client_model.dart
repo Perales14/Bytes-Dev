@@ -1,4 +1,4 @@
-import 'package:zent/shared/widgets/form/file_upload_panel.dart';
+import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'package:zent/shared/models/base_model.dart';
 
 class ClientModel extends BaseModel {

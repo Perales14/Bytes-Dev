@@ -1,75 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:zent/controllers/client_form_controller.dart';
 import 'package:zent/shared/models/form_config.dart';
-import 'package:zent/shared/widgets/form/button_form.dart';
-import 'package:zent/shared/widgets/form/text_field_form.dart';
-import 'package:zent/shared/widgets/form/dropdown_form.dart';
-import 'package:zent/shared/widgets/form/reactive_form_field.dart';
-import 'package:zent/shared/widgets/form/label_display.dart';
-import 'package:zent/shared/widgets/form/observations_field.dart';
+import 'package:zent/shared/widgets/form/base_form.dart';
+import 'package:zent/shared/widgets/form/widgets/text_field_form.dart';
+import 'package:zent/shared/widgets/form/widgets/dropdown_form.dart';
+import 'package:zent/shared/widgets/form/widgets/label_display.dart';
 
-class ClientForm extends StatelessWidget {
+class ClientForm extends BaseForm {
+  @override
   final ClientFormController controller;
-  final FormConfig config;
 
   const ClientForm({
     required this.controller,
-    required this.config,
+    required super.config,
     super.key,
-  });
+  }) : super(controller: controller);
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: _buildContainerDecoration(theme),
-      child: Form(
-        key: controller.formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildFormTitle(theme),
-              const SizedBox(height: 30),
-              _buildClientDataAndObservations(theme),
-              const SizedBox(height: 30),
-              _buildCompanyData(theme),
-              const SizedBox(height: 30),
-              _buildActionButtons(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+    return Column(
+      children: [
+        // Datos del cliente y Observaciones
+        _buildClientDataAndObservations(theme),
+        const SizedBox(height: 30),
 
-  BoxDecoration _buildContainerDecoration(ThemeData theme) {
-    return BoxDecoration(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(
-        color: theme.colorScheme.onSurface.withOpacity(0.2),
-        width: 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: theme.colorScheme.onSurface.withOpacity(0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
+        // Datos de la empresa
+        _buildCompanyData(theme),
       ],
-    );
-  }
-
-  Widget _buildFormTitle(ThemeData theme) {
-    return Center(
-      child: Text(
-        config.title,
-        style: theme.textTheme.displayLarge,
-      ),
     );
   }
 
@@ -77,18 +36,22 @@ class ClientForm extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Client data
+        // Datos del cliente
         Expanded(
           flex: 2,
           child: _buildClientDataSection(theme),
         ),
         const SizedBox(width: 20),
 
-        // Observations
+        // Observaciones
         if (config.showObservations)
           Expanded(
             flex: config.observationsFlex,
-            child: _buildObservationsSection(theme),
+            child: buildObservationsSection(
+              theme,
+              controller.model.observaciones,
+              (value) => controller.updateClient(observaciones: value),
+            ),
           ),
       ],
     );
@@ -98,16 +61,10 @@ class ClientForm extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Datos del Cliente',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        buildSectionTitle(theme, 'Datos del Cliente'),
         const SizedBox(height: 20),
 
-        // Row 1: ID, Registration Date, Client Type
+        // ID, Fecha de Registro, Tipo de Cliente
         Row(
           children: [
             Expanded(
@@ -129,16 +86,15 @@ class ClientForm extends StatelessWidget {
                 label: 'Tipo de Cliente',
                 opciones: controller.tiposCliente,
                 value: controller.model.tipoCliente,
-                onChanged: (value) {
-                  controller.updateClient(tipoCliente: value);
-                },
+                onChanged: (value) =>
+                    controller.updateClient(tipoCliente: value),
               ),
             ),
           ],
         ),
         const SizedBox(height: 10),
 
-        // Row 2: Name, Last Names
+        // Nombre, Apellido Paterno, Apellido Materno
         Row(
           children: [
             Expanded(
@@ -176,7 +132,7 @@ class ClientForm extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Row 3: Email, Phone, RFC
+        // Correo, Teléfono, RFC
         Row(
           children: [
             Expanded(
@@ -215,43 +171,14 @@ class ClientForm extends StatelessWidget {
     );
   }
 
-  Widget _buildObservationsSection(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Observaciones',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          height: 230,
-          child: ObservationsField(
-            initialValue: controller.model.observaciones,
-            onChanged: (value) => controller.updateClient(observaciones: value),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCompanyData(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Datos de la Empresa',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        buildSectionTitle(theme, 'Datos de la Empresa'),
         const SizedBox(height: 20),
 
-        // Row 1: Company Name, Position
+        // Nombre Empresa, Cargo
         Row(
           children: [
             Expanded(
@@ -277,7 +204,7 @@ class ClientForm extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Row 2: Street, Neighborhood, Postal Code
+        // Calle, Colonia, CP
         Row(
           children: [
             Expanded(
@@ -309,25 +236,6 @@ class ClientForm extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ButtonForm(
-          texto: config.secondaryButtonText,
-          onPressed: () => controller.resetForm(),
-          isPrimary: false,
-        ),
-        const SizedBox(width: 100),
-        ButtonForm(
-          texto: config.primaryButtonText,
-          onPressed: () => controller.submitForm(),
-          icon: Icons.add,
         ),
       ],
     );

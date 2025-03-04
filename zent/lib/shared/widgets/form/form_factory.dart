@@ -10,8 +10,8 @@ import 'package:zent/shared/widgets/form/client_form.dart';
 import 'package:zent/shared/widgets/form/employee_form.dart';
 import 'package:zent/shared/widgets/form/provider_form.dart';
 
-/// Un componente que renderiza formularios dinámicamente
-class DynamicForm extends StatelessWidget {
+/// Factory para crear formularios según el tipo especificado
+class FormFactory extends StatelessWidget {
   /// El tipo de formulario a mostrar
   final FormType formType;
 
@@ -21,7 +21,7 @@ class DynamicForm extends StatelessWidget {
   /// Tag único para el controlador con GetX
   final String? controllerTag;
 
-  const DynamicForm({
+  const FormFactory({
     required this.formType,
     this.customConfig,
     this.controllerTag,
@@ -60,16 +60,12 @@ class DynamicForm extends StatelessWidget {
 
   T _getOrCreateController<T extends BaseFormController>(
       T Function() createFn) {
-    // Si hay un tag, usarlo para registrar/recuperar el controlador
-    final tag = controllerTag;
-
-    if (tag != null) {
-      if (!Get.isRegistered<T>(tag: tag)) {
-        Get.put<T>(createFn(), tag: tag);
+    if (controllerTag != null) {
+      if (!Get.isRegistered<T>(tag: controllerTag)) {
+        Get.put<T>(createFn(), tag: controllerTag);
       }
-      return Get.find<T>(tag: tag);
+      return Get.find<T>(tag: controllerTag);
     } else {
-      // Sin tag, crear instancia efímera para uso local
       if (!Get.isRegistered<T>()) {
         Get.put<T>(createFn());
       }

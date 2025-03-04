@@ -21,9 +21,9 @@ class LabelDisplay extends StatelessWidget {
       children: [
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(
+          style: theme.textTheme.bodyLarge?.copyWith(
             color: labelColor ?? theme.colorScheme.secondary,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 6),

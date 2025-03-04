@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:zent/shared/widgets/form/widgets/base_form_field.dart';
 
 class TextFieldForm extends StatelessWidget {
   final String label;
@@ -32,7 +32,6 @@ class TextFieldForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,37 +55,12 @@ class TextFieldForm extends StatelessWidget {
           focusNode: focusNode,
           readOnly: readOnly,
           autofocus: autofocus,
-          decoration: _buildInputDecoration(theme),
+          decoration: BaseFormField.buildInputDecoration(
+            theme: theme,
+            suffixIcon: suffixIcon,
+          ),
         ),
       ],
-    );
-  }
-
-  InputDecoration _buildInputDecoration(ThemeData theme) {
-    return InputDecoration(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      filled: true,
-      fillColor: theme.colorScheme.surface,
-      border: _buildBorderStyle(
-          theme, theme.colorScheme.secondary.withOpacity(0.6)),
-      enabledBorder: _buildBorderStyle(
-          theme, theme.colorScheme.secondary.withOpacity(0.4)),
-      focusedBorder:
-          _buildBorderStyle(theme, theme.colorScheme.secondary, width: 1.5),
-      errorBorder:
-          _buildBorderStyle(theme, theme.colorScheme.error, width: 1.5),
-      suffixIcon: suffixIcon,
-    );
-  }
-
-  OutlineInputBorder _buildBorderStyle(ThemeData theme, Color color,
-      {double width = 1.2}) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(
-        color: color,
-        width: width,
-      ),
     );
   }
 }

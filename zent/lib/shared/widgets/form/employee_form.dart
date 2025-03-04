@@ -2,96 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/employee_form_controller.dart';
 import 'package:zent/shared/models/form_config.dart';
-import 'package:zent/shared/widgets/form/button_form.dart';
-import 'package:zent/shared/widgets/form/observations_field.dart';
-import 'package:zent/shared/widgets/form/file_upload_panel.dart';
-import 'package:zent/shared/widgets/form/reactive_form_field.dart';
-import 'package:zent/shared/widgets/form/label_display.dart';
-import 'package:zent/shared/widgets/form/dropdown_form.dart';
-import 'package:zent/shared/widgets/form/personal_data_section.dart';
-import 'package:zent/shared/widgets/form/text_field_form.dart';
+import 'package:zent/shared/widgets/form/base_form.dart';
+import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
+import 'package:zent/shared/widgets/form/widgets/label_display.dart';
+import 'package:zent/shared/widgets/form/widgets/dropdown_form.dart';
+import 'package:zent/shared/widgets/form/widgets/text_field_form.dart';
 
-class EmployeeForm extends StatelessWidget {
+class EmployeeForm extends BaseForm {
+  @override
   final EmployeeFormController controller;
-  final FormConfig config;
 
   const EmployeeForm({
     required this.controller,
-    required this.config,
+    required super.config,
     super.key,
-  });
+  }) : super(controller: controller);
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: _buildContainerDecoration(theme),
-      child: Form(
-        key: controller.formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Título
-            _buildFormTitle(theme),
-            const SizedBox(height: 30),
+    return Column(
+      children: [
+        // Datos personales y Observaciones
+        _buildPersonalDataAndObservations(theme),
+        const SizedBox(height: 30),
 
-            // Datos personales y Observaciones
-            _buildPersonalDataAndObservations(),
-            const SizedBox(height: 30),
-
-            // Datos de la empresa y archivos
-            _buildCompanyDataAndFiles(),
-            const SizedBox(height: 30),
-
-            // Botones
-            _buildActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _buildContainerDecoration(ThemeData theme) {
-    return BoxDecoration(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(
-        color: theme.colorScheme.onSurface.withOpacity(0.2),
-        width: 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: theme.colorScheme.onSurface.withOpacity(0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
+        // Datos de la empresa y archivos
+        _buildCompanyDataAndFiles(theme),
       ],
     );
   }
 
-  Widget _buildFormTitle(ThemeData theme) {
-    return Center(
-      child: Text(
-        config.title,
-        style: theme.textTheme.displayLarge,
-      ),
-    );
-  }
-
-  Widget _buildPersonalDataAndObservations() {
+  Widget _buildPersonalDataAndObservations(ThemeData theme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Datos personales
         Expanded(
           flex: 2,
-          child: PersonalDataSection(
-            controller: controller,
-            showNSS: true,
-            showPassword: true,
-          ),
+          child: _buildPersonalDataSection(theme),
         ),
         const SizedBox(width: 20),
 
@@ -99,75 +49,179 @@ class EmployeeForm extends StatelessWidget {
         if (config.showObservations)
           Expanded(
             flex: config.observationsFlex,
-            child: _buildObservationsSection(),
+            child: buildObservationsSection(
+              theme,
+              controller.model.observaciones,
+              (value) => controller.updateEmployee(observaciones: value),
+            ),
           ),
       ],
     );
   }
 
-  Widget _buildObservationsSection() {
-    final theme = Theme.of(Get.context!);
-
+  Widget _buildPersonalDataSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 0),
-          child: Text(
-            'Observaciones',
-            style: theme.textTheme.titleSmall?.copyWith(
-              color: theme.colorScheme.secondary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
+        buildSectionTitle(theme, 'Datos Personales'),
         const SizedBox(height: 20),
-        SizedBox(
-          height: 200,
-          child: ObservationsField(
-            initialValue: controller.model.observaciones,
-            onChanged: (value) =>
-                controller.updateEmployee(observaciones: value),
-          ),
+
+        // Nombre, Apellido Paterno, Apellido Materno
+        Row(
+          children: [
+            Expanded(
+              child: TextFieldForm(
+                label: 'Nombre',
+                controller:
+                    TextEditingController(text: controller.model.nombre),
+                validator: controller.validateRequired,
+                onChanged: (value) => controller.updateBaseModel(nombre: value),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Apellido Paterno',
+                controller: TextEditingController(
+                    text: controller.model.apellidoPaterno),
+                validator: controller.validateRequired,
+                onChanged: (value) =>
+                    controller.updateBaseModel(apellidoPaterno: value),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Apellido Materno',
+                controller: TextEditingController(
+                    text: controller.model.apellidoMaterno),
+                validator: controller.validateRequired,
+                onChanged: (value) =>
+                    controller.updateBaseModel(apellidoMaterno: value),
+              ),
+            ),
+          ],
         ),
+        const SizedBox(height: 10),
+
+        // Correo, Teléfono, NSS
+        Row(
+          children: [
+            Expanded(
+              child: TextFieldForm(
+                label: 'Correo Electrónico',
+                controller:
+                    TextEditingController(text: controller.model.correo),
+                validator: controller.validateEmail,
+                onChanged: (value) => controller.updateBaseModel(correo: value),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Teléfono',
+                controller:
+                    TextEditingController(text: controller.model.telefono),
+                validator: controller.validateRequired,
+                onChanged: (value) =>
+                    controller.updateBaseModel(telefono: value),
+                keyboardType: TextInputType.phone,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'NSS',
+                controller: TextEditingController(text: controller.model.nss),
+                validator: controller.validateNSS,
+                onChanged: (value) => controller.updateEmployee(nss: value),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // Contraseña y Confirmación de Contraseña
+        _buildPasswordSection(theme),
       ],
     );
   }
 
-  Widget _buildCompanyDataAndFiles() {
+  Widget _buildPasswordSection(ThemeData theme) {
+    // Solo usamos Obx para el icono de mostrar/ocultar contraseña
+    return Obx(() => Row(
+          children: [
+            Expanded(
+              child: TextFieldForm(
+                label: 'Contraseña',
+                obscureText: !controller.showPassword.value,
+                controller:
+                    TextEditingController(text: controller.model.password),
+                validator: controller.validatePassword,
+                onChanged: (value) =>
+                    controller.updateEmployee(password: value),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    controller.showPassword.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: theme.colorScheme.secondary,
+                  ),
+                  onPressed: () => controller.togglePasswordVisibility(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Confirmar Contraseña',
+                obscureText: !controller.showPassword.value,
+                controller:
+                    TextEditingController(text: controller.confirmPassword),
+                validator: controller.validateConfirmPassword,
+                onChanged: controller.updateConfirmPassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    controller.showPassword.value
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                    color: theme.colorScheme.secondary,
+                  ),
+                  onPressed: () => controller.togglePasswordVisibility(),
+                ),
+              ),
+            ),
+            Expanded(child: Container()),
+          ],
+        ));
+  }
+
+  Widget _buildCompanyDataAndFiles(ThemeData theme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Datos de la empresa
         Expanded(
           flex: 2,
-          child: _buildCompanyDataSection(),
+          child: _buildCompanyDataSection(theme),
         ),
         const SizedBox(width: 20),
 
         // Archivos
         if (config.showFiles)
           Expanded(
-            flex: 1,
-            child: _buildFilesSection(),
+            child: _buildFilesSection(theme),
           ),
       ],
     );
   }
 
-  Widget _buildCompanyDataSection() {
-    final theme = Theme.of(Get.context!);
-
+  Widget _buildCompanyDataSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Datos de la Empresa',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        buildSectionTitle(theme, 'Datos de la Empresa'),
         const SizedBox(height: 20),
 
         // ID, Fecha de Registro, Rol
@@ -193,7 +247,6 @@ class EmployeeForm extends StatelessWidget {
                 opciones: controller.roles,
                 value: controller.model.rol,
                 onChanged: (value) => controller.updateEmployee(rol: value),
-                // validator: controller.validateRol,
               ),
             ),
           ],
@@ -210,7 +263,6 @@ class EmployeeForm extends StatelessWidget {
                 value: controller.model.tipoContrato,
                 onChanged: (value) =>
                     controller.updateEmployee(tipoContrato: value),
-                // validator: controller.validateTipoContrato,
               ),
             ),
             const SizedBox(width: 10),
@@ -232,19 +284,11 @@ class EmployeeForm extends StatelessWidget {
     );
   }
 
-  Widget _buildFilesSection() {
-    final theme = Theme.of(Get.context!);
-
+  Widget _buildFilesSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Archivos',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        buildSectionTitle(theme, 'Archivos'),
         const SizedBox(height: 20),
         SizedBox(
           height: 200,
@@ -257,25 +301,6 @@ class EmployeeForm extends StatelessWidget {
                 type: FileType.pdf,
                 uploadDate: DateTime.now())),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ButtonForm(
-          texto: config.secondaryButtonText,
-          onPressed: () => controller.resetForm(),
-          isPrimary: false,
-        ),
-        const SizedBox(width: 100),
-        ButtonForm(
-          texto: config.primaryButtonText,
-          onPressed: () => controller.submitForm(),
-          icon: Icons.add,
         ),
       ],
     );

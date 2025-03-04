@@ -1,91 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:zent/controllers/provider_form_controller.dart';
 import 'package:zent/shared/models/form_config.dart';
-import 'package:zent/shared/widgets/form/button_form.dart';
-import 'package:zent/shared/widgets/form/observations_field.dart';
-import 'package:zent/shared/widgets/form/label_display.dart';
-import 'package:zent/shared/widgets/form/dropdown_form.dart';
-import 'package:zent/shared/widgets/form/text_field_form.dart';
+import 'package:zent/shared/widgets/form/base_form.dart';
+import 'package:zent/shared/widgets/form/widgets/text_field_form.dart';
+import 'package:zent/shared/widgets/form/widgets/dropdown_form.dart';
+import 'package:zent/shared/widgets/form/widgets/label_display.dart';
 
-class ProviderForm extends StatelessWidget {
+class ProviderForm extends BaseForm {
+  @override
   final ProviderFormController controller;
-  final FormConfig config;
 
   const ProviderForm({
     required this.controller,
-    required this.config,
+    required super.config,
     super.key,
-  });
+  }) : super(controller: controller);
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: _buildContainerDecoration(theme),
-      child: Form(
-        key: controller.formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildFormTitle(theme),
-              const SizedBox(height: 30),
+    return Column(
+      children: [
+        // Datos de contacto y Observaciones
+        _buildContactDataAndObservations(theme),
+        const SizedBox(height: 30),
 
-              // Datos personales y observaciones
-              _buildPersonalDataAndObservations(),
-              const SizedBox(height: 30),
-
-              // Datos de la empresa
-              _buildCompanyData(theme),
-              const SizedBox(height: 30),
-
-              // Botones de acción
-              _buildActionButtons(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _buildContainerDecoration(ThemeData theme) {
-    return BoxDecoration(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(
-        color: theme.colorScheme.onSurface.withOpacity(0.2),
-        width: 1,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: theme.colorScheme.onSurface.withOpacity(0.05),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
+        // Datos de la empresa
+        _buildCompanyData(theme),
       ],
     );
   }
 
-  Widget _buildFormTitle(ThemeData theme) {
-    return Center(
-      child: Text(
-        config.title,
-        style: theme.textTheme.displayLarge,
-      ),
-    );
-  }
-
-  Widget _buildPersonalDataAndObservations() {
+  Widget _buildContactDataAndObservations(ThemeData theme) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Datos personales
+        // Datos de contacto
         Expanded(
           flex: 2,
-          child: _buildPersonalDataSection(),
+          child: _buildContactDataSection(theme),
         ),
         const SizedBox(width: 20),
 
@@ -93,25 +47,21 @@ class ProviderForm extends StatelessWidget {
         if (config.showObservations)
           Expanded(
             flex: config.observationsFlex,
-            child: _buildObservationsSection(),
+            child: buildObservationsSection(
+              theme,
+              controller.provider.observaciones,
+              (value) => controller.updateProvider(observaciones: value),
+            ),
           ),
       ],
     );
   }
 
-  Widget _buildPersonalDataSection() {
-    final theme = Theme.of(Get.context!);
-
+  Widget _buildContactDataSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Datos de Contacto',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        buildSectionTitle(theme, 'Datos de Contacto'),
         const SizedBox(height: 20),
 
         // ID, Fecha de Registro, Tipo de Servicio
@@ -223,43 +173,11 @@ class ProviderForm extends StatelessWidget {
     );
   }
 
-  Widget _buildObservationsSection() {
-    final theme = Theme.of(Get.context!);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Observaciones',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 20),
-        SizedBox(
-          height: 230, // Altura equivalente a aprox. tres filas de campos
-          child: ObservationsField(
-            initialValue: controller.provider.observaciones,
-            onChanged: (value) =>
-                controller.updateProvider(observaciones: value),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCompanyData(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Datos de la Empresa',
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.secondary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        buildSectionTitle(theme, 'Datos de la Empresa'),
         const SizedBox(height: 20),
 
         // Nombre Empresa, Cargo
@@ -322,25 +240,6 @@ class ProviderForm extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ButtonForm(
-          texto: config.secondaryButtonText,
-          onPressed: () => controller.resetForm(),
-          isPrimary: false,
-        ),
-        const SizedBox(width: 100),
-        ButtonForm(
-          texto: config.primaryButtonText,
-          onPressed: () => controller.submitForm(),
-          icon: Icons.add,
         ),
       ],
     );
