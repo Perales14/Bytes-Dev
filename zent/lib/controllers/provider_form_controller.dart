@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
+import 'package:zent/controllers/validators/validators.dart';
 
 class ProviderFormController extends BaseFormController {
   // Company data
@@ -36,23 +37,11 @@ class ProviderFormController extends BaseFormController {
   }
 
   String? validateRFC(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El RFC es requerido';
-    }
-    if (value.length != 13) {
-      return 'El RFC debe tener 13 caracteres';
-    }
-    return null;
+    return validate_RFC(value);
   }
 
   String? validateCP(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El código postal es requerido';
-    }
-    if (!GetUtils.isNumericOnly(value) || value.length != 5) {
-      return 'Ingrese un código postal válido (5 dígitos)';
-    }
-    return null;
+    return validate_CP(value);
   }
 
   @override

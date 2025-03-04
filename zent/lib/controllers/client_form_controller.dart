@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
+import 'validators/validators.dart';
+// import 'validators/rfc_validator.dart';
 
 /// Controller for the client registration form
 class ClientFormController extends BaseFormController {
@@ -25,23 +27,15 @@ class ClientFormController extends BaseFormController {
 
   // Validation methods
   String? validateRFC(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El RFC es requerido';
-    }
-    if (value.length != 13) {
-      return 'El RFC debe tener 13 caracteres';
-    }
-    return null;
+    return validate_RFC(value);
   }
 
   String? validateCP(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El código postal es requerido';
-    }
-    if (value.length != 5 || !GetUtils.isNumericOnly(value)) {
-      return 'Ingrese un código postal válido (5 dígitos)';
-    }
-    return null;
+    return validate_CP(value);
+  }
+
+  String? validateTipoCliente(String? value) {
+    return validateInList(value, tiposCliente, fieldName: 'tipo de cliente');
   }
 
   @override

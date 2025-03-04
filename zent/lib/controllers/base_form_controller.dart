@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/shared/widgets/form/file_upload_panel.dart';
+import 'validators/validators.dart';
 
 abstract class BaseFormController extends GetxController {
   // Form key
@@ -42,13 +43,7 @@ abstract class BaseFormController extends GetxController {
   }
 
   String? validateEmail(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'El correo electrónico es requerido';
-    }
-    if (!GetUtils.isEmail(value)) {
-      return 'Ingrese un correo electrónico válido';
-    }
-    return null;
+    return validate_Email(value);
   }
 
   // File handling methods
