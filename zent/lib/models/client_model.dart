@@ -1,5 +1,5 @@
 import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
-import 'package:zent/shared/models/base_model.dart';
+import 'package:zent/models/base_model.dart';
 
 class ClientModel extends BaseModel {
   // Cliente específico

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zent/controllers/provider_form_controller.dart';
-import 'package:zent/shared/models/form_config.dart';
+import 'package:zent/models/form_config.dart';
 import 'package:zent/shared/widgets/form/base_form.dart';
 import 'package:zent/shared/widgets/form/widgets/text_field_form.dart';
 import 'package:zent/shared/widgets/form/widgets/dropdown_form.dart';

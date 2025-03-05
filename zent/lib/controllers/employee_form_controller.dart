@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
 import 'package:zent/controllers/validators/validators.dart';
-import 'package:zent/shared/models/employee_model.dart';
+import 'package:zent/models/employee_model.dart';
 import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
 
 class EmployeeFormController extends BaseFormController {

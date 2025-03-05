@@ -5,7 +5,7 @@ import 'package:zent/controllers/client_form_controller.dart';
 import 'package:zent/controllers/employee_form_controller.dart';
 import 'package:zent/controllers/provider_form_controller.dart';
 import 'package:zent/shared/factories/form_factory.dart';
-import 'package:zent/shared/models/form_config.dart';
+import 'package:zent/models/form_config.dart';
 import 'package:zent/shared/widgets/form/client_form.dart';
 import 'package:zent/shared/widgets/form/employee_form.dart';
 import 'package:zent/shared/widgets/form/provider_form.dart';

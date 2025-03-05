@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/shared/models/sidebar_item.dart';
+import 'package:zent/models/sidebar_item.dart';
 
 class SidebarController extends GetxController {
   // Lista observable de elementos del sidebar según el rol del usuario

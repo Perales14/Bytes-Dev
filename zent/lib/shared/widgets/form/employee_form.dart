@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/employee_form_controller.dart';
-import 'package:zent/shared/models/form_config.dart';
+import 'package:zent/models/form_config.dart';
 import 'package:zent/shared/widgets/form/base_form.dart';
 import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'package:zent/shared/widgets/form/widgets/label_display.dart';

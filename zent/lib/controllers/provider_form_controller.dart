@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
 import 'package:zent/controllers/validators/validators.dart';
-import 'package:zent/shared/models/provider_model.dart';
+import 'package:zent/models/provider_model.dart';
 
 class ProviderFormController extends BaseFormController {
   // Modelo central que almacena todos los datos del proveedor

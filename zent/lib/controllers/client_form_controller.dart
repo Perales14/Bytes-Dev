@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/controllers/base_form_controller.dart';
-import 'package:zent/shared/models/client_model.dart';
+import 'package:zent/models/client_model.dart';
 import 'validators/validators.dart';
 
 /// Controller for the client registration form

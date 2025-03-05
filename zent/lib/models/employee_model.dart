@@ -1,17 +1,15 @@
 import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
-import 'package:zent/shared/models/base_model.dart';
+import 'package:zent/models/base_model.dart';
 
-class ProviderModel extends BaseModel {
-  // Proveedor específico
-  final String nombreEmpresa;
-  final String cargo;
-  final String calle;
-  final String colonia;
-  final String cp;
-  final String rfc;
-  final String tipoServicio;
+class EmployeeModel extends BaseModel {
+  // Empleado específico
+  final String nss;
+  final String password;
+  final String salario;
+  final String rol;
+  final String tipoContrato;
 
-  ProviderModel({
+  EmployeeModel({
     // Campos base
     super.id,
     required super.nombre,
@@ -24,13 +22,11 @@ class ProviderModel extends BaseModel {
     super.files,
 
     // Campos específicos
-    required this.nombreEmpresa,
-    required this.cargo,
-    required this.calle,
-    required this.colonia,
-    required this.cp,
-    required this.rfc,
-    required this.tipoServicio,
+    required this.nss,
+    required this.password,
+    required this.salario,
+    required this.rol,
+    required this.tipoContrato,
   });
 
   @override
@@ -38,18 +34,17 @@ class ProviderModel extends BaseModel {
     final baseJson = super.toJson();
     return {
       ...baseJson,
-      'nombreEmpresa': nombreEmpresa,
-      'cargo': cargo,
-      'calle': calle,
-      'colonia': colonia,
-      'cp': cp,
-      'rfc': rfc,
-      'tipoServicio': tipoServicio,
+      'nss': nss,
+      'password':
+          password, // Nota: en producción, asegurar que esto esté hasheado
+      'salario': salario,
+      'rol': rol,
+      'tipoContrato': tipoContrato,
     };
   }
 
-  factory ProviderModel.fromJson(Map<String, dynamic> json) {
-    return ProviderModel(
+  factory EmployeeModel.fromJson(Map<String, dynamic> json) {
+    return EmployeeModel(
       id: json['id'],
       nombre: json['nombre'] ?? '',
       apellidoPaterno: json['apellidoPaterno'] ?? '',
@@ -58,18 +53,16 @@ class ProviderModel extends BaseModel {
       telefono: json['telefono'] ?? '',
       fechaRegistro: json['fechaRegistro'] ?? '',
       observaciones: json['observaciones'] ?? '',
-      nombreEmpresa: json['nombreEmpresa'] ?? '',
-      cargo: json['cargo'] ?? '',
-      calle: json['calle'] ?? '',
-      colonia: json['colonia'] ?? '',
-      cp: json['cp'] ?? '',
-      rfc: json['rfc'] ?? '',
-      tipoServicio: json['tipoServicio'] ?? '',
+      nss: json['nss'] ?? '',
+      password: json['password'] ?? '',
+      salario: json['salario'] ?? '',
+      rol: json['rol'] ?? '',
+      tipoContrato: json['tipoContrato'] ?? '',
     );
   }
 
   @override
-  ProviderModel copyWith({
+  EmployeeModel copyWith({
     String? id,
     String? nombre,
     String? apellidoPaterno,
@@ -79,15 +72,13 @@ class ProviderModel extends BaseModel {
     String? fechaRegistro,
     String? observaciones,
     List<FileData>? files,
-    String? nombreEmpresa,
-    String? cargo,
-    String? calle,
-    String? colonia,
-    String? cp,
-    String? rfc,
-    String? tipoServicio,
+    String? nss,
+    String? password,
+    String? salario,
+    String? rol,
+    String? tipoContrato,
   }) {
-    return ProviderModel(
+    return EmployeeModel(
       id: id ?? this.id,
       nombre: nombre ?? this.nombre,
       apellidoPaterno: apellidoPaterno ?? this.apellidoPaterno,
@@ -97,13 +88,11 @@ class ProviderModel extends BaseModel {
       fechaRegistro: fechaRegistro ?? this.fechaRegistro,
       observaciones: observaciones ?? this.observaciones,
       files: files ?? this.files,
-      nombreEmpresa: nombreEmpresa ?? this.nombreEmpresa,
-      cargo: cargo ?? this.cargo,
-      calle: calle ?? this.calle,
-      colonia: colonia ?? this.colonia,
-      cp: cp ?? this.cp,
-      rfc: rfc ?? this.rfc,
-      tipoServicio: tipoServicio ?? this.tipoServicio,
+      nss: nss ?? this.nss,
+      password: password ?? this.password,
+      salario: salario ?? this.salario,
+      rol: rol ?? this.rol,
+      tipoContrato: tipoContrato ?? this.tipoContrato,
     );
   }
 }

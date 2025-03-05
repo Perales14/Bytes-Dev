@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/core/bindings/initial_bindings.dart';
+import 'package:zent/core/bindings/app_bindings.dart';
 import 'package:zent/core/theme/app_theme.dart';
 import 'package:zent/routes/app_pages.dart';
 import 'package:zent/controllers/theme_controller.dart';
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
           title: 'Zent',
           initialRoute: AppPages.INITIAL,
           getPages: AppPages.routes,
-          initialBinding: InitialBindings(),
+          initialBinding: AppBindings(),
           debugShowCheckedModeBanner: false,
           theme: lightTheme,
           darkTheme: darkTheme,

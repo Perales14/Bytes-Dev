@@ -1,6 +1,6 @@
 // shared/widgets/sidebar/sidebar_button.dart
 import 'package:flutter/material.dart';
-import 'package:zent/shared/models/sidebar_item.dart';
+import 'package:zent/models/sidebar_item.dart';
 
 class SidebarButton extends StatelessWidget {
   final SidebarItem item;

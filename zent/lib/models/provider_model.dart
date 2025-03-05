@@ -1,15 +1,17 @@
 import 'package:zent/shared/widgets/form/widgets/file_upload_panel.dart';
-import 'package:zent/shared/models/base_model.dart';
+import 'package:zent/models/base_model.dart';
 
-class EmployeeModel extends BaseModel {
-  // Empleado específico
-  final String nss;
-  final String password;
-  final String salario;
-  final String rol;
-  final String tipoContrato;
+class ProviderModel extends BaseModel {
+  // Proveedor específico
+  final String nombreEmpresa;
+  final String cargo;
+  final String calle;
+  final String colonia;
+  final String cp;
+  final String rfc;
+  final String tipoServicio;
 
-  EmployeeModel({
+  ProviderModel({
     // Campos base
     super.id,
     required super.nombre,
@@ -22,11 +24,13 @@ class EmployeeModel extends BaseModel {
     super.files,
 
     // Campos específicos
-    required this.nss,
-    required this.password,
-    required this.salario,
-    required this.rol,
-    required this.tipoContrato,
+    required this.nombreEmpresa,
+    required this.cargo,
+    required this.calle,
+    required this.colonia,
+    required this.cp,
+    required this.rfc,
+    required this.tipoServicio,
   });
 
   @override
@@ -34,17 +38,18 @@ class EmployeeModel extends BaseModel {
     final baseJson = super.toJson();
     return {
       ...baseJson,
-      'nss': nss,
-      'password':
-          password, // Nota: en producción, asegurar que esto esté hasheado
-      'salario': salario,
-      'rol': rol,
-      'tipoContrato': tipoContrato,
+      'nombreEmpresa': nombreEmpresa,
+      'cargo': cargo,
+      'calle': calle,
+      'colonia': colonia,
+      'cp': cp,
+      'rfc': rfc,
+      'tipoServicio': tipoServicio,
     };
   }
 
-  factory EmployeeModel.fromJson(Map<String, dynamic> json) {
-    return EmployeeModel(
+  factory ProviderModel.fromJson(Map<String, dynamic> json) {
+    return ProviderModel(
       id: json['id'],
       nombre: json['nombre'] ?? '',
       apellidoPaterno: json['apellidoPaterno'] ?? '',
@@ -53,16 +58,18 @@ class EmployeeModel extends BaseModel {
       telefono: json['telefono'] ?? '',
       fechaRegistro: json['fechaRegistro'] ?? '',
       observaciones: json['observaciones'] ?? '',
-      nss: json['nss'] ?? '',
-      password: json['password'] ?? '',
-      salario: json['salario'] ?? '',
-      rol: json['rol'] ?? '',
-      tipoContrato: json['tipoContrato'] ?? '',
+      nombreEmpresa: json['nombreEmpresa'] ?? '',
+      cargo: json['cargo'] ?? '',
+      calle: json['calle'] ?? '',
+      colonia: json['colonia'] ?? '',
+      cp: json['cp'] ?? '',
+      rfc: json['rfc'] ?? '',
+      tipoServicio: json['tipoServicio'] ?? '',
     );
   }
 
   @override
-  EmployeeModel copyWith({
+  ProviderModel copyWith({
     String? id,
     String? nombre,
     String? apellidoPaterno,
@@ -72,13 +79,15 @@ class EmployeeModel extends BaseModel {
     String? fechaRegistro,
     String? observaciones,
     List<FileData>? files,
-    String? nss,
-    String? password,
-    String? salario,
-    String? rol,
-    String? tipoContrato,
+    String? nombreEmpresa,
+    String? cargo,
+    String? calle,
+    String? colonia,
+    String? cp,
+    String? rfc,
+    String? tipoServicio,
   }) {
-    return EmployeeModel(
+    return ProviderModel(
       id: id ?? this.id,
       nombre: nombre ?? this.nombre,
       apellidoPaterno: apellidoPaterno ?? this.apellidoPaterno,
@@ -88,11 +97,13 @@ class EmployeeModel extends BaseModel {
       fechaRegistro: fechaRegistro ?? this.fechaRegistro,
       observaciones: observaciones ?? this.observaciones,
       files: files ?? this.files,
-      nss: nss ?? this.nss,
-      password: password ?? this.password,
-      salario: salario ?? this.salario,
-      rol: rol ?? this.rol,
-      tipoContrato: tipoContrato ?? this.tipoContrato,
+      nombreEmpresa: nombreEmpresa ?? this.nombreEmpresa,
+      cargo: cargo ?? this.cargo,
+      calle: calle ?? this.calle,
+      colonia: colonia ?? this.colonia,
+      cp: cp ?? this.cp,
+      rfc: rfc ?? this.rfc,
+      tipoServicio: tipoServicio ?? this.tipoServicio,
     );
   }
 }
