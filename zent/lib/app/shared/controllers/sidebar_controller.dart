@@ -28,20 +28,29 @@ class SidebarController extends GetxController {
     _visibleSidebarItems.value = [
       SidebarItem(
         icon: Icons.dashboard,
-        label: 'Panel Principal',
-        routeName: '/dashboard',
+        label: 'Inicio',
+        routeName: '/home',
       ),
       SidebarItem(
         icon: Icons.people,
-        label: 'Usuarios',
-        routeName: '/users',
+        label: 'Empleados',
+        routeName: '/employees',
+      ),
+      SidebarItem(
+        icon: Icons.store,
+        label: 'Proveedores',
+        routeName: '/providers',
       ),
       SidebarItem(
         icon: Icons.analytics,
         label: 'Reportes',
         routeName: '/reports',
       ),
-      // Puedes añadir más elementos según las necesidades
+      SidebarItem(
+        icon: Icons.edit_document,
+        label: 'Documentos',
+        routeName: '/documents',
+      ),
     ];
 
     // Elementos estáticos (siempre visibles en la parte inferior)
@@ -50,11 +59,6 @@ class SidebarController extends GetxController {
         icon: Icons.settings,
         label: 'Configuración',
         routeName: '/settings',
-      ),
-      SidebarItem(
-        icon: Icons.help,
-        label: 'Ayuda',
-        routeName: '/help',
       ),
       SidebarItem(
         icon: Icons.logout,
