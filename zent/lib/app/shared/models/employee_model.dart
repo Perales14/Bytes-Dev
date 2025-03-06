@@ -43,16 +43,35 @@ class EmployeeModel extends BaseModel {
     };
   }
 
+  @override
+  Map<String, dynamic> toMap() {
+    final baseMap = super.toMap();
+
+    return {
+      ...baseMap,
+      'nss': nss,
+      'password': password,
+      'salario': salario,
+      'rol': rol,
+      'tipoContrato': tipoContrato,
+    };
+  }
+
   factory EmployeeModel.fromJson(Map<String, dynamic> json) {
+    final baseModel = BaseModel.fromJson(json);
+
     return EmployeeModel(
-      id: json['id'],
-      nombre: json['nombre'] ?? '',
-      apellidoPaterno: json['apellidoPaterno'] ?? '',
-      apellidoMaterno: json['apellidoMaterno'] ?? '',
-      correo: json['correo'] ?? '',
-      telefono: json['telefono'] ?? '',
-      fechaRegistro: json['fechaRegistro'] ?? '',
-      observaciones: json['observaciones'] ?? '',
+      id: baseModel.id,
+      nombre: baseModel.nombre,
+      apellidoPaterno: baseModel.apellidoPaterno,
+      apellidoMaterno: baseModel.apellidoMaterno,
+      correo: baseModel.correo,
+      telefono: baseModel.telefono,
+      fechaRegistro: baseModel.fechaRegistro,
+      observaciones: baseModel.observaciones,
+      files: baseModel.files,
+
+      // Campos específicos de EmployeeModel
       nss: json['nss'] ?? '',
       password: json['password'] ?? '',
       salario: json['salario'] ?? '',

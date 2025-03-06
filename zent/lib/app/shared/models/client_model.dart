@@ -48,16 +48,37 @@ class ClientModel extends BaseModel {
     };
   }
 
+  @override
+  Map<String, dynamic> toMap() {
+    final baseMap = super.toMap();
+
+    return {
+      ...baseMap,
+      'nombreEmpresa': nombreEmpresa,
+      'cargo': cargo,
+      'calle': calle,
+      'colonia': colonia,
+      'cp': cp,
+      'rfc': rfc,
+      'tipoCliente': tipoCliente,
+    };
+  }
+
   factory ClientModel.fromJson(Map<String, dynamic> json) {
+    final baseModel = BaseModel.fromJson(json);
+
     return ClientModel(
-      id: json['id'],
-      nombre: json['nombre'] ?? '',
-      apellidoPaterno: json['apellidoPaterno'] ?? '',
-      apellidoMaterno: json['apellidoMaterno'] ?? '',
-      correo: json['correo'] ?? '',
-      telefono: json['telefono'] ?? '',
-      fechaRegistro: json['fechaRegistro'] ?? '',
-      observaciones: json['observaciones'] ?? '',
+      id: baseModel.id,
+      nombre: baseModel.nombre,
+      apellidoPaterno: baseModel.apellidoPaterno,
+      apellidoMaterno: baseModel.apellidoMaterno,
+      correo: baseModel.correo,
+      telefono: baseModel.telefono,
+      fechaRegistro: baseModel.fechaRegistro,
+      observaciones: baseModel.observaciones,
+      files: baseModel.files,
+
+      // Campos específicos de ClientModel
       nombreEmpresa: json['nombreEmpresa'] ?? '',
       cargo: json['cargo'] ?? '',
       calle: json['calle'] ?? '',

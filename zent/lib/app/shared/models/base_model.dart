@@ -36,6 +36,26 @@ class BaseModel {
     };
   }
 
+  // Nuevo método toMap() para bases de datos
+  Map<String, dynamic> toMap() {
+    final baseMap = {
+      'id': id,
+      'nombre': nombre,
+      'apellidoPaterno': apellidoPaterno,
+      'apellidoMaterno': apellidoMaterno,
+      'correo': correo,
+      'telefono': telefono,
+      'fechaRegistro': fechaRegistro,
+      'observaciones': observaciones,
+      // No incluimos 'files' ya que normalmente se manejan por separado
+      // en operaciones de base de datos
+    };
+
+    // Eliminar entradas con valores nulos
+    baseMap.removeWhere((key, value) => value == null);
+    return baseMap;
+  }
+
   factory BaseModel.fromJson(Map<String, dynamic> json) {
     return BaseModel(
       id: json['id'],
