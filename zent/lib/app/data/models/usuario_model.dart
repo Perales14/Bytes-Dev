@@ -17,7 +17,7 @@ class UsuarioModel extends BaseModel {
   int estadoId;
 
   UsuarioModel({
-    super.id,
+    super.id = 0,
     required this.rolId,
     this.especialidadId,
     required this.nombreCompleto,
@@ -34,7 +34,7 @@ class UsuarioModel extends BaseModel {
     required this.estadoId,
     super.createdAt,
     super.updatedAt,
-    super.enviado,
+    super.enviado = false,
   });
 
   @override
@@ -62,7 +62,7 @@ class UsuarioModel extends BaseModel {
   }
 
   @override
-  BaseModel fromMap(Map<String, dynamic> map) {
+  UsuarioModel fromMap(Map<String, dynamic> map) {
     return UsuarioModel(
       id: map['id'] ?? 0,
       rolId: map['rol_id'] ?? 0,
@@ -80,8 +80,33 @@ class UsuarioModel extends BaseModel {
       cargo: map['cargo'],
       departamento: map['departamento'],
       estadoId: map['estado_id'] ?? 0,
-      createdAt: BaseModel.parseDateTime(map['created_at']),
-      updatedAt: BaseModel.parseDateTime(map['updated_at']),
+      createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
+      updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
+      enviado: map['enviado'] == 1 || map['enviado'] == true,
+    );
+  }
+
+  // Factory constructor para crear desde Map
+  factory UsuarioModel.fromJson(Map<String, dynamic> map) {
+    return UsuarioModel(
+      id: map['id'] ?? 0,
+      rolId: map['rol_id'] ?? 0,
+      especialidadId: map['especialidad_id'],
+      nombreCompleto: map['nombre_completo'] ?? '',
+      email: map['email'] ?? '',
+      telefono: map['telefono'],
+      nss: map['nss'] ?? '',
+      contrasenaHash: map['contrasena_hash'] ?? '',
+      fechaIngreso:
+          BaseModel.parseDateTime(map['fecha_ingreso']) ?? DateTime.now(),
+      salario: map['salario'],
+      tipoContrato: map['tipo_contrato'],
+      supervisorId: map['supervisor_id'],
+      cargo: map['cargo'],
+      departamento: map['departamento'],
+      estadoId: map['estado_id'] ?? 0,
+      createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
+      updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
     );
   }
