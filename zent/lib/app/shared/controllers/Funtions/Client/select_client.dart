@@ -1,4 +1,4 @@
-import 'package:zent/shared/models/client_model.dart';
+import 'package:zent/app/shared/models/client_model.dart';
 import '../../replace.dart'; // Asumiendo que aquí están tus utilidades de BD
 
 ClientModel? select_client_supabase(int id) {

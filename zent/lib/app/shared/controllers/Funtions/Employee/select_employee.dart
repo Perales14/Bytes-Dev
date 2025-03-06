@@ -1,4 +1,4 @@
-import 'package:zent/shared/models/employee_model.dart';
+import 'package:zent/app/shared/models/employee_model.dart';
 import '../../replace.dart'; // Importamos las utilidades de BD
 
 EmployeeModel? select_employee_supabase(int id) {

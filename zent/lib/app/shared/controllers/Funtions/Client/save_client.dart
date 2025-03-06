@@ -1,4 +1,4 @@
-import 'package:zent/shared/models/client_model.dart';
+import 'package:zent/app/shared/models/client_model.dart';
 
 bool save_client_sqlflite(ClientModel cliente) {
   try {

@@ -1,4 +1,4 @@
-import 'package:zent/shared/models/provider_model.dart';
+import 'package:zent/app/shared/models/provider_model.dart';
 import '../../replace.dart'; // Importamos las utilidades de BD
 
 ProviderModel? select_provider_supabase(int id) {

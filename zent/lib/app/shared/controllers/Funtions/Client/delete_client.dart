@@ -1,4 +1,4 @@
-import 'package:zent/shared/models/client_model.dart';
+import 'package:zent/app/shared/models/client_model.dart';
 import '../../replace.dart'; // Importamos las utilidades de BD
 
 bool delete_client_sql(ClientModel cliente) {
