@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
-import 'package:zent/core/bindings/app_bindings.dart';
-import 'package:zent/core/theme/app_theme.dart';
-import 'package:zent/routes/app_pages.dart';
-import 'package:zent/controllers/theme_controller.dart';
-import 'package:zent/controllers/sidebar_controller.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get_storage/get_storage.dart';
+
+import 'app/shared/controllers/sidebar_controller.dart';
+import 'app/shared/controllers/theme_controller.dart';
+import 'core/bindings/app_bindings.dart';
+import 'core/theme/app_theme.dart';
+import 'routes/app_pages.dart';
 
 void main() async {
   await GetStorage.init();
@@ -29,7 +32,7 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: lightTheme,
           darkTheme: darkTheme,
-          themeMode: themeController.theme.value, // This needs to be reactive
+          themeMode: themeController.theme.value,
         ));
   }
 }
