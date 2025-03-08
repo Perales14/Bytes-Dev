@@ -14,6 +14,16 @@ void main() async {
   // Asegúrate que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Cargar variables de entorno
+  await dotenv.load(fileName: ".env");
+
+  // Inicializar Supabase
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+    debug: true, // Establecer a false en producción
+  );
+
   // Inicializa la base de datos SQLite
   final sqliteHelper = SQLiteHelper();
   await sqliteHelper.initializeDatabaseFactory();
