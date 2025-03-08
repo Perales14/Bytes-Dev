@@ -1,10 +1,15 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:path/path.dart';
 import '../../utils/db_constants.dart';
 
 class SQLiteHelper {
   static final SQLiteHelper _instance = SQLiteHelper._internal();
   static Database? _database;
+  static bool _initialized = false;
 
   factory SQLiteHelper() {
     return _instance;
@@ -12,7 +17,26 @@ class SQLiteHelper {
 
   SQLiteHelper._internal();
 
+  /// Initialize the database factory based on platform
+  Future<void> initializeDatabaseFactory() async {
+    if (_initialized) return;
+
+    // Initialize FFI for desktop platforms
+    if (!kIsWeb &&
+        (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      // Initialize FFI
+      sqfliteFfiInit();
+      // Override default factory
+      databaseFactory = databaseFactoryFfi;
+    }
+
+    _initialized = true;
+  }
+
   Future<Database> get database async {
+    // Ensure database factory is initialized first
+    await initializeDatabaseFactory();
+
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
@@ -31,6 +55,8 @@ class SQLiteHelper {
   Future<void> _onCreate(Database db, int version) async {
     // Crear todas las tablas basadas en las constantes
     await _executeQueries(db, DBConstants.CREATE_TABLES_QUERIES);
+    // Crear índices después de las tablas para mejorar el rendimiento
+    await _executeQueries(db, DBConstants.CREATE_INDICES_QUERIES);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
