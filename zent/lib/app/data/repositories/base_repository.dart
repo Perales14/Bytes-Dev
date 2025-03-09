@@ -121,7 +121,7 @@ abstract class BaseRepository<T extends BaseModel> {
   // Método para sincronización manual
   Future<void> syncWithRemote() async {
     if (await _connectivityHelper.isConnected()) {
-      // Sincronizar datos locales no enviads
+      // Sincronizar datos locales no enviados
       final List<Map<String, dynamic>> pendingRecords = await _localDb.rawQuery(
           'SELECT * FROM $tableName WHERE enviado = ? OR enviado IS NULL',
           [false]);
