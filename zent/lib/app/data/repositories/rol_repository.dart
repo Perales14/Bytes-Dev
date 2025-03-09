@@ -45,4 +45,40 @@ class RolRepository extends BaseRepository<RolModel> {
       throw Exception('Error al obtener permisos del rol: $e');
     }
   }
+
+  // Método para asignar un permiso a un rol
+  Future<void> asignarPermiso(int rolId, int permisoId) async {
+    try {
+      final db = await getDatabase();
+      await db.insert('rol_permisos', {
+        'rol_id': rolId,
+        'permiso_id': permisoId,
+      });
+    } catch (e) {
+      throw Exception('Error al asignar permiso al rol: $e');
+    }
+  }
+
+  // Método para revocar un permiso de un rol
+  Future<void> revocarPermiso(int rolId, int permisoId) async {
+    try {
+      final db = await getDatabase();
+      await db.delete(
+        'rol_permisos',
+        where: 'rol_id = ? AND permiso_id = ?',
+        whereArgs: [rolId, permisoId],
+      );
+    } catch (e) {
+      throw Exception('Error al revocar permiso del rol: $e');
+    }
+  }
+
+  // Método para buscar roles por término en descripción
+  Future<List<RolModel>> findByDescripcion(String termino) async {
+    try {
+      return await query('descripcion LIKE ?', ['%$termino%']);
+    } catch (e) {
+      throw Exception('Error al buscar roles por descripción: $e');
+    }
+  }
 }
