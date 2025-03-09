@@ -10,16 +10,12 @@ class DocumentoRepository extends BaseRepository<DocumentoModel> {
   DocumentoModel fromMap(Map<String, dynamic> map) {
     return DocumentoModel(
       id: map['id'] ?? 0,
-      nombre: map['nombre'] ?? '',
-      descripcion: map['descripcion'],
-      ruta: map['ruta'] ?? '',
-      tipoDocumento: map['tipo_documento'] ?? '',
-      entidadRelacionada: map['entidad_relacionada'] ?? '',
-      idEntidad: map['id_entidad'] ?? 0,
+      proyectoId: map['proyecto_id'],
+      tipo: map['tipo'],
+      titulo: map['titulo'] ?? '',
+      contenido: map['contenido'],
+      archivoUrl: map['archivo_url'],
       usuarioId: map['usuario_id'] ?? 0,
-      fechaSubida:
-          BaseModel.parseDateTime(map['fecha_subida']) ?? DateTime.now(),
-      estadoId: map['estado_id'] ?? 0,
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
@@ -28,15 +24,12 @@ class DocumentoRepository extends BaseRepository<DocumentoModel> {
 
   // Métodos específicos para documentos
 
-  // Método para obtener documentos por entidad relacionada
-  Future<List<DocumentoModel>> getByEntidadRelacionada(
-      String entidad, int idEntidad) async {
+  // Método para obtener documentos por proyecto
+  Future<List<DocumentoModel>> getByProyecto(int proyectoId) async {
     try {
-      return await query(
-          'entidad_relacionada = ? AND id_entidad = ?', [entidad, idEntidad]);
+      return await query('proyecto_id = ?', [proyectoId]);
     } catch (e) {
-      throw Exception(
-          'Error al obtener documentos por entidad relacionada: $e');
+      throw Exception('Error al obtener documentos por proyecto: $e');
     }
   }
 
@@ -50,11 +43,20 @@ class DocumentoRepository extends BaseRepository<DocumentoModel> {
   }
 
   // Método para obtener documentos por tipo
-  Future<List<DocumentoModel>> getByTipo(String tipoDocumento) async {
+  Future<List<DocumentoModel>> getByTipo(String tipo) async {
     try {
-      return await query('tipo_documento = ?', [tipoDocumento]);
+      return await query('tipo = ?', [tipo]);
     } catch (e) {
       throw Exception('Error al obtener documentos por tipo: $e');
+    }
+  }
+
+  // Método para buscar documentos por título
+  Future<List<DocumentoModel>> buscarPorTitulo(String busqueda) async {
+    try {
+      return await query('titulo LIKE ?', ['%$busqueda%']);
+    } catch (e) {
+      throw Exception('Error al buscar documentos por título: $e');
     }
   }
 }

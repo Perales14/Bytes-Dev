@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import '../models/base_model.dart';
 import '../models/permiso_model.dart';
 import 'base_repository.dart';
@@ -51,8 +52,8 @@ class PermisoRepository extends BaseRepository<PermisoModel> {
           rolId: rolId,
           permisosJson: nuevosPermisos,
         );
-        final id = await insert(permiso);
-        return id; // Retorna el ID insertado
+        final id = await create(permiso);
+        return id.rolId; // Retorna el ID insertado
       }
     } catch (e) {
       throw Exception('Error al actualizar permisos: $e');
@@ -89,7 +90,7 @@ class PermisoRepository extends BaseRepository<PermisoModel> {
         final nuevosPermisos = {
           modulo: {accion: true}
         };
-        await insert(PermisoModel(
+        await create(PermisoModel(
           rolId: rolId,
           permisosJson: nuevosPermisos,
         ));

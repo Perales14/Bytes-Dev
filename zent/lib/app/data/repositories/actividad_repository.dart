@@ -1,5 +1,5 @@
 import '../models/base_model.dart';
-// import '../models/actividad_model.dart';
+import '../models/actividad_model.dart';
 import 'base_repository.dart';
 
 class ActividadRepository extends BaseRepository<ActividadModel> {
@@ -10,14 +10,16 @@ class ActividadRepository extends BaseRepository<ActividadModel> {
   ActividadModel fromMap(Map<String, dynamic> map) {
     return ActividadModel(
       id: map['id'] ?? 0,
-      titulo: map['titulo'] ?? '',
-      descripcion: map['descripcion'],
       proyectoId: map['proyecto_id'] ?? 0,
-      responsableId: map['responsable_id'] ?? 0,
+      descripcion: map['descripcion'] ?? '',
+      responsableId: map['responsable_id'],
       fechaInicio: BaseModel.parseDateTime(map['fecha_inicio']),
       fechaFin: BaseModel.parseDateTime(map['fecha_fin']),
+      dependenciaId: map['dependencia_id'],
+      evidencias: map['evidencias'] != null
+          ? List<String>.from(map['evidencias'])
+          : null,
       estadoId: map['estado_id'] ?? 0,
-      prioridad: map['prioridad'],
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
@@ -59,6 +61,15 @@ class ActividadRepository extends BaseRepository<ActividadModel> {
       return await query('fecha_fin IS NULL', []);
     } catch (e) {
       throw Exception('Error al obtener actividades pendientes: $e');
+    }
+  }
+
+  // Método para obtener actividades por dependencia
+  Future<List<ActividadModel>> getByDependencia(int dependenciaId) async {
+    try {
+      return await query('dependencia_id = ?', [dependenciaId]);
+    } catch (e) {
+      throw Exception('Error al obtener actividades por dependencia: $e');
     }
   }
 }

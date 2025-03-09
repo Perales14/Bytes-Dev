@@ -31,15 +31,10 @@ class RolRepository extends BaseRepository<RolModel> {
   }
 
   // Método para obtener los permisos asociados a un rol
-  // Asumiendo una tabla intermedia rol_permisos
   Future<List<int>> getPermisosIds(int rolId) async {
     try {
-      // Esta consulta podría requerir un método personalizado en el BaseRepository
-      // o implementarse aquí con SQL directo si se necesita
-      final db = await getDatabase();
-      final results = await db.query('rol_permisos',
-          columns: ['permiso_id'], where: 'rol_id = ?', whereArgs: [rolId]);
-
+      final results = await rawQuery(
+          'SELECT permiso_id FROM rol_permisos WHERE rol_id = ?', [rolId]);
       return results.map((map) => map['permiso_id'] as int).toList();
     } catch (e) {
       throw Exception('Error al obtener permisos del rol: $e');
@@ -49,8 +44,7 @@ class RolRepository extends BaseRepository<RolModel> {
   // Método para asignar un permiso a un rol
   Future<void> asignarPermiso(int rolId, int permisoId) async {
     try {
-      final db = await getDatabase();
-      await db.insert('rol_permisos', {
+      await rawInsert('rol_permisos', {
         'rol_id': rolId,
         'permiso_id': permisoId,
       });
@@ -62,11 +56,10 @@ class RolRepository extends BaseRepository<RolModel> {
   // Método para revocar un permiso de un rol
   Future<void> revocarPermiso(int rolId, int permisoId) async {
     try {
-      final db = await getDatabase();
-      await db.delete(
+      await rawDelete(
         'rol_permisos',
-        where: 'rol_id = ? AND permiso_id = ?',
-        whereArgs: [rolId, permisoId],
+        'rol_id = ? AND permiso_id = ?',
+        [rolId, permisoId],
       );
     } catch (e) {
       throw Exception('Error al revocar permiso del rol: $e');
