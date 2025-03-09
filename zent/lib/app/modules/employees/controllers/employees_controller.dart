@@ -1,68 +1,79 @@
 import 'package:get/get.dart';
-import '../../../data/models/usuario_model.dart';
 import '../../../data/repositories/usuario_repository.dart';
 
 class EmployeesController extends GetxController {
-  final UsuarioRepository _repository = Get.find<UsuarioRepository>();
+  // Lista reactiva de empleados (usando mapas)
+  var employees = <Map<String, dynamic>>[].obs;
 
-  // Observable variables
-  final RxList<UsuarioModel> employees = <UsuarioModel>[].obs;
-  final RxBool isLoading = true.obs;
-  final RxBool hasError = false.obs;
-  final RxString errorMessage = ''.obs;
+  // Estado de carga
+  var isLoading = true.obs;
+
+  // Estado de error
+  var hasError = false.obs;
+  var errorMessage = ''.obs;
+
+  // Repositorio
+  final UsuarioRepository usuarioRepository;
+
+  EmployeesController() : usuarioRepository = Get.find<UsuarioRepository>();
 
   @override
   void onInit() {
     super.onInit();
-    fetchEmployees();
+    loadEmployees();
   }
 
-  Future<void> fetchEmployees() async {
-    try {
-      isLoading.value = true;
-      hasError.value = false;
-
-      // Get all usuarios (employees)
-      final List<UsuarioModel> result = await _repository.getAll();
-      employees.assignAll(result);
-    } catch (e) {
-      hasError.value = true;
-      errorMessage.value = 'Error al cargar empleados: $e';
-    } finally {
-      isLoading.value = false;
-    }
+  // Cargar empleados desde el repositorio
+  void loadEmployees() async {
+  try {
+    isLoading(true);
+    // Simulación de datos
+    final empleadosSimulados = [
+      {
+        'nombre_completo': 'luis muñoz',
+        'nss': '12345',
+        'email': 'luis@example.com',
+        'cargo': 'Desarrollador',
+        'departamento': 'backend',
+        'telefono': '8333011843',
+      },
+      {
+        'nombre_completo': 'julian cruz',
+        'nss': '67890',
+        'email': 'julian@example.com',
+        'cargo': 'desarollador',
+        'departamento': 'frontend',
+        'telefono': '8333011843',
+      },
+      {
+        'nombre_completo': 'Alex Arath',
+        'nss': '67890',
+        'email': 'falex@example.com',
+        'cargo': 'lider',
+        'departamento': 'full stack',
+        'telefono': '8333011843',
+      },
+      {
+        'nombre_completo': 'Marco Saenz',
+        'nss': '67890',
+        'email': 'bodrio@example.com',
+        'cargo': 'lider',
+        'departamento': 'gestor',
+        'telefono': '8333011843',
+      },
+    ];
+    employees.assignAll(empleadosSimulados);
+    isLoading(false);
+  } catch (e) {
+    isLoading(false);
+    hasError(true);
+    errorMessage('Error al cargar empleados: $e');
   }
+}
 
-  // Filter employees by role, department, etc.
-  void filterByRole(int roleId) async {
-    try {
-      isLoading.value = true;
-      final filteredEmployees = await _repository.getByRole(roleId);
-      employees.assignAll(filteredEmployees);
-    } catch (e) {
-      Get.snackbar('Error', 'No se pudieron filtrar los empleados: $e');
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  // Additional method to get project and task counts for each employee
-  // In a real app, these would come from related repositories
-  int getProjectCount(int employeeId) {
-    // Placeholder - in a real app you would fetch this from a project repository
-    return employeeId % 5; // Just for demo
-  }
-
-  int getTaskCount(int employeeId) {
-    // Placeholder - in a real app you would fetch this from a task repository
-    return employeeId % 7 + 1; // Just for demo
-  }
-
-  void onEmployeeSelected(UsuarioModel employee) {
-    Get.toNamed('/employees/${employee.id}');
-  }
-
+  // Recargar datos
   void refreshData() {
-    fetchEmployees();
+    hasError(false);
+    loadEmployees();
   }
 }

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../shared/widgets/main_layout.dart';
 import '../controllers/employees_controller.dart';
-import '../widgets/employee_grid.dart';
+import '../widgets/employee_table.dart';
 
 class EmployeesView extends GetView<EmployeesController> {
   const EmployeesView({super.key});
@@ -17,12 +17,12 @@ class EmployeesView extends GetView<EmployeesController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with title and action buttons
+            // Header con título y botones de acción
             _buildHeader(context),
 
             const SizedBox(height: 24),
 
-            // Employee grid with loading state handling
+            // Tabla de empleados con manejo de estados
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -38,7 +38,8 @@ class EmployeesView extends GetView<EmployeesController> {
                 }
 
                 return SingleChildScrollView(
-                  child: EmployeeGrid(employees: controller.employees),
+                  scrollDirection: Axis.horizontal,
+                  child: EmployeesTable(employees: controller.employees), // Pasa la lista de empleados
                 );
               }),
             ),
