@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../shared/widgets/main_layout.dart';
 import '../controllers/employees_controller.dart';
-import '../widgets/employee_table.dart';
+import '../widgets/add_employee_card.dart';
+import '../widgets/emplooyees_card.dart';
+import '../widgets/employees_table.dart';
 
 class EmployeesView extends GetView<EmployeesController> {
   const EmployeesView({super.key});
@@ -17,13 +19,14 @@ class EmployeesView extends GetView<EmployeesController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header con título y botones de acción
+            // Header con título
             _buildHeader(context),
 
             const SizedBox(height: 24),
 
-            // Tabla de empleados con manejo de estados
-            Expanded(
+            // Tarjetas de empleados en vista horizontal
+            SizedBox(
+              height: 180, // Altura fija para solucionar el error del viewport
               child: Obx(() {
                 if (controller.isLoading.value) {
                   return const Center(child: CircularProgressIndicator());
@@ -37,9 +40,57 @@ class EmployeesView extends GetView<EmployeesController> {
                   return _buildEmptyState();
                 }
 
+                return ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    AddEmployeeCard(
+                      onTap: () => Get.toNamed('/employees/add'),
+                    ),
+                    const SizedBox(width: 16),
+                    // Aquí mostrarías las tarjetas de empleados basadas en los datos reales
+                    EmployeesCard(
+                      name: "Juan Pérez",
+                      position: "Desarrollador Frontend",
+                      role: "Empleado",
+                      projectCount: 2,
+                      taskCount: 5,
+                      onTap: () => Get.toNamed('/employees/1'),
+                    ),
+                    const SizedBox(width: 16),
+                    EmployeesCard(
+                      name: "Ana García",
+                      position: "Diseñadora UX/UI",
+                      role: "Empleado",
+                      projectCount: 3,
+                      taskCount: 7,
+                      onTap: () => Get.toNamed('/employees/2'),
+                    ),
+                  ],
+                );
+              }),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Tabla de empleados
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (controller.hasError.value) {
+                  return _buildErrorState();
+                }
+
+                if (controller.employees.isEmpty) {
+                  return const Center(
+                      child: Text("No hay datos para mostrar en la tabla"));
+                }
+
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  child: EmployeesTable(employees: controller.employees), // Pasa la lista de empleados
+                  child: EmployeesTable(employees: controller.employees),
                 );
               }),
             ),
@@ -50,19 +101,9 @@ class EmployeesView extends GetView<EmployeesController> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Directorio de empleados',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        FilledButton.icon(
-          onPressed: () => Get.toNamed('/employees/add'),
-          icon: const Icon(Icons.add),
-          label: const Text('Nuevo empleado'),
-        ),
-      ],
+    return Text(
+      'Directorio de empleados',
+      style: Theme.of(context).textTheme.headlineMedium,
     );
   }
 
@@ -73,26 +114,13 @@ class EmployeesView extends GetView<EmployeesController> {
         children: [
           Icon(
             Icons.people_outline,
-            size: 64,
+            size: 48,
             color: Get.theme.colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No hay empleados registrados',
-            style: Get.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Crea un nuevo empleado para comenzar',
-            style: Get.textTheme.bodyMedium?.copyWith(
-              color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => Get.toNamed('/employees/add'),
-            icon: const Icon(Icons.add),
-            label: const Text('Crear empleado'),
+            'No hay empleados registrados',
+            style: Get.textTheme.titleMedium,
           ),
         ],
       ),
@@ -106,27 +134,16 @@ class EmployeesView extends GetView<EmployeesController> {
         children: [
           Icon(
             Icons.error_outline,
-            size: 64,
+            size: 48,
             color: Get.theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Error al cargar empleados',
-            style: Get.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            controller.errorMessage.value,
+            'Error: ${controller.errorMessage.value}',
             style: Get.textTheme.bodyMedium?.copyWith(
               color: Get.theme.colorScheme.error,
             ),
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => controller.refreshData(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
           ),
         ],
       ),
