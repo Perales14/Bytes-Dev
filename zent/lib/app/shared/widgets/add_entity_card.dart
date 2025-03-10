@@ -20,7 +20,7 @@ class AddEntityCard extends StatelessWidget {
   const AddEntityCard({
     super.key,
     required this.labelText,
-    this.icon = Icons.add_circle_outline,
+    this.icon = Icons.add_rounded,
     required this.onTap,
     this.backgroundColor,
     this.foregroundColor,
@@ -35,38 +35,44 @@ class AddEntityCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 240, // Ancho fijo en lugar de infinito
-        height: 124,
-        padding: const EdgeInsets.all(24),
-        decoration: ShapeDecoration(
-          color: cardColor,
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              width: 1,
-              color: theme.dividerColor.withOpacity(0.2),
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: 280,
+          maxWidth: 280,
+          minHeight: 120,
+          maxHeight: 120,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 32,
-              color: textIconColor,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: ShapeDecoration(
+            color: cardColor,
+            shape: RoundedRectangleBorder(
+              side: BorderSide(
+                width: 1,
+                color: theme.dividerColor.withOpacity(0.2),
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 8),
-            Text(
-              labelText,
-              style: theme.textTheme.titleMedium?.copyWith(
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 64,
                 color: textIconColor,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+              //const SizedBox(height: 8),
+              //Text(
+              //labelText,
+              //style: theme.textTheme.titleMedium?.copyWith(
+              //color: textIconColor,
+              //),
+              //textAlign: TextAlign.center,
+              //),
+            ],
+          ),
         ),
       ),
     );

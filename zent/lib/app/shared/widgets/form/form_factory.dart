@@ -21,10 +21,16 @@ class FormFactory extends StatelessWidget {
   /// Tag único para el controlador con GetX
   final String? controllerTag;
 
+  /// Funciones de callback para eventos del formulario
+  final Function? onCancel;
+  final Function? onSubmit;
+
   const FormFactory({
     required this.formType,
     this.customConfig,
     this.controllerTag,
+    this.onCancel,
+    this.onSubmit,
     super.key,
   });
 
@@ -104,21 +110,48 @@ class FormFactory extends StatelessWidget {
   }
 
   Widget _buildFormByType(BaseFormController controller, FormConfig config) {
+    // Función de cancelar por defecto si no se proporciona
+    final cancelFn = onCancel ??
+        () {
+          Get.back();
+          Get.snackbar(
+            'Cancelado',
+            'Operación cancelada por el usuario',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        };
+
+    // Función de envío por defecto si no se proporciona
+    final submitFn = onSubmit ??
+        () {
+          Get.snackbar(
+            'Pendiente',
+            'Operación pendiente de implementación',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        };
+
     switch (formType) {
       case FormType.employee:
         return EmployeeForm(
           controller: controller as EmployeeFormController,
           config: config,
+          onCancel: cancelFn,
+          onSubmit: submitFn,
         );
       case FormType.client:
         return ClientForm(
           controller: controller as ClientFormController,
           config: config,
+          onCancel: cancelFn,
+          onSubmit: submitFn,
         );
       case FormType.provider:
         return ProviderForm(
           controller: controller as ProviderFormController,
           config: config,
+          onCancel: cancelFn,
+          onSubmit: submitFn,
         );
     }
   }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/shared/controllers/base_form_controller.dart';
-import 'package:zent/app/shared/controllers/validators/validators.dart';
-import 'package:zent/app/shared/models/employee_model.dart';
-import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
+
+import '../models/employee_model.dart';
+import 'base_form_controller.dart';
+import 'validators/list_validator.dart';
+import 'validators/nss_validator.dart';
+import 'validators/password_validator.dart';
+import 'validators/salary_validator.dart';
 
 class EmployeeFormController extends BaseFormController {
   // Modelo central que almacena todos los datos del empleado
@@ -96,7 +99,7 @@ class EmployeeFormController extends BaseFormController {
   }
 
   @override
-  void submitForm() {
+  bool submitForm() {
     if (_validateEmployeeForm()) {
       // Aquí se podría enviar el empleado a un servicio o repositorio
       // employeeRepository.save(employee);
@@ -106,7 +109,9 @@ class EmployeeFormController extends BaseFormController {
         'Empleado registrado correctamente',
         snackPosition: SnackPosition.BOTTOM,
       );
+      return true;
     }
+    return false;
   }
 
   /// Valida el formulario de empleado antes de enviar
@@ -117,7 +122,6 @@ class EmployeeFormController extends BaseFormController {
   /// 3. Verifica específicamente que se haya seleccionado un tipo de contrato
   ///
   /// @return true si todas las validaciones pasan, false en caso contrario
-  @override
   bool _validateEmployeeForm() {
     // Validar todos los campos del formulario
     if (!formKey.currentState!.validate()) {

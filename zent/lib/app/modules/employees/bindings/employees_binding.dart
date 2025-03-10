@@ -1,18 +1,15 @@
 import 'package:get/get.dart';
-import '../../../data/repositories/usuario_repository.dart';
+
+import '../../../data/repositories/employee_repository.dart';
 import '../controllers/employees_controller.dart';
 
 class EmployeesBinding extends Bindings {
   @override
   void dependencies() {
-    // Make sure UsuarioRepository is registered
-    if (!Get.isRegistered<UsuarioRepository>()) {
-      Get.lazyPut(() => UsuarioRepository());
-    }
+    // Registramos primero el repositorio
+    Get.lazyPut<EmployeeRepository>(() => EmployeeRepository());
 
-    // Register the controller
-    Get.lazyPut<EmployeesController>(
-      () => EmployeesController(),
-    );
+    // Luego el controlador que depende del repositorio
+    Get.lazyPut<EmployeesController>(() => EmployeesController());
   }
 }

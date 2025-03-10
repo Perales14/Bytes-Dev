@@ -59,6 +59,8 @@ class FormFactory {
     return EmployeeForm(
       controller: Get.find<EmployeeFormController>(),
       config: config,
+      onCancel: () {},
+      onSubmit: () {},
     );
   }
 
@@ -69,6 +71,16 @@ class FormFactory {
     return ClientForm(
       controller: Get.find<ClientFormController>(),
       config: config,
+      onCancel: () {
+        Get.back();
+      },
+      onSubmit: () {
+        Get.snackbar(
+          'Pendiente',
+          'La funcionalidad de guardar será implementada por el backend',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      },
     );
   }
 
@@ -79,6 +91,16 @@ class FormFactory {
     return ProviderForm(
       controller: Get.find<ProviderFormController>(),
       config: config,
+      onCancel: () {
+        Get.back();
+      },
+      onSubmit: () {
+        Get.snackbar(
+          'Pendiente',
+          'La funcionalidad de guardar será implementada por el backend',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      },
     );
   }
 }

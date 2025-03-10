@@ -7,10 +7,14 @@ import 'package:zent/app/shared/widgets/form/widgets/observations_field.dart';
 abstract class BaseForm extends StatelessWidget {
   final BaseFormController controller;
   final FormConfig config;
+  final Function onCancel;
+  final Function onSubmit;
 
   const BaseForm({
     required this.controller,
     required this.config,
+    required this.onCancel,
+    required this.onSubmit,
     super.key,
   });
 
@@ -26,11 +30,23 @@ abstract class BaseForm extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize:
+                MainAxisSize.min, // Importante: evita error de constraints
             children: [
+              // Título del formulario
               buildFormTitle(theme),
-              const SizedBox(height: 30),
-              buildFormContent(context),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
+
+              // Contenido específico del formulario
+              SizedBox(
+                height:
+                    MediaQuery.of(context).size.height * 0.5, // Altura sugerida
+                child: buildFormContent(context),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Botones de acción
               buildActionButtons(),
             ],
           ),
@@ -94,19 +110,25 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
+  // Implementación de los botones de acción con los callbacks correctos
   Widget buildActionButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         ButtonForm(
           texto: config.secondaryButtonText,
-          onPressed: () => controller.resetForm(),
+          onPressed: () => onCancel(),
           isPrimary: false,
         ),
         const SizedBox(width: 100),
         ButtonForm(
           texto: config.primaryButtonText,
-          onPressed: () => controller.submitForm(),
+          onPressed: () {
+            // Validar el formulario antes de llamar al callback
+            if (controller.formKey.currentState?.validate() ?? false) {
+              onSubmit();
+            }
+          },
           icon: Icons.add,
         ),
       ],

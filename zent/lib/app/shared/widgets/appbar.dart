@@ -77,8 +77,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Center(
               child: Text(
                 pageTitle,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
+                style: theme.textTheme.displayLarge?.copyWith(
                   letterSpacing: 1.2,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -90,12 +89,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Container(
-                  height: 40,
-                  width: 280,
+                  height: 38,
+                  width: 350,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? Colors.grey[800]
+                        ? theme.colorScheme.onSurfaceVariant.withOpacity(0.1)
                         : Colors.grey.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -117,8 +116,24 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                               fontSize: 14,
                             ),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.zero,
+                            // Replace zero padding with centered alignment
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 10),
+                            // These properties ensure the TextField is transparent
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            // Remove any default background
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            // Add this to help with vertical alignment
+                            isCollapsed: true,
                           ),
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 14,
+                          ),
+                          cursorColor: theme.colorScheme.onSurface,
+                          textAlignVertical: TextAlignVertical.center,
                         ),
                       ),
                       Text(
@@ -135,16 +150,16 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
               Row(
                 children: [
                   IconButton(
+                    icon: const Icon(Icons.filter_alt_outlined),
+                    iconSize: 20,
+                    onPressed: () {},
+                    tooltip: 'Filtros',
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.notifications_outlined),
                     iconSize: 20,
                     onPressed: () {},
                     tooltip: 'Notificaciones',
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined),
-                    iconSize: 20,
-                    onPressed: () {},
-                    tooltip: 'Configuración',
                   ),
                 ],
               ),

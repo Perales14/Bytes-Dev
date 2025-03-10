@@ -7,20 +7,26 @@ import 'package:zent/app/shared/widgets/form/widgets/dropdown_form.dart';
 import 'package:zent/app/shared/widgets/form/widgets/label_display.dart';
 
 class ClientForm extends BaseForm {
-  @override
-  final ClientFormController controller;
-
+  // Constructor sin redeclaraciones problemáticas
   const ClientForm({
-    required this.controller,
+    required ClientFormController super.controller,
     required super.config,
+    required super.onCancel,
+    required super.onSubmit,
     super.key,
-  }) : super(controller: controller);
+  });
+
+  // Acceso tipado al controller
+  ClientFormController get clientController =>
+      controller as ClientFormController;
 
   @override
   Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // Alineación importante
+      mainAxisSize: MainAxisSize.min, // Evita expandirse infinitamente
       children: [
         // Datos del cliente y Observaciones
         _buildClientDataAndObservations(theme),
@@ -49,8 +55,8 @@ class ClientForm extends BaseForm {
             flex: config.observationsFlex,
             child: buildObservationsSection(
               theme,
-              controller.model.observaciones,
-              (value) => controller.updateClient(observaciones: value),
+              clientController.model.observaciones,
+              (value) => clientController.updateClient(observaciones: value),
             ),
           ),
       ],
@@ -70,24 +76,24 @@ class ClientForm extends BaseForm {
             Expanded(
               child: LabelDisplay(
                 label: 'ID',
-                value: controller.model.id ?? 'Auto-generado',
+                value: clientController.model.id ?? 'Auto-generado',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: LabelDisplay(
                 label: 'Fecha de Registro',
-                value: controller.model.fechaRegistro,
+                value: clientController.model.fechaRegistro,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: DropdownForm(
                 label: 'Tipo de Cliente',
-                opciones: controller.tiposCliente,
-                value: controller.model.tipoCliente,
+                opciones: clientController.tiposCliente,
+                value: clientController.model.tipoCliente,
                 onChanged: (value) =>
-                    controller.updateClient(tipoCliente: value),
+                    clientController.updateClient(tipoCliente: value),
               ),
             ),
           ],
@@ -101,9 +107,10 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Nombre',
                 controller:
-                    TextEditingController(text: controller.model.nombre),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateClient(nombre: value),
+                    TextEditingController(text: clientController.model.nombre),
+                validator: clientController.validateRequired,
+                onChanged: (value) =>
+                    clientController.updateClient(nombre: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -111,10 +118,10 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: controller.model.apellidoPaterno),
-                validator: controller.validateRequired,
+                    text: clientController.model.apellidoPaterno),
+                validator: clientController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateClient(apellidoPaterno: value),
+                    clientController.updateClient(apellidoPaterno: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -122,10 +129,10 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: controller.model.apellidoMaterno),
-                validator: controller.validateRequired,
+                    text: clientController.model.apellidoMaterno),
+                validator: clientController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateClient(apellidoMaterno: value),
+                    clientController.updateClient(apellidoMaterno: value),
               ),
             ),
           ],
@@ -139,9 +146,10 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Correo Electrónico',
                 controller:
-                    TextEditingController(text: controller.model.correo),
-                validator: controller.validateEmail,
-                onChanged: (value) => controller.updateClient(correo: value),
+                    TextEditingController(text: clientController.model.correo),
+                validator: clientController.validateEmail,
+                onChanged: (value) =>
+                    clientController.updateClient(correo: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -149,10 +157,11 @@ class ClientForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Teléfono',
-                controller:
-                    TextEditingController(text: controller.model.telefono),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateClient(telefono: value),
+                controller: TextEditingController(
+                    text: clientController.model.telefono),
+                validator: clientController.validateRequired,
+                onChanged: (value) =>
+                    clientController.updateClient(telefono: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -160,9 +169,10 @@ class ClientForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'RFC',
-                controller: TextEditingController(text: controller.model.rfc),
-                validator: controller.validateRFC,
-                onChanged: (value) => controller.updateClient(rfc: value),
+                controller:
+                    TextEditingController(text: clientController.model.rfc),
+                validator: clientController.validateRFC,
+                onChanged: (value) => clientController.updateClient(rfc: value),
               ),
             ),
           ],
@@ -184,20 +194,22 @@ class ClientForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Nombre de la empresa',
-                controller:
-                    TextEditingController(text: controller.model.nombreEmpresa),
-                validator: controller.validateRequired,
+                controller: TextEditingController(
+                    text: clientController.model.nombreEmpresa),
+                validator: clientController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateClient(nombreEmpresa: value),
+                    clientController.updateClient(nombreEmpresa: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Cargo',
-                controller: TextEditingController(text: controller.model.cargo),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateClient(cargo: value),
+                controller:
+                    TextEditingController(text: clientController.model.cargo),
+                validator: clientController.validateRequired,
+                onChanged: (value) =>
+                    clientController.updateClient(cargo: value),
               ),
             ),
           ],
@@ -210,9 +222,11 @@ class ClientForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Calle y Número',
-                controller: TextEditingController(text: controller.model.calle),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateClient(calle: value),
+                controller:
+                    TextEditingController(text: clientController.model.calle),
+                validator: clientController.validateRequired,
+                onChanged: (value) =>
+                    clientController.updateClient(calle: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -220,18 +234,20 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Colonia',
                 controller:
-                    TextEditingController(text: controller.model.colonia),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateClient(colonia: value),
+                    TextEditingController(text: clientController.model.colonia),
+                validator: clientController.validateRequired,
+                onChanged: (value) =>
+                    clientController.updateClient(colonia: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'CP',
-                controller: TextEditingController(text: controller.model.cp),
-                validator: controller.validateCP,
-                onChanged: (value) => controller.updateClient(cp: value),
+                controller:
+                    TextEditingController(text: clientController.model.cp),
+                validator: clientController.validateCP,
+                onChanged: (value) => clientController.updateClient(cp: value),
                 keyboardType: TextInputType.number,
               ),
             ),
