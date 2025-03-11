@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
-import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/models/usuario_model.dart';
+import '../../../data/repositories/employee_repository.dart';
 
 class EmployeesController extends GetxController {
-  // Lista reactiva de empleados (usando mapas)
-  var employees = <Map<String, dynamic>>[].obs;
+  // Lista reactiva de empleados
+  var employees = <UsuarioModel>[].obs;
 
   // Estado de carga
   var isLoading = true.obs;
@@ -13,9 +14,11 @@ class EmployeesController extends GetxController {
   var errorMessage = ''.obs;
 
   // Repositorio
-  final UsuarioRepository usuarioRepository;
+  final EmployeeRepository _repository;
 
-  EmployeesController() : usuarioRepository = Get.find<UsuarioRepository>();
+  // Inyección de dependencia mediante constructor
+  EmployeesController({EmployeeRepository? repository})
+      : _repository = repository ?? Get.find<EmployeeRepository>();
 
   @override
   void onInit() {
@@ -25,55 +28,21 @@ class EmployeesController extends GetxController {
 
   // Cargar empleados desde el repositorio
   void loadEmployees() async {
-  try {
-    isLoading(true);
-    // Simulación de datos
-    final empleadosSimulados = [
-      {
-        'nombre_completo': 'luis muñoz',
-        'nss': '12345',
-        'email': 'luis@example.com',
-        'cargo': 'Desarrollador',
-        'departamento': 'backend',
-        'telefono': '8333011843',
-      },
-      {
-        'nombre_completo': 'julian cruz',
-        'nss': '67890',
-        'email': 'julian@example.com',
-        'cargo': 'desarollador',
-        'departamento': 'frontend',
-        'telefono': '8333011843',
-      },
-      {
-        'nombre_completo': 'Alex Arath',
-        'nss': '67890',
-        'email': 'falex@example.com',
-        'cargo': 'lider',
-        'departamento': 'full stack',
-        'telefono': '8333011843',
-      },
-      {
-        'nombre_completo': 'Marco Saenz',
-        'nss': '67890',
-        'email': 'bodrio@example.com',
-        'cargo': 'lider',
-        'departamento': 'gestor',
-        'telefono': '8333011843',
-      },
-    ];
-    employees.assignAll(empleadosSimulados);
-    isLoading(false);
-  } catch (e) {
-    isLoading(false);
-    hasError(true);
-    errorMessage('Error al cargar empleados: $e');
+    try {
+      isLoading(true);
+      hasError(false);
+      final result = await _repository.getEmployees();
+      employees.assignAll(result);
+    } catch (e) {
+      hasError(true);
+      errorMessage('Error al cargar empleados: $e');
+    } finally {
+      isLoading(false);
+    }
   }
-}
 
   // Recargar datos
   void refreshData() {
-    hasError(false);
     loadEmployees();
   }
 }

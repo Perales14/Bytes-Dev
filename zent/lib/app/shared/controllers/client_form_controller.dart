@@ -53,22 +53,22 @@ class ClientFormController extends BaseFormController {
 
   @override
   void resetForm() {
+    // Primero limpiamos los campos del formulario
     formKey.currentState?.reset();
+    // Luego reiniciamos el modelo a sus valores iniciales
     _initializeClient();
   }
 
   @override
-  void submitForm() {
+  bool submitForm() {
+    // IMPORTANTE: Cambio de tipo de retorno a bool para indicar éxito/fracaso
+    // Validamos el formulario completo primero
     if (_validateClientForm()) {
-      // Aquí se podría enviar el cliente a un servicio o repositorio
-      // clientRepository.save(client);
-
-      Get.snackbar(
-        'Éxito',
-        'Cliente registrado correctamente',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      // Aquí iría la lógica para enviar el formulario
+      // Por ahora solo devolvemos true indicando que la validación fue exitosa
+      return true;
     }
+    return false;
   }
 
   /// Valida el formulario de cliente antes de enviar
@@ -81,17 +81,20 @@ class ClientFormController extends BaseFormController {
   bool _validateClientForm() {
     // Validar todos los campos del formulario (nombre, correo, etc.)
     if (!formKey.currentState!.validate()) {
+      Get.snackbar(
+        'Validación',
+        'Por favor complete todos los campos requeridos',
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
     // Validación específica para el tipo de cliente
     if (model.tipoCliente.isEmpty) {
       Get.snackbar(
-        'Error de validación',
-        'Debe seleccionar un tipo de cliente',
+        'Validación',
+        'Por favor seleccione un tipo de cliente',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
       );
       return false;
     }
@@ -106,6 +109,7 @@ class ClientFormController extends BaseFormController {
     String? apellidoMaterno,
     String? correo,
     String? telefono,
+    String? fechaRegistro,
     String? observaciones,
     String? nombreEmpresa,
     String? cargo,
@@ -114,7 +118,6 @@ class ClientFormController extends BaseFormController {
     String? cp,
     String? rfc,
     String? tipoCliente,
-    String? fechaRegistro,
   }) {
     model = model.copyWith(
       nombre: nombre,
@@ -122,15 +125,15 @@ class ClientFormController extends BaseFormController {
       apellidoMaterno: apellidoMaterno,
       correo: correo,
       telefono: telefono,
-      observaciones: observaciones,
-      nombreEmpresa: nombreEmpresa,
-      cargo: cargo,
-      calle: calle,
-      colonia: colonia,
-      cp: cp,
-      rfc: rfc,
-      tipoCliente: tipoCliente,
       fechaRegistro: fechaRegistro,
+      observaciones: observaciones,
+      nombreEmpresa: model.nombreEmpresa,
+      cargo: model.cargo,
+      calle: model.calle,
+      colonia: model.colonia,
+      cp: model.cp,
+      rfc: model.rfc,
+      tipoCliente: model.tipoCliente,
     );
   }
 

@@ -9,7 +9,6 @@ class ProviderFormController extends BaseFormController {
   late ProviderModel provider;
 
   // Lists for dropdowns
-  final List<String> roles = ['Admin', 'Usuario', 'Proveedor'];
   final List<String> tiposServicio = [
     'Consultoría',
     'Insumos',
@@ -57,22 +56,46 @@ class ProviderFormController extends BaseFormController {
   }
 
   @override
-  void submitForm() {
-    if (formKey.currentState?.validate() ?? false) {
-      // Aquí podrías enviar el proveedor a un servicio o repositorio
-      // providerRepository.save(provider);
+  bool submitForm() {
+    // IMPORTANTE: Cambio de tipo de retorno a bool para indicar éxito/fracaso
+    if (_validateProviderForm()) {
+      // Aquí iría la lógica para enviar el formulario
+      // Por ahora solo devolvemos true indicando que la validación fue exitosa
+      return true;
+    }
+    return false;
+  }
 
+  /// Valida el formulario de proveedor antes de enviar
+  bool _validateProviderForm() {
+    // Validar todos los campos del formulario
+    if (!formKey.currentState!.validate()) {
       Get.snackbar(
-        'Éxito',
-        'Proveedor registrado correctamente',
+        'Validación',
+        'Por favor complete todos los campos requeridos',
         snackPosition: SnackPosition.BOTTOM,
       );
+      return false;
     }
+
+    // Validación específica para el tipo de servicio
+    if (provider.tipoServicio.isEmpty) {
+      Get.snackbar(
+        'Validación',
+        'Por favor seleccione un tipo de servicio',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+
+    return true;
   }
 
   @override
   void resetForm() {
+    // Primero limpiamos los campos del formulario
     formKey.currentState?.reset();
+    // Luego reiniciamos el modelo a sus valores iniciales
     _initializeProvider();
   }
 

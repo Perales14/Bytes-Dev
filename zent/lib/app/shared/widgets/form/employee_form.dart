@@ -1,61 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/shared/controllers/employee_form_controller.dart';
-import 'package:zent/app/shared/models/form_config.dart';
-import 'package:zent/app/shared/widgets/form/base_form.dart';
-import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
-import 'package:zent/app/shared/widgets/form/widgets/label_display.dart';
-import 'package:zent/app/shared/widgets/form/widgets/dropdown_form.dart';
-import 'package:zent/app/shared/widgets/form/widgets/text_field_form.dart';
+
+import '../../controllers/employee_form_controller.dart';
+import 'base_form.dart';
+import 'widgets/dropdown_form.dart';
+import 'widgets/file_upload_panel.dart';
+import 'widgets/label_display.dart';
+import 'widgets/text_field_form.dart';
 
 class EmployeeForm extends BaseForm {
-  @override
-  final EmployeeFormController controller;
-
+  // Constructor sin redeclaraciones problemáticas
   const EmployeeForm({
-    required this.controller,
+    required EmployeeFormController super.controller,
     required super.config,
+    required super.onCancel,
+    required super.onSubmit,
     super.key,
-  }) : super(controller: controller);
+  });
+
+  // Accedemos al controller con el tipo correcto
+  EmployeeFormController get employeeController =>
+      controller as EmployeeFormController;
 
   @override
   Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      children: [
-        // Datos personales y Observaciones
-        _buildPersonalDataAndObservations(theme),
-        const SizedBox(height: 30),
-
-        // Datos de la empresa y archivos
-        _buildCompanyDataAndFiles(theme),
-      ],
-    );
-  }
-
-  Widget _buildPersonalDataAndObservations(ThemeData theme) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Datos personales
-        Expanded(
-          flex: 2,
-          child: _buildPersonalDataSection(theme),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize:
+              MainAxisSize.min, // Importante para evitar expansión infinita
+          children: [
+            _buildPersonalDataSection(theme),
+            const SizedBox(height: 20),
+            if (config.showObservations) _buildObservationsSection(theme),
+            const SizedBox(height: 20),
+            _buildCompanyDataSection(theme),
+            const SizedBox(height: 20),
+            if (config.showFiles) _buildFilesSection(theme),
+          ],
         ),
-        const SizedBox(width: 20),
-
-        // Observaciones
-        if (config.showObservations)
-          Expanded(
-            flex: config.observationsFlex,
-            child: buildObservationsSection(
-              theme,
-              controller.model.observaciones,
-              (value) => controller.updateEmployee(observaciones: value),
-            ),
-          ),
-      ],
+      ),
     );
   }
 
@@ -72,10 +60,11 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Nombre',
-                controller:
-                    TextEditingController(text: controller.model.nombre),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateBaseModel(nombre: value),
+                controller: TextEditingController(
+                    text: employeeController.model.nombre),
+                validator: employeeController.validateRequired,
+                onChanged: (value) =>
+                    employeeController.updateBaseModel(nombre: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -83,10 +72,10 @@ class EmployeeForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: controller.model.apellidoPaterno),
-                validator: controller.validateRequired,
+                    text: employeeController.model.apellidoPaterno),
+                validator: employeeController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateBaseModel(apellidoPaterno: value),
+                    employeeController.updateBaseModel(apellidoPaterno: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -94,10 +83,10 @@ class EmployeeForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: controller.model.apellidoMaterno),
-                validator: controller.validateRequired,
+                    text: employeeController.model.apellidoMaterno),
+                validator: employeeController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateBaseModel(apellidoMaterno: value),
+                    employeeController.updateBaseModel(apellidoMaterno: value),
               ),
             ),
           ],
@@ -110,10 +99,11 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Correo Electrónico',
-                controller:
-                    TextEditingController(text: controller.model.correo),
-                validator: controller.validateEmail,
-                onChanged: (value) => controller.updateBaseModel(correo: value),
+                controller: TextEditingController(
+                    text: employeeController.model.correo),
+                validator: employeeController.validateEmail,
+                onChanged: (value) =>
+                    employeeController.updateBaseModel(correo: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -121,11 +111,11 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Teléfono',
-                controller:
-                    TextEditingController(text: controller.model.telefono),
-                validator: controller.validateRequired,
+                controller: TextEditingController(
+                    text: employeeController.model.telefono),
+                validator: employeeController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateBaseModel(telefono: value),
+                    employeeController.updateBaseModel(telefono: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -133,9 +123,11 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'NSS',
-                controller: TextEditingController(text: controller.model.nss),
-                validator: controller.validateNSS,
-                onChanged: (value) => controller.updateEmployee(nss: value),
+                controller:
+                    TextEditingController(text: employeeController.model.nss),
+                validator: employeeController.validateNSS,
+                onChanged: (value) =>
+                    employeeController.updateEmployee(nss: value),
               ),
             ),
           ],
@@ -155,20 +147,21 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Contraseña',
-                obscureText: !controller.showPassword.value,
-                controller:
-                    TextEditingController(text: controller.model.password),
-                validator: controller.validatePassword,
+                obscureText: !employeeController.showPassword.value,
+                controller: TextEditingController(
+                    text: employeeController.model.password),
+                validator: employeeController.validatePassword,
                 onChanged: (value) =>
-                    controller.updateEmployee(password: value),
+                    employeeController.updateEmployee(password: value),
                 suffixIcon: IconButton(
                   icon: Icon(
-                    controller.showPassword.value
+                    employeeController.showPassword.value
                         ? Icons.visibility_off
                         : Icons.visibility,
                     color: theme.colorScheme.secondary,
                   ),
-                  onPressed: () => controller.togglePasswordVisibility(),
+                  onPressed: () =>
+                      employeeController.togglePasswordVisibility(),
                 ),
               ),
             ),
@@ -176,19 +169,20 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Confirmar Contraseña',
-                obscureText: !controller.showPassword.value,
-                controller:
-                    TextEditingController(text: controller.confirmPassword),
-                validator: controller.validateConfirmPassword,
-                onChanged: controller.updateConfirmPassword,
+                obscureText: !employeeController.showPassword.value,
+                controller: TextEditingController(
+                    text: employeeController.confirmPassword),
+                validator: employeeController.validateConfirmPassword,
+                onChanged: employeeController.updateConfirmPassword,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    controller.showPassword.value
+                    employeeController.showPassword.value
                         ? Icons.visibility_off
                         : Icons.visibility,
                     color: theme.colorScheme.secondary,
                   ),
-                  onPressed: () => controller.togglePasswordVisibility(),
+                  onPressed: () =>
+                      employeeController.togglePasswordVisibility(),
                 ),
               ),
             ),
@@ -197,22 +191,20 @@ class EmployeeForm extends BaseForm {
         ));
   }
 
-  Widget _buildCompanyDataAndFiles(ThemeData theme) {
-    return Row(
+  Widget _buildObservationsSection(ThemeData theme) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Datos de la empresa
-        Expanded(
-          flex: 2,
-          child: _buildCompanyDataSection(theme),
+        buildSectionTitle(theme, 'Observaciones'),
+        const SizedBox(height: 20),
+        TextFieldForm(
+          label: 'Observaciones',
+          controller: TextEditingController(
+              text: employeeController.model.observaciones),
+          onChanged: (value) =>
+              employeeController.updateEmployee(observaciones: value),
+          maxLines: 5,
         ),
-        const SizedBox(width: 20),
-
-        // Archivos
-        if (config.showFiles)
-          Expanded(
-            child: _buildFilesSection(theme),
-          ),
       ],
     );
   }
@@ -229,24 +221,18 @@ class EmployeeForm extends BaseForm {
           children: [
             Expanded(
               child: LabelDisplay(
-                label: 'ID',
-                value: controller.model.id ?? 'Auto-generado',
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: LabelDisplay(
                 label: 'Fecha de Registro',
-                value: controller.model.fechaRegistro,
+                value: employeeController.model.fechaRegistro,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: DropdownForm(
                 label: 'Rol',
-                opciones: controller.roles,
-                value: controller.model.rol,
-                onChanged: (value) => controller.updateEmployee(rol: value),
+                opciones: employeeController.roles,
+                value: employeeController.model.rol,
+                onChanged: (value) =>
+                    employeeController.updateEmployee(rol: value),
               ),
             ),
           ],
@@ -259,21 +245,22 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: DropdownForm(
                 label: 'Tipo de Contrato',
-                opciones: controller.tiposContrato,
-                value: controller.model.tipoContrato,
+                opciones: employeeController.tiposContrato,
+                value: employeeController.model.tipoContrato,
                 onChanged: (value) =>
-                    controller.updateEmployee(tipoContrato: value),
+                    employeeController.updateEmployee(tipoContrato: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Salario',
-                controller:
-                    TextEditingController(text: controller.model.salario),
+                controller: TextEditingController(
+                    text: employeeController.model.salario),
                 keyboardType: TextInputType.number,
-                onChanged: (value) => controller.updateEmployee(salario: value),
-                validator: controller.validateSalario,
+                onChanged: (value) =>
+                    employeeController.updateEmployee(salario: value),
+                validator: employeeController.validateSalario,
               ),
             ),
             const SizedBox(width: 10),
@@ -293,9 +280,9 @@ class EmployeeForm extends BaseForm {
         SizedBox(
           height: 200,
           child: FileUploadPanel(
-            files: controller.model.files,
-            onRemove: controller.removeFile,
-            onAdd: () => controller.addFile(FileData(
+            files: employeeController.model.files,
+            onRemove: employeeController.removeFile,
+            onAdd: () => employeeController.addFile(FileData(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 name: 'Nuevo documento.pdf',
                 type: FileType.pdf,
