@@ -27,9 +27,7 @@ class PermisoModel extends BaseModel {
   PermisoModel fromMap(Map<String, dynamic> map) {
     return PermisoModel(
       rolId: map['rol_id'] ?? 0,
-      permisosJson: map['permisos_json'] != null
-          ? Map<String, dynamic>.from(map['permisos_json'])
-          : null,
+      permisosJson: map['permisos_json'],
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
@@ -39,16 +37,14 @@ class PermisoModel extends BaseModel {
   factory PermisoModel.fromJson(Map<String, dynamic> map) {
     return PermisoModel(
       rolId: map['rol_id'] ?? 0,
-      permisosJson: map['permisos_json'] != null
-          ? Map<String, dynamic>.from(map['permisos_json'])
-          : null,
+      permisosJson: map['permisos_json'],
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
     );
   }
 
-  // Override getter for id to use rolId instead
+  // Override getter for id to use rolId instead since it's the primary key
   @override
   int get id => rolId;
 

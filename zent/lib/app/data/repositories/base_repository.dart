@@ -156,4 +156,66 @@ abstract class BaseRepository<T extends BaseModel> {
       throw Exception('Error en consulta personalizada para $tableName: $e');
     }
   }
+
+  // Método para ejecutar consultas SQL personalizadas
+  Future<List<Map<String, dynamic>>> rawQuery(
+      String sql, List<dynamic> args) async {
+    try {
+      return await _localDb.rawQuery(sql, args);
+    } catch (e) {
+      throw Exception('Error en consulta raw: $e');
+    }
+  }
+
+  // Método para insertar en tablas relacionadas
+  Future<int> rawInsert(String table, Map<String, dynamic> data) async {
+    try {
+      // Insertar en la base de datos local
+      final id = await _localDb.insert(table, data);
+
+      // Si hay conexión, sincronizar con el servidor
+      if (await _connectivityHelper.isConnected()) {
+        await _remoteDb.insert(table, data);
+      } else {
+        // Registrar para sincronización posterior
+        await _localDb.insert('sync_pending', {
+          'table_name': table,
+          'record_data': data.toString(),
+          'operation': 'insert',
+          'created_at': DateTime.now().toIso8601String()
+        });
+      }
+
+      return id['id'] ?? 0;
+    } catch (e) {
+      throw Exception('Error al insertar en $table: $e');
+    }
+  }
+
+  // Método para eliminar con condiciones personalizadas
+  Future<int> rawDelete(
+      String table, String where, List<dynamic> whereArgs) async {
+    try {
+      // Eliminar de la base de datos local
+      final count = await _localDb.delete(table, where, whereArgs);
+
+      // Si hay conexión, eliminar también del servidor
+      if (await _connectivityHelper.isConnected()) {
+        await _remoteDb.delete(table, where, whereArgs);
+      } else {
+        // Registrar para sincronización posterior
+        await _localDb.insert('sync_pending', {
+          'table_name': table,
+          'where_condition': where,
+          'where_args': whereArgs.toString(),
+          'operation': 'delete',
+          'created_at': DateTime.now().toIso8601String()
+        });
+      }
+
+      return count;
+    } catch (e) {
+      throw Exception('Error al eliminar de $table: $e');
+    }
+  }
 }
