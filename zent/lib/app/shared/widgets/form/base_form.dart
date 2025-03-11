@@ -126,7 +126,10 @@ abstract class BaseForm extends StatelessWidget {
           onPressed: () {
             // Validar el formulario antes de llamar al callback
             if (controller.formKey.currentState?.validate() ?? false) {
+              print('Formulario válido');
               onSubmit();
+            } else {
+              print('Formulario inválido');
             }
           },
           icon: Icons.add,

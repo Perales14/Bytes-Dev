@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/data/models/usuario_model.dart';
 
+import '../../data/repositories/employee_repository.dart';
 import '../models/employee_model.dart';
 import 'base_form_controller.dart';
 import 'validators/list_validator.dart';
@@ -11,6 +13,7 @@ import 'validators/salary_validator.dart';
 class EmployeeFormController extends BaseFormController {
   // Modelo central que almacena todos los datos del empleado
   late EmployeeModel model;
+  final employeeRepository = EmployeeRepository();
 
   // Contraseña de confirmación (mantenida solo en el controlador)
   String confirmPassword = '';
@@ -28,10 +31,11 @@ class EmployeeFormController extends BaseFormController {
   ];
 
   final List<String> tiposContrato = [
-    'Indeterminado',
-    'Determinado',
-    'Obra/Servicio',
-    'Capacitación'
+    // 'Indeterminado',
+    // 'Determinado',
+    // 'Obra/Servicio',
+    // 'Capacitación'
+    'Temporal', 'Indefinido', 'Por Obra'
   ];
 
   @override
@@ -53,7 +57,7 @@ class EmployeeFormController extends BaseFormController {
       nss: '',
       password: '',
       salario: '',
-      rol: '',
+      rol: '2',
       tipoContrato: '',
     );
     confirmPassword = '';
@@ -101,17 +105,94 @@ class EmployeeFormController extends BaseFormController {
   @override
   bool submitForm() {
     if (_validateEmployeeForm()) {
-      // Aquí se podría enviar el empleado a un servicio o repositorio
-      // employeeRepository.save(employee);
+      // UsuarioModel usuario = UsuarioModel(
+      //   rolId: model.rol as int,
+      //   nombreCompleto: model_base.nombre,
+      //   email: model_base.correo,
+      //   nss: model.nss,
+      //   contrasenaHash: model.password,
+      //   fechaIngreso: model.fechaRegistro as DateTime,
+      //   estadoId: 1,
+      // );
+      // employeeRepository.create(usuario);
 
       Get.snackbar(
         'Éxito',
-        'Empleado registrado correctamente',
+        'Empleado VALIDADO registrado correctamente',
         snackPosition: SnackPosition.BOTTOM,
       );
       return true;
+    } else {
+      Get.snackbar(
+        'Éxito',
+        'Empleado NO VALIDADO',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
     return false;
+  }
+
+  bool saveEmployee() {
+    bool save = false;
+    print(model.rol);
+    int rol = 0;
+
+    switch (model.rol) {
+      case 'Admin':
+        rol = 2;
+        break;
+      case 'Captador de Campo':
+        rol = 1;
+        break;
+      case 'Promotor':
+        rol = 3;
+        break;
+      case 'Recursos Humanos':
+        rol = 4;
+        break;
+      default:
+        rol = 2;
+    }
+    // print('model: ${model.fechaRegistro}');
+    // print('model: ');
+    // print(model.toJson());
+    // print('model_base: ');
+    // print(model_base.toJson());
+
+    UsuarioModel usuario = UsuarioModel(
+      //valores que son nulos actualmente.
+      //cargo,depatamento,especialidadId,salario,supervisorId,telefono,tipoContrato
+      rolId: rol,
+      nombreCompleto:
+          '${model_base.nombre} ${model_base.apellidoPaterno} ${model_base.apellidoMaterno}',
+      email: model_base.correo,
+      telefono: model_base.telefono,
+      nss: model.nss,
+      contrasenaHash: model.password,
+      // salario: model.salario as double,
+      salario: double.parse(model.salario),
+
+      tipoContrato: model.tipoContrato,
+      cargo: model.rol,
+
+      // salario: model.salario as double,
+      // fechaIngreso: model.fechaRegistro as DateTime,
+      fechaIngreso: DateTime.parse(model.fechaRegistro),
+
+      estadoId: 1,
+    );
+
+    print(usuario.toJson());
+
+    employeeRepository.create(usuario).then(
+      (value) {
+        print('value: ${value.id}');
+        if (value.id > 0) {
+          save = true;
+        }
+      },
+    );
+    return save;
   }
 
   /// Valida el formulario de empleado antes de enviar

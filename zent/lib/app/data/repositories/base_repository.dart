@@ -26,24 +26,28 @@ abstract class BaseRepository<T extends BaseModel> {
 
   // CRUD Operations
 
-  // CREATE: Crear un nuevo registro
+  // CREATE: Crear un nuevo registro usando solo Supabase
   Future<T> create(T model) async {
     try {
-      // Aseguramos que se marque como no sincronizado al inicio
-      model.markAsNotSynced();
-
-      // Insertamos en la base de datos local
-      final Map<String, dynamic> data =
-          await _localDb.insert(tableName, model.toMap());
-      final T createdModel = fromMap(data);
-
-      // Intentamos sincronizar con el servidor si hay conexión
+      // Verificar conectividad antes de intentar usar la base de datos remota
       if (await _connectivityHelper.isConnected()) {
-        await _syncService.syncToRemote(tableName, createdModel.toMap());
-        createdModel.markAsSynced();
-      }
+        // Insertar directamente en Supabase
+        Map<String, dynamic> user = model.toMap();
+        // Eliminar 
+        user.remove('enviado');
+        user.remove('id');
+        final Map<String, dynamic> data =
+            await _remoteDb.insert(tableName, user);
 
-      return createdModel;
+        // Convertir el resultado a modelo y marcarlo como sincronizado
+        final T createdModel = fromMap(data);
+        createdModel.markAsSynced();
+
+        return createdModel;
+      } else {
+        // Si no hay conexión, lanzar un error
+        throw Exception('No hay conexión a internet para crear $tableName');
+      }
     } catch (e) {
       throw Exception('Error al crear $tableName: $e');
     }
@@ -149,9 +153,18 @@ abstract class BaseRepository<T extends BaseModel> {
   // Búsqueda personalizada
   Future<List<T>> query(String where, List<dynamic> whereArgs) async {
     try {
-      final List<Map<String, dynamic>> data = await _localDb.rawQuery(
-          'SELECT * FROM $tableName WHERE $where', whereArgs);
-      return data.map((map) => fromMap(map)).toList();
+      // Verificar conectividad antes de intentar usar la base de datos remota
+      if (await _connectivityHelper.isConnected()) {
+        // Usar Supabase para la consulta
+        final List<Map<String, dynamic>> data =
+            await _remoteDb.query(tableName, where, whereArgs);
+        return data.map((map) => fromMap(map)).toList();
+      } else {
+        // Fallback a SQLite cuando no hay conexión
+        final List<Map<String, dynamic>> data = await _localDb.rawQuery(
+            'SELECT * FROM $tableName WHERE $where', whereArgs);
+        return data.map((map) => fromMap(map)).toList();
+      }
     } catch (e) {
       throw Exception('Error en consulta personalizada para $tableName: $e');
     }

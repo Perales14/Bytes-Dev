@@ -31,8 +31,30 @@ class EmployeesController extends GetxController {
     try {
       isLoading(true);
       hasError(false);
+      print('object');
       final result = await _repository.getEmployees();
+      print('result');
+      print(result.length);
+
       employees.assignAll(result);
+      // final exampleEmployee = UsuarioModel(
+      //     id: employees.length + 1, // ID temporal
+      //     rolId: 2, // Rol de empleado
+      //     nombreCompleto: "María López Sánchez",
+      //     email: "maria.lopez@empresa.com",
+      //     nss: "12345678912",
+      //     contrasenaHash: "password_hash_example",
+      //     fechaIngreso:
+      //         DateTime.now().subtract(Duration(days: 90)), // Hace 3 meses
+      //     salario: 15000.0,
+      //     tipoContrato: "Indefinido",
+      //     departamento: "Recursos Humanos",
+      //     cargo: "Analista",
+      //     estadoId: 1, // Activo
+      //     telefono: "5512345678");
+
+      // // Agregar a la lista observable
+      // employees.add(exampleEmployee);
     } catch (e) {
       hasError(true);
       errorMessage('Error al cargar empleados: $e');

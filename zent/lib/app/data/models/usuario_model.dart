@@ -17,7 +17,7 @@ class UsuarioModel extends BaseModel {
   int estadoId;
 
   UsuarioModel({
-    super.id = 0,
+    super.id = 3,
     required this.rolId,
     this.especialidadId,
     required this.nombreCompleto,
