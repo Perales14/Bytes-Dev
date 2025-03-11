@@ -5,8 +5,8 @@ import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'validators/validators.dart';
 
 abstract class BaseFormController extends GetxController {
-  // Form key
-  final formKey = GlobalKey<FormState>();
+  // Cada controlador debe tener su propia clave única
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   // Password visibility (esto se mantiene observable porque afecta la UI directamente)
   final showPassword = false.obs;
@@ -75,7 +75,8 @@ abstract class BaseFormController extends GetxController {
   }
 
   // Abstract methods that must be implemented by subclasses
-  void submitForm();
+  bool
+      submitForm(); // Cambiar tipo de retorno a bool para indicar éxito/fracaso
   void resetForm();
 
   // Initialize base model

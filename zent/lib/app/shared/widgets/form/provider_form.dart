@@ -7,20 +7,26 @@ import 'package:zent/app/shared/widgets/form/widgets/dropdown_form.dart';
 import 'package:zent/app/shared/widgets/form/widgets/label_display.dart';
 
 class ProviderForm extends BaseForm {
-  @override
-  final ProviderFormController controller;
-
+  // Constructor sin redeclaraciones problemáticas
   const ProviderForm({
-    required this.controller,
+    required ProviderFormController super.controller,
     required super.config,
+    required super.onCancel,
+    required super.onSubmit,
     super.key,
-  }) : super(controller: controller);
+  });
+
+  // Acceso tipado al controller
+  ProviderFormController get providerController =>
+      controller as ProviderFormController;
 
   @override
   Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start, // Alineación importante
+      mainAxisSize: MainAxisSize.min, // Evita expandirse infinitamente
       children: [
         // Datos de contacto y Observaciones
         _buildContactDataAndObservations(theme),
@@ -49,8 +55,9 @@ class ProviderForm extends BaseForm {
             flex: config.observationsFlex,
             child: buildObservationsSection(
               theme,
-              controller.provider.observaciones,
-              (value) => controller.updateProvider(observaciones: value),
+              providerController.provider.observaciones,
+              (value) =>
+                  providerController.updateProvider(observaciones: value),
             ),
           ),
       ],
@@ -70,24 +77,24 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: LabelDisplay(
                 label: 'ID',
-                value: controller.provider.id ?? 'Auto-generado',
+                value: providerController.provider.id ?? 'Auto-generado',
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: LabelDisplay(
                 label: 'Fecha de Registro',
-                value: controller.provider.fechaRegistro,
+                value: providerController.provider.fechaRegistro,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: DropdownForm(
                 label: 'Tipo de Servicio',
-                opciones: controller.tiposServicio,
-                value: controller.provider.tipoServicio,
+                opciones: providerController.tiposServicio,
+                value: providerController.provider.tipoServicio,
                 onChanged: (value) =>
-                    controller.updateProvider(tipoServicio: value),
+                    providerController.updateProvider(tipoServicio: value),
               ),
             ),
           ],
@@ -100,10 +107,11 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Nombre',
-                controller:
-                    TextEditingController(text: controller.provider.nombre),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateProvider(nombre: value),
+                controller: TextEditingController(
+                    text: providerController.provider.nombre),
+                validator: providerController.validateRequired,
+                onChanged: (value) =>
+                    providerController.updateProvider(nombre: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -111,10 +119,10 @@ class ProviderForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: controller.provider.apellidoPaterno),
-                validator: controller.validateRequired,
+                    text: providerController.provider.apellidoPaterno),
+                validator: providerController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateProvider(apellidoPaterno: value),
+                    providerController.updateProvider(apellidoPaterno: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -122,10 +130,10 @@ class ProviderForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: controller.provider.apellidoMaterno),
-                validator: controller.validateRequired,
+                    text: providerController.provider.apellidoMaterno),
+                validator: providerController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateProvider(apellidoMaterno: value),
+                    providerController.updateProvider(apellidoMaterno: value),
               ),
             ),
           ],
@@ -138,10 +146,11 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Correo Electrónico',
-                controller:
-                    TextEditingController(text: controller.provider.correo),
-                validator: controller.validateEmail,
-                onChanged: (value) => controller.updateProvider(correo: value),
+                controller: TextEditingController(
+                    text: providerController.provider.correo),
+                validator: providerController.validateEmail,
+                onChanged: (value) =>
+                    providerController.updateProvider(correo: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -149,11 +158,11 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Teléfono',
-                controller:
-                    TextEditingController(text: controller.provider.telefono),
-                validator: controller.validateRequired,
+                controller: TextEditingController(
+                    text: providerController.provider.telefono),
+                validator: providerController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateProvider(telefono: value),
+                    providerController.updateProvider(telefono: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -161,10 +170,11 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'RFC',
-                controller:
-                    TextEditingController(text: controller.provider.rfc),
-                validator: controller.validateRFC,
-                onChanged: (value) => controller.updateProvider(rfc: value),
+                controller: TextEditingController(
+                    text: providerController.provider.rfc),
+                validator: providerController.validateRFC,
+                onChanged: (value) =>
+                    providerController.updateProvider(rfc: value),
               ),
             ),
           ],
@@ -187,20 +197,21 @@ class ProviderForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Nombre de la Empresa',
                 controller: TextEditingController(
-                    text: controller.provider.nombreEmpresa),
-                validator: controller.validateRequired,
+                    text: providerController.provider.nombreEmpresa),
+                validator: providerController.validateRequired,
                 onChanged: (value) =>
-                    controller.updateProvider(nombreEmpresa: value),
+                    providerController.updateProvider(nombreEmpresa: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Cargo',
-                controller:
-                    TextEditingController(text: controller.provider.cargo),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateProvider(cargo: value),
+                controller: TextEditingController(
+                    text: providerController.provider.cargo),
+                validator: providerController.validateRequired,
+                onChanged: (value) =>
+                    providerController.updateProvider(cargo: value),
               ),
             ),
           ],
@@ -213,29 +224,33 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Calle y Número',
-                controller:
-                    TextEditingController(text: controller.provider.calle),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateProvider(calle: value),
+                controller: TextEditingController(
+                    text: providerController.provider.calle),
+                validator: providerController.validateRequired,
+                onChanged: (value) =>
+                    providerController.updateProvider(calle: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Colonia',
-                controller:
-                    TextEditingController(text: controller.provider.colonia),
-                validator: controller.validateRequired,
-                onChanged: (value) => controller.updateProvider(colonia: value),
+                controller: TextEditingController(
+                    text: providerController.provider.colonia),
+                validator: providerController.validateRequired,
+                onChanged: (value) =>
+                    providerController.updateProvider(colonia: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Código Postal',
-                controller: TextEditingController(text: controller.provider.cp),
-                validator: controller.validateCP,
-                onChanged: (value) => controller.updateProvider(cp: value),
+                controller:
+                    TextEditingController(text: providerController.provider.cp),
+                validator: providerController.validateCP,
+                onChanged: (value) =>
+                    providerController.updateProvider(cp: value),
                 keyboardType: TextInputType.number,
               ),
             ),

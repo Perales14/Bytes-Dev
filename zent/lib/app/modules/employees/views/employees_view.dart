@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'dart:ui';
 
 import '../../../shared/widgets/main_layout.dart';
 import '../controllers/employees_controller.dart';
-import '../widgets/employee_grid.dart';
+import '../widgets/employees_cards_grid.dart';
+import '../widgets/add_employee_dialog.dart';
 
 class EmployeesView extends GetView<EmployeesController> {
   const EmployeesView({super.key});
@@ -17,12 +19,9 @@ class EmployeesView extends GetView<EmployeesController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with title and action buttons
-            _buildHeader(context),
+            const SizedBox(height: 28),
 
-            const SizedBox(height: 24),
-
-            // Employee grid with loading state handling
+            // Contenido principal con grid de tarjetas
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -37,8 +36,9 @@ class EmployeesView extends GetView<EmployeesController> {
                   return _buildEmptyState();
                 }
 
-                return SingleChildScrollView(
-                  child: EmployeeGrid(employees: controller.employees),
+                return EmployeesCardsGrid(
+                  employees: controller.employees,
+                  onAddEmployee: () => _showAddEmployeeDialog(context),
                 );
               }),
             ),
@@ -48,20 +48,16 @@ class EmployeesView extends GetView<EmployeesController> {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Directorio de empleados',
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        FilledButton.icon(
-          onPressed: () => Get.toNamed('/employees/add'),
-          icon: const Icon(Icons.add),
-          label: const Text('Nuevo empleado'),
-        ),
-      ],
+  void _showAddEmployeeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return AddEmployeeDialog(
+          onSaveSuccess: () => controller.refreshData(),
+        );
+      },
     );
   }
 
@@ -72,26 +68,13 @@ class EmployeesView extends GetView<EmployeesController> {
         children: [
           Icon(
             Icons.people_outline,
-            size: 64,
+            size: 48,
             color: Get.theme.colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No hay empleados registrados',
-            style: Get.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Crea un nuevo empleado para comenzar',
-            style: Get.textTheme.bodyMedium?.copyWith(
-              color: Get.theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => Get.toNamed('/employees/add'),
-            icon: const Icon(Icons.add),
-            label: const Text('Crear empleado'),
+            'No hay empleados registrados',
+            style: Get.textTheme.titleMedium,
           ),
         ],
       ),
@@ -105,27 +88,16 @@ class EmployeesView extends GetView<EmployeesController> {
         children: [
           Icon(
             Icons.error_outline,
-            size: 64,
+            size: 48,
             color: Get.theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Error al cargar empleados',
-            style: Get.textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            controller.errorMessage.value,
+            'Error: ${controller.errorMessage.value}',
             style: Get.textTheme.bodyMedium?.copyWith(
               color: Get.theme.colorScheme.error,
             ),
             textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: () => controller.refreshData(),
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
           ),
         ],
       ),

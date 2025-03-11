@@ -40,25 +40,7 @@ class HomeView extends GetView<HomeController> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Bienvenido al Dashboard',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 20),
-
-            // Selector de tipo de formulario
-            _buildFormSelector(context),
-            const SizedBox(height: 20),
-
-            // Formulario dinámico
-            Obx(() => Card(
-                  elevation: 2,
-                  margin: const EdgeInsets.symmetric(vertical: 16),
-                  child:
-                      FormFactory.createForm(controller.selectedFormType.value),
-                )),
-          ],
+          children: [],
         ),
       ),
     );
