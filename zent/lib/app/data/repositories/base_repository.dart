@@ -6,8 +6,9 @@ import '../services/sync_service.dart';
 import '../utils/connectivity_helper.dart';
 
 abstract class BaseRepository<T extends BaseModel> {
-  // Nombre de la tabla en la base de datos
   final String tableName;
+  // Flag para indicar si estamos usando la DB local o Supabase
+  bool useLocalDB = false;
 
   // Providers de bases de datos
   final SQLiteDatabase _localDb = Get.find<SQLiteDatabase>();
@@ -24,6 +25,12 @@ abstract class BaseRepository<T extends BaseModel> {
   // para convertir un Map a un modelo específico
   T fromMap(Map<String, dynamic> map);
 
+  // Método para convertir un modelo a mapa para la base de datos
+  // Este método puede ser sobrescrito por repositorios específicos
+  Map<String, dynamic> toMapForDB(T model) {
+    return model.toMap();
+  }
+
   // CRUD Operations
 
   // CREATE: Crear un nuevo registro
@@ -34,7 +41,7 @@ abstract class BaseRepository<T extends BaseModel> {
 
       // Insertamos en la base de datos local
       final Map<String, dynamic> data =
-          await _localDb.insert(tableName, model.toMap());
+          await _localDb.insert(tableName, toMapForDB(model));
       final T createdModel = fromMap(data);
 
       // Intentamos sincronizar con el servidor si hay conexión
@@ -79,7 +86,7 @@ abstract class BaseRepository<T extends BaseModel> {
       model.markAsNotSynced();
 
       // Actualizar localmente
-      await _localDb.update(tableName, model.toMap(), 'id = ?', [model.id]);
+      await _localDb.update(tableName, toMapForDB(model), 'id = ?', [model.id]);
 
       // Intentar sincronizar con el servidor si hay conexión
       if (await _connectivityHelper.isConnected()) {

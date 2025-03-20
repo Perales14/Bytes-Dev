@@ -26,6 +26,21 @@ class ClienteRepository extends BaseRepository<ClienteModel> {
     );
   }
 
+  // Sobrescribe el método toMapForDB para eliminar el campo enviado para Supabase
+  @override
+  Map<String, dynamic> toMapForDB(ClienteModel model) {
+    // Obtenemos el mapa completo del modelo
+    final map = model.toMap();
+
+    // Eliminamos el campo enviado para Supabase
+    // El campo se conservará en la base de datos local
+    if (!useLocalDB) {
+      map.remove('enviado');
+    }
+
+    return map;
+  }
+
   // Métodos específicos para clientes
 
   // Método para buscar cliente por email

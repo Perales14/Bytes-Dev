@@ -32,14 +32,14 @@ class SidebarController extends GetxController {
         routeName: '/home',
       ),
       SidebarItem(
-        icon: Icons.people,
+        icon: Icons.work_rounded,
         label: 'Empleados',
         routeName: '/employees',
       ),
       SidebarItem(
-        icon: Icons.store,
-        label: 'Proveedores',
-        routeName: '/providers',
+        icon: Icons.people_rounded,
+        label: 'Clientes',
+        routeName: '/clients',
       ),
       SidebarItem(
         icon: Icons.analytics,

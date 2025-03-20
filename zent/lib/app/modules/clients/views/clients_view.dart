@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:ui';
 import '../../../shared/widgets/main_layout.dart';
-import '../controllers/employees_controller.dart';
-import '../widgets/employees_cards_grid.dart';
-import '../widgets/add_employee_dialog.dart';
+import '../controllers/clients_controller.dart';
+import '../widgets/clients_cards_grid.dart';
+import '../widgets/add_clients_dialog.dart';
 
-class EmployeesView extends GetView<EmployeesController> {
-  const EmployeesView({super.key});
+class ClientsView extends GetView<ClientsController> {
+  const ClientsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      pageTitle: 'Empleados',
+      pageTitle: 'Clientes',
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -27,17 +27,17 @@ class EmployeesView extends GetView<EmployeesController> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (controller.hasError.value) {
-                  return _buildErrorState();
-                }
+                // if (controller.hasError.value) {
+                //   return _buildErrorState();
+                // }
 
-                if (controller.employees.isEmpty) {
-                  return _buildEmptyState();
-                }
+                // if (controller.clients.isEmpty) {
+                //   return _buildEmptyState();
+                // }
 
-                return EmployeesCardsGrid(
-                  employees: controller.employees,
-                  onAddEmployee: () => _showAddEmployeeDialog(context),
+                return ClientsCardsGrid(
+                  clients: controller.clients,
+                  onAddClient: () => _showAddClientDialog(context),
                 );
               }),
             ),
@@ -47,13 +47,13 @@ class EmployeesView extends GetView<EmployeesController> {
     );
   }
 
-  void _showAddEmployeeDialog(BuildContext context) {
+  void _showAddClientDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
       builder: (context) {
-        return AddEmployeeDialog(
+        return AddClientsDialog(
           onSaveSuccess: () => controller.refreshData(),
         );
       },
@@ -66,13 +66,13 @@ class EmployeesView extends GetView<EmployeesController> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.people_outline,
+            Icons.business_outlined,
             size: 48,
             color: Get.theme.colorScheme.primary.withOpacity(0.5),
           ),
           const SizedBox(height: 8),
           Text(
-            'No hay empleados registrados',
+            'No hay clientes registrados',
             style: Get.textTheme.titleMedium,
           ),
         ],
