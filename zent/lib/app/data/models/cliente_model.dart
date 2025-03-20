@@ -27,7 +27,17 @@ class ClienteModel extends BaseModel {
     super.createdAt,
     super.updatedAt,
     super.enviado = false,
-  });
+  }) {
+    // Validación: al menos uno de telefono o email debe estar presente
+    assert(telefono != null || email != null,
+        'El cliente debe tener al menos un medio de contacto (teléfono o email)');
+
+    // Validación de tipo si está presente
+    if (tipo != null) {
+      assert(['Particular', 'Empresa', 'Gobierno'].contains(tipo),
+          'Tipo debe ser uno de: Particular, Empresa o Gobierno');
+    }
+  }
 
   @override
   Map<String, dynamic> toMap() {

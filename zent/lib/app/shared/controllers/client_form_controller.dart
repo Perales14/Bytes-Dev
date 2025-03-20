@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/shared/controllers/base_form_controller.dart';
-import 'package:zent/app/shared/models/client_model.dart';
+import '../../data/models/cliente_model.dart';
+import '../../data/repositories/cliente_repository.dart';
+import 'base_form_controller.dart';
 import 'validators/validators.dart';
 
 /// Controller for the client registration form
 class ClientFormController extends BaseFormController {
+  // Cliente repository
+  final ClienteRepository _repository = Get.find<ClienteRepository>();
+
   // Modelo central que almacena todos los datos del cliente
-  late ClientModel model;
+  late ClienteModel clienteModel;
 
   // Client types
-  final List<String> tiposCliente = ['Nuevo', 'Regular', 'VIP', 'Corporativo'];
+  final List<String> tiposCliente = ['Particular', 'Empresa', 'Gobierno'];
 
   @override
   void onInit() {
@@ -20,34 +24,35 @@ class ClientFormController extends BaseFormController {
 
   // Inicializa el modelo de cliente con valores por defecto
   void _initializeClient() {
-    model = ClientModel(
+    clienteModel = ClienteModel(
       nombre: '',
       apellidoPaterno: '',
       apellidoMaterno: '',
-      correo: '',
+      email: '',
       telefono: '',
-      fechaRegistro: DateTime.now().toString().split(' ')[0],
-      observaciones: '',
       nombreEmpresa: '',
-      cargo: '',
-      calle: '',
-      colonia: '',
-      cp: '',
       rfc: '',
-      tipoCliente: '',
+      tipo: '',
+      estadoId: 1, // Valor por defecto
     );
   }
 
   // Validation methods
   String? validateRFC(String? value) {
-    return validate_RFC(value);
+    if (value == null || value.isEmpty) {
+      return null; // RFC es opcional
+    }
+
+    // Regex para validar RFC
+    final rfcRegExp = RegExp(
+        r'^([A-ZÑ&]{3,4})(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))([A-Z\d]{2})([A\d])$');
+    if (!rfcRegExp.hasMatch(value)) {
+      return 'RFC inválido';
+    }
+    return null;
   }
 
-  String? validateCP(String? value) {
-    return validate_CP(value);
-  }
-
-  String? validateTipoCliente(String? value) {
+  String? validateTipo(String? value) {
     return validateInList(value, tiposCliente, fieldName: 'tipo de cliente');
   }
 
@@ -61,40 +66,41 @@ class ClientFormController extends BaseFormController {
 
   @override
   bool submitForm() {
-    // IMPORTANTE: Cambio de tipo de retorno a bool para indicar éxito/fracaso
     // Validamos el formulario completo primero
     if (_validateClientForm()) {
-      // Aquí iría la lógica para enviar el formulario
-      // Por ahora solo devolvemos true indicando que la validación fue exitosa
-      return true;
+      try {
+        // Aquí iría la lógica para guardar el cliente
+        // _repository.save(clienteModel);
+        return true;
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Error al guardar el cliente: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Get.theme.colorScheme.error,
+          colorText: Get.theme.colorScheme.onError,
+        );
+        return false;
+      }
     }
     return false;
   }
 
   /// Valida el formulario de cliente antes de enviar
-  ///
-  /// Este método realiza dos validaciones:
-  /// 1. Verifica que todos los campos del formulario pasen sus validaciones individuales
-  /// 2. Verifica específicamente que se haya seleccionado un tipo de cliente
-  ///
-  /// @return true si todas las validaciones pasan, false en caso contrario
   bool _validateClientForm() {
-    // Validar todos los campos del formulario (nombre, correo, etc.)
+    // Validar todos los campos del formulario
     if (!formKey.currentState!.validate()) {
-      Get.snackbar(
-        'Validación',
-        'Por favor complete todos los campos requeridos',
-        snackPosition: SnackPosition.BOTTOM,
-      );
       return false;
     }
 
     // Validación específica para el tipo de cliente
-    if (model.tipoCliente.isEmpty) {
+    if (clienteModel.tipo == null || clienteModel.tipo!.isEmpty) {
       Get.snackbar(
-        'Validación',
-        'Por favor seleccione un tipo de cliente',
+        'Error de validación',
+        'Debe seleccionar un tipo de cliente',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
       );
       return false;
     }
@@ -107,38 +113,32 @@ class ClientFormController extends BaseFormController {
     String? nombre,
     String? apellidoPaterno,
     String? apellidoMaterno,
-    String? correo,
+    String? email,
     String? telefono,
-    String? fechaRegistro,
-    String? observaciones,
     String? nombreEmpresa,
-    String? cargo,
-    String? calle,
-    String? colonia,
-    String? cp,
     String? rfc,
-    String? tipoCliente,
+    String? tipo,
+    int? estadoId,
   }) {
-    model = model.copyWith(
-      nombre: nombre,
-      apellidoPaterno: apellidoPaterno,
-      apellidoMaterno: apellidoMaterno,
-      correo: correo,
-      telefono: telefono,
-      fechaRegistro: fechaRegistro,
-      observaciones: observaciones,
-      nombreEmpresa: model.nombreEmpresa,
-      cargo: model.cargo,
-      calle: model.calle,
-      colonia: model.colonia,
-      cp: model.cp,
-      rfc: model.rfc,
-      tipoCliente: model.tipoCliente,
+    clienteModel = ClienteModel(
+      id: clienteModel.id,
+      nombre: nombre ?? clienteModel.nombre,
+      apellidoPaterno: apellidoPaterno ?? clienteModel.apellidoPaterno,
+      apellidoMaterno: apellidoMaterno ?? clienteModel.apellidoMaterno,
+      email: email ?? clienteModel.email,
+      telefono: telefono ?? clienteModel.telefono,
+      nombreEmpresa: nombreEmpresa ?? clienteModel.nombreEmpresa,
+      rfc: rfc ?? clienteModel.rfc,
+      tipo: tipo ?? clienteModel.tipo,
+      estadoId: estadoId ?? clienteModel.estadoId,
+      idDireccion: clienteModel.idDireccion,
+      createdAt: clienteModel.createdAt,
+      updatedAt: DateTime.now(),
     );
   }
 
   // Obtener el modelo actual para guardarlo o enviarlo
-  ClientModel getClientModel() {
-    return model;
+  ClienteModel getClientModel() {
+    return clienteModel;
   }
 }
