@@ -39,5 +39,6 @@ class AppPages {
         Get.lazyPut<EmployeeDetailsController>(() => EmployeeDetailsController());
       }),
     ),
+    
   ];
 }

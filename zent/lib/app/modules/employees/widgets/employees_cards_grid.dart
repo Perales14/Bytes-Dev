@@ -67,11 +67,11 @@ class EmployeesCardsGrid extends StatelessWidget {
           projectCount:
               2, // Valores de ejemplo, podrías agregar estos campos al modelo
           taskCount: 4, // o calcularlos de otra fuente de datos
-          onTap: (){
-            print('tap in employee${employee.nombreCompleto}');
-          },
-          // onTap: () => Get.toNamed(
-          //     '/employees/${employee.id}'), //Con esto se podra abrir el perfil de empleado un empleado segun un id especifico
+          // onTap: (){
+          //   print('tap in employee${employee.nombreCompleto}');
+          // },
+          onTap: () => Get.toNamed(
+              '/employees/${employee.id}'), //Con esto se podra abrir el perfil de empleado un empleado segun un id especifico
         );
       },
     );
