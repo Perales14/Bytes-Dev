@@ -18,7 +18,24 @@ class RolRepository extends BaseRepository<RolModel> {
     );
   }
 
-  // Métodos específicos para roles
+   // Método para obtener todos los roles
+  Future<List<RolModel>> getRoles() async {
+    try {
+      return await getAll();
+    } catch (e) {
+      throw Exception('Error al obtener roles: $e');
+    }
+  }
+
+  // Método para obtener solo los nombres de todos los roles
+  Future<List<String>> getRolesNames() async {
+    try {
+      final roles = await getRoles();
+      return roles.map((rol) => rol.nombre).toList();
+    } catch (e) {
+      throw Exception('Error al obtener nombres de roles: $e');
+    }
+  }
 
   // Método para buscar rol por nombre
   Future<RolModel?> findByNombre(String nombre) async {

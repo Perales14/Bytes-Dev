@@ -6,11 +6,10 @@ import '../services/sync_service.dart';
 import '../utils/connectivity_helper.dart';
 
 abstract class BaseRepository<T extends BaseModel> {
+  // Nombre de la tabla en la base de datos
   final String tableName;
-  // Flag para indicar si estamos usando la DB local o Supabase
-  bool useLocalDB = false;
 
-  // Providers de bases de datos
+  // Providers de bases de datos  
   final SQLiteDatabase _localDb = Get.find<SQLiteDatabase>();
   final SupabaseDatabase _remoteDb = Get.find<SupabaseDatabase>();
 
@@ -25,32 +24,30 @@ abstract class BaseRepository<T extends BaseModel> {
   // para convertir un Map a un modelo específico
   T fromMap(Map<String, dynamic> map);
 
-  // Método para convertir un modelo a mapa para la base de datos
-  // Este método puede ser sobrescrito por repositorios específicos
-  Map<String, dynamic> toMapForDB(T model) {
-    return model.toMap();
-  }
-
   // CRUD Operations
 
-  // CREATE: Crear un nuevo registro
+  // CREATE: Crear un nuevo registro usando solo Supabase
   Future<T> create(T model) async {
     try {
-      // Aseguramos que se marque como no sincronizado al inicio
-      model.markAsNotSynced();
-
-      // Insertamos en la base de datos local
-      final Map<String, dynamic> data =
-          await _localDb.insert(tableName, toMapForDB(model));
-      final T createdModel = fromMap(data);
-
-      // Intentamos sincronizar con el servidor si hay conexión
+      // Verificar conectividad antes de intentar usar la base de datos remota
       if (await _connectivityHelper.isConnected()) {
-        await _syncService.syncToRemote(tableName, createdModel.toMap());
-        createdModel.markAsSynced();
-      }
+        // Insertar directamente en Supabase
+        Map<String, dynamic> user = model.toMap();
+        // Eliminar 
+        user.remove('enviado');
+        user.remove('id');
+        final Map<String, dynamic> data =
+            await _remoteDb.insert(tableName, user);
 
-      return createdModel;
+        // Convertir el resultado a modelo y marcarlo como sincronizado
+        final T createdModel = fromMap(data);
+        createdModel.markAsSynced();
+
+        return createdModel;
+      } else {
+        // Si no hay conexión, lanzar un error
+        throw Exception('No hay conexión a internet para crear $tableName');
+      }
     } catch (e) {
       throw Exception('Error al crear $tableName: $e');
     }
@@ -69,10 +66,41 @@ abstract class BaseRepository<T extends BaseModel> {
   // READ: Obtener un registro por ID
   Future<T?> getById(int id) async {
     try {
-      final data = await _localDb.getById(tableName, id);
-      if (data == null) return null;
-      return fromMap(data);
+      print('BaseRepository - Obteniendo $tableName con ID: $id');
+      
+      // 1. Intentar primero desde la base de datos remota (Supabase) si hay conexión
+      if (await _connectivityHelper.isConnected()) {
+        print('BaseRepository - Hay conexión, intentando obtener desde Supabase');
+        try {
+          final remoteData = await _remoteDb.getById(tableName, id);
+          print('BaseRepository - Respuesta de Supabase: $remoteData');
+          
+          if (remoteData != null) {
+            // Si se encontró en remoto, actualizar también en local para sincronizar
+            try {
+              print('BaseRepository - Actualizando datos locales');
+              await _localDb.update(tableName, remoteData, 'id = ?', [id]);
+            } catch (syncError) {
+              print('BaseRepository - Error al sincronizar con SQLite: $syncError');
+            }
+            
+            return fromMap(remoteData);
+          }
+        } catch (remoteError) {
+          print('BaseRepository - Error al obtener de Supabase: $remoteError');
+          // Continuar con la búsqueda local
+        }
+      }
+      
+      // 2. Si no hay conexión o si falló la búsqueda remota, intentar local
+      print('BaseRepository - Intentando obtener desde SQLite');
+      final localData = await _localDb.getById(tableName, id);
+      print('BaseRepository - Respuesta de SQLite: $localData');
+      
+      if (localData == null) return null;
+      return fromMap(localData);
     } catch (e) {
+      print('BaseRepository - Error en getById: $e');
       throw Exception('Error al obtener $tableName con ID $id: $e');
     }
   }
@@ -86,7 +114,7 @@ abstract class BaseRepository<T extends BaseModel> {
       model.markAsNotSynced();
 
       // Actualizar localmente
-      await _localDb.update(tableName, toMapForDB(model), 'id = ?', [model.id]);
+      await _localDb.update(tableName, model.toMap(), 'id = ?', [model.id]);
 
       // Intentar sincronizar con el servidor si hay conexión
       if (await _connectivityHelper.isConnected()) {
@@ -156,9 +184,18 @@ abstract class BaseRepository<T extends BaseModel> {
   // Búsqueda personalizada
   Future<List<T>> query(String where, List<dynamic> whereArgs) async {
     try {
-      final List<Map<String, dynamic>> data = await _localDb.rawQuery(
-          'SELECT * FROM $tableName WHERE $where', whereArgs);
-      return data.map((map) => fromMap(map)).toList();
+      // Verificar conectividad antes de intentar usar la base de datos remota
+      if (await _connectivityHelper.isConnected()) {
+        // Usar Supabase para la consulta
+        final List<Map<String, dynamic>> data =
+            await _remoteDb.query(tableName, where, whereArgs);
+        return data.map((map) => fromMap(map)).toList();
+      } else {
+        // Fallback a SQLite cuando no hay conexión
+        final List<Map<String, dynamic>> data = await _localDb.rawQuery(
+            'SELECT * FROM $tableName WHERE $where', whereArgs);
+        return data.map((map) => fromMap(map)).toList();
+      }
     } catch (e) {
       throw Exception('Error en consulta personalizada para $tableName: $e');
     }

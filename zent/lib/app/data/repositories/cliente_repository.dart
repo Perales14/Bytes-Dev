@@ -97,4 +97,86 @@ class ClienteRepository extends BaseRepository<ClienteModel> {
       throw Exception('Error al buscar clientes por nombre de empresa: $e');
     }
   }
+
+  // Método general para obtener todos los clientes
+  Future<List<ClienteModel>> getClientes() async {
+    try {
+      return await getAll();
+    } catch (e) {
+      throw Exception('Error al obtener clientes: $e');
+    }
+  }
+
+  // Método para obtener clientes activos
+  Future<List<ClienteModel>> getActiveClientes() async {
+    try {
+      return await query('estado_id = ?', [1]);
+    } catch (e) {
+      throw Exception('Error al obtener clientes activos: $e');
+    }
+  }
+
+  // Método para buscar clientes por tipo y estado
+  Future<List<ClienteModel>> getClientesByTipoAndEstado(String tipo, int estadoId) async {
+    try {
+      return await query('tipo = ? AND estado_id = ?', [tipo, estadoId]);
+    } catch (e) {
+      throw Exception('Error al obtener clientes por tipo y estado: $e');
+    }
+  }
+
+  // Método para buscar clientes con búsqueda general
+  Future<List<ClienteModel>> searchClientes(String searchTerm) async {
+    try {
+      String term = '%$searchTerm%';
+      return await query(
+          'nombre LIKE ? OR apellido_paterno LIKE ? OR nombre_empresa LIKE ? OR email LIKE ? OR rfc LIKE ?',
+          [term, term, term, term, term]);
+    } catch (e) {
+      throw Exception('Error en búsqueda general de clientes: $e');
+    }
+  }
+
+  // Método para obtener clientes que no han sido sincronizados
+  Future<List<ClienteModel>> getUnsyncedClientes() async {
+    try {
+      return await query('enviado = ?', [0]);
+    } catch (e) {
+      throw Exception('Error al obtener clientes no sincronizados: $e');
+    }
+  }
+
+  // Sobreescribir método create para añadir validaciones
+  @override
+  Future<ClienteModel> create(ClienteModel model) async {
+    try {
+      // Validaciones específicas para clientes
+      if (model.tipo == 'empresa' && (model.nombreEmpresa == null || model.nombreEmpresa!.isEmpty)) {
+        throw Exception('Cliente tipo empresa debe tener nombre de empresa');
+      }
+      
+      if (model.email != null && model.email!.isNotEmpty) {
+        final existingClient = await findByEmail(model.email!);
+        if (existingClient != null) {
+          throw Exception('Ya existe un cliente con este email');
+        }
+      }
+
+      if (model.rfc != null && model.rfc!.isNotEmpty) {
+        final existingClient = await findByRFC(model.rfc!);
+        if (existingClient != null) {
+          throw Exception('Ya existe un cliente con este RFC');
+        }
+      }
+
+      // Asegurar que estado_id tenga un valor válido
+      if (model.estadoId <= 0) {
+        model.estadoId = 1; // Asumir estado activo por defecto
+      }
+
+      return await super.create(model);
+    } catch (e) {
+      throw Exception('Error al crear cliente: $e');
+    }
+  }
 }

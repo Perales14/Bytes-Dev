@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/data/models/usuario_model.dart';
 import 'package:zent/app/shared/controllers/employee_form_controller.dart';
 import 'package:zent/app/shared/models/form_config.dart';
 import 'package:zent/app/shared/widgets/form/employee_form.dart';
@@ -46,17 +47,41 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
   // Función que se ejecuta cuando se intenta guardar el formulario
   void _handleSubmit() {
     // Muestra mensaje de funcionalidad pendiente para backend
-    Get.snackbar(
-      'Pendiente',
-      'La funcionalidad de guardar será implementada por el backend',
-      snackPosition: SnackPosition.BOTTOM,
-    );
 
+    //guardar en la base de datos
+
+    // controller.employeeRepository.create(usuario);
+    // controller;
+
+    
+    bool save = controller.saveEmployee();
+    if(save){
+      Get.snackbar(
+      'LEEMEE',
+      'INTENTO DE GUARDADO',
+      snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+    
+    // No sera necesario mostrat este snackbar, ya que en otra parte, ya se le comunica de esto.
+    // Get.snackbar(
+    //   'Registro Exitos', 'Bienvenido: ${controller.model_base.nombre} ${controller.model_base.apellidoPaterno}',
+    //   snackPosition: SnackPosition.BOTTOM,
+    // );
+
+    // print('REGISTRO EMPLEADO');
+    // print('Datos del empleado: ${controller.model_base.toJson()}');
+    // print('Contraseña de confirmación: ${controller.confirmPassword}');
+    // print('Mostrar contraseña: ${controller.showPassword.value}');
     // Cierra el diálogo y notifica al padre para refrescar datos
     if (mounted && Navigator.canPop(context)) {
       Navigator.of(context).pop();
       widget.onSaveSuccess();
     }
+
+    //volver a recargar la pantalla de empleados
+    
+
   }
 
   @override

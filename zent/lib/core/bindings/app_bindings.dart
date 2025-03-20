@@ -11,14 +11,21 @@ import '../../app/data/utils/connectivity_helper.dart';
 class AppBindings extends Bindings {
   @override
   void dependencies() {
+    // print('Inicializando dependencias de la aplicación...');
     // Controladores globales de la aplicación
     Get.put(ThemeController(), permanent: true);
     Get.put(SidebarController(), permanent: true);
 
-    Get.lazyPut(() => SQLiteDatabase());
-    Get.lazyPut(() => SupabaseDatabase());
-    Get.lazyPut(() => ConnectivityHelper());
-    Get.lazyPut(() => SyncService());
+    // Get.lazyPut(() => SQLiteDatabase());
+    // Get.lazyPut(()=>SQLiteDatabase());
+    // Get.put(SQLiteDatabase());
+    // Get.put(SupabaseDatabase());
+
+
+    Get.lazyPut(() => SQLiteDatabase(),fenix: true);
+    Get.lazyPut(() => SupabaseDatabase(),fenix: true);
+    Get.lazyPut(() => ConnectivityHelper(),fenix: true);
+    Get.lazyPut(() => SyncService(),fenix: true);
 
     // Repositories
     Get.lazyPut(() => UsuarioRepository());

@@ -29,8 +29,30 @@ class SQLiteDatabase implements DatabaseInterface {
 
   @override
   Future<Map<String, dynamic>?> getById(String table, dynamic id) async {
-    final result = await _db.query(table, where: 'id = ?', whereArgs: [id]);
-    return result.isNotEmpty ? result.first : null;
+    try {
+      print('SQLite - Consultando $table con ID: $id');
+      
+      // Asegurar que la base de datos está inicializada
+      if (!_helper.isDatabaseInitialized()) {
+        print('SQLite - Base de datos no inicializada, inicializando...');
+        await init();
+      }
+      
+      // Obtener referencia directa a la base de datos
+      final db = await _helper.database;
+      
+      final result = await db.query(table, where: 'id = ?', whereArgs: [id]);
+      
+      print('SQLite - Resultado: ${result.isNotEmpty ? "Encontrado" : "No encontrado"}');
+      if (result.isNotEmpty) {
+        print('SQLite - Datos encontrados: ${result.first}');
+      }
+      
+      return result.isNotEmpty ? result.first : null;
+    } catch (e) {
+      print('SQLite - Error en getById: $e');
+      return null;  // Devuelve null para manejar el error arriba
+    }
   }
 
   @override
@@ -56,3 +78,5 @@ class SQLiteDatabase implements DatabaseInterface {
     await _db.close();
   }
 }
+
+

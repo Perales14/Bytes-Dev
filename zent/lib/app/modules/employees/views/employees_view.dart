@@ -12,6 +12,7 @@ class EmployeesView extends GetView<EmployeesController> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
+      text_controler:  controller.Textcontrolador,
       pageTitle: 'Empleados',
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -31,12 +32,13 @@ class EmployeesView extends GetView<EmployeesController> {
                   return _buildErrorState();
                 }
 
-                if (controller.employees.isEmpty) {
+                if (controller.employeesEmpty()) {
                   return _buildEmptyState();
                 }
 
                 return EmployeesCardsGrid(
-                  employees: controller.employees,
+                  employees: controller.empleadosFiltrados(),
+                  // employees: controller.employees,
                   onAddEmployee: () => _showAddEmployeeDialog(context),
                 );
               }),

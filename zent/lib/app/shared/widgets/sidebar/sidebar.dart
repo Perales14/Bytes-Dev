@@ -59,7 +59,7 @@ class Sidebar extends GetView<SidebarController> {
                                 horizontal: 12.0, vertical: 8.0),
                             child: Text(
                               'Dashboards',
-                              style: theme.textTheme.titleSmall,
+                              style: theme.textTheme.headlineMedium,
                             ),
                           ),
 

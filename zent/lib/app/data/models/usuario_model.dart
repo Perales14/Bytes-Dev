@@ -12,12 +12,12 @@ class UsuarioModel extends BaseModel {
   double? salario;
   String? tipoContrato;
   int? supervisorId;
-  String? cargo;
+  // String? cargo;
   String? departamento;
   int estadoId;
 
   UsuarioModel({
-    super.id = 0,
+    super.id = 3,
     required this.rolId,
     this.especialidadId,
     required this.nombreCompleto,
@@ -29,7 +29,7 @@ class UsuarioModel extends BaseModel {
     this.salario,
     this.tipoContrato,
     this.supervisorId,
-    this.cargo,
+    // this.cargo,
     this.departamento,
     required this.estadoId,
     super.createdAt,
@@ -52,7 +52,7 @@ class UsuarioModel extends BaseModel {
       'salario': salario,
       'tipo_contrato': tipoContrato,
       'supervisor_id': supervisorId,
-      'cargo': cargo,
+      // 'cargo': cargo,
       'departamento': departamento,
       'estado_id': estadoId,
       'created_at': BaseModel.formatDateTime(createdAt),
@@ -77,7 +77,7 @@ class UsuarioModel extends BaseModel {
       salario: map['salario'],
       tipoContrato: map['tipo_contrato'],
       supervisorId: map['supervisor_id'],
-      cargo: map['cargo'],
+      // cargo: map['cargo'],
       departamento: map['departamento'],
       estadoId: map['estado_id'] ?? 0,
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
@@ -102,7 +102,7 @@ class UsuarioModel extends BaseModel {
       salario: map['salario'],
       tipoContrato: map['tipo_contrato'],
       supervisorId: map['supervisor_id'],
-      cargo: map['cargo'],
+      // cargo: map['cargo'],
       departamento: map['departamento'],
       estadoId: map['estado_id'] ?? 0,
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
