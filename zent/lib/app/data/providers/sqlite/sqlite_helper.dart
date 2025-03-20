@@ -38,6 +38,8 @@ class SQLiteHelper {
     await initializeDatabaseFactory();
 
     if (_database != null) return _database!;
+    
+    print('SQLite - Inicializando base de datos bajo demanda...');
     _database = await _initDatabase();
     return _database!;
   }
@@ -71,5 +73,10 @@ class SQLiteHelper {
     for (String query in queries) {
       await db.execute(query);
     }
+  }
+
+  // Añadir a SQLiteHelper
+  bool isDatabaseInitialized() {
+    return _database != null;
   }
 }

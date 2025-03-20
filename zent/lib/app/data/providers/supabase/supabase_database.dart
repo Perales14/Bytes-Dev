@@ -37,10 +37,27 @@ class SupabaseDatabase implements DatabaseInterface {
 
   @override
   Future<Map<String, dynamic>?> getById(String table, dynamic id) async {
-    initialize();
-    final response =
-        await _client.from(table).select().eq('id', id).maybeSingle();
-    return response;
+    try {
+      // Asegurar inicialización
+      initialize();
+      
+      print('Supabase - Consultando $table con ID: $id');
+      
+      // Verificar que el cliente esté conectado
+      if (_client == null) {
+        print('Supabase - Cliente no inicializado correctamente');
+        return null;
+      }
+      
+      final response = await _client.from(table).select().eq('id', id).maybeSingle();
+      
+      print('Supabase - Respuesta recibida: $response');
+      
+      return response;
+    } catch (e) {
+      print('Supabase - Error en getById: $e');
+      return null;  // Devolver null en lugar de propagar el error
+    }
   }
 
   @override

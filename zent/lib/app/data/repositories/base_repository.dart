@@ -66,10 +66,41 @@ abstract class BaseRepository<T extends BaseModel> {
   // READ: Obtener un registro por ID
   Future<T?> getById(int id) async {
     try {
-      final data = await _localDb.getById(tableName, id);
-      if (data == null) return null;
-      return fromMap(data);
+      print('BaseRepository - Obteniendo $tableName con ID: $id');
+      
+      // 1. Intentar primero desde la base de datos remota (Supabase) si hay conexión
+      if (await _connectivityHelper.isConnected()) {
+        print('BaseRepository - Hay conexión, intentando obtener desde Supabase');
+        try {
+          final remoteData = await _remoteDb.getById(tableName, id);
+          print('BaseRepository - Respuesta de Supabase: $remoteData');
+          
+          if (remoteData != null) {
+            // Si se encontró en remoto, actualizar también en local para sincronizar
+            try {
+              print('BaseRepository - Actualizando datos locales');
+              await _localDb.update(tableName, remoteData, 'id = ?', [id]);
+            } catch (syncError) {
+              print('BaseRepository - Error al sincronizar con SQLite: $syncError');
+            }
+            
+            return fromMap(remoteData);
+          }
+        } catch (remoteError) {
+          print('BaseRepository - Error al obtener de Supabase: $remoteError');
+          // Continuar con la búsqueda local
+        }
+      }
+      
+      // 2. Si no hay conexión o si falló la búsqueda remota, intentar local
+      print('BaseRepository - Intentando obtener desde SQLite');
+      final localData = await _localDb.getById(tableName, id);
+      print('BaseRepository - Respuesta de SQLite: $localData');
+      
+      if (localData == null) return null;
+      return fromMap(localData);
     } catch (e) {
+      print('BaseRepository - Error en getById: $e');
       throw Exception('Error al obtener $tableName con ID $id: $e');
     }
   }

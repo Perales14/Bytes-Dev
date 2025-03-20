@@ -87,4 +87,26 @@ class EmployeeRepository extends BaseRepository<UsuarioModel> {
       throw Exception('Error al crear empleado: $e');
     }
   }
+
+  // Alternativa más simple: usar el método heredado
+  @override
+  Future<UsuarioModel?> getById(int id) async {
+    try {
+      print('Consultando empleado con ID: $id');
+      
+      // Usar el método ya implementado en BaseRepository
+      final employee = await super.getById(id);
+      
+      if (employee == null) {
+        print('No se encontraron datos para el ID: $id');
+      } else {
+        print('Datos del empleado recuperados: ${employee.nombreCompleto}');
+      }
+      
+      return employee;
+    } catch (e) {
+      print('Error en getById: $e');
+      throw Exception('Error al consultar empleado: $e');
+    }
+  }
 }
