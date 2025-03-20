@@ -23,7 +23,7 @@ class EmployeeRepository extends BaseRepository<UsuarioModel> {
       salario: map['salario'],
       tipoContrato: map['tipo_contrato'],
       supervisorId: map['supervisor_id'],
-      cargo: map['cargo'],
+      // cargo: map['cargo'],
       departamento: map['departamento'],
       estadoId: map['estado_id'] ?? 0,
       createdAt: BaseModel.parseDateTime(map['created_at']),

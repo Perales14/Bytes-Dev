@@ -8,9 +8,10 @@ import 'package:zent/app/shared/widgets/sidebar/sidebar.dart';
 class MainLayout extends StatelessWidget {
   final String pageTitle;
   final Widget child;
-
+  final TextEditingController text_controler;
   const MainLayout({
     super.key,
+    required this.text_controler,
     required this.pageTitle,
     required this.child,
   });
@@ -36,6 +37,7 @@ class MainLayout extends StatelessWidget {
                 child: Column(
                   children: [
                     CustomAppBar(
+                      buscarappbar: text_controler,
                       pageTitle: pageTitle,
                       onMenuPressed: () => sidebarController.toggleSidebar(),
                     ),

@@ -173,7 +173,7 @@ class EmployeeFormController extends BaseFormController {
       salario: double.parse(model.salario),
 
       tipoContrato: model.tipoContrato,
-      cargo: model.rol,
+      // cargo: model.rol,
 
       // salario: model.salario as double,
       // fechaIngreso: model.fechaRegistro as DateTime,

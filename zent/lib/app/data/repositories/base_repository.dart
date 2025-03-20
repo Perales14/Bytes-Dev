@@ -9,7 +9,7 @@ abstract class BaseRepository<T extends BaseModel> {
   // Nombre de la tabla en la base de datos
   final String tableName;
 
-  // Providers de bases de datos
+  // Providers de bases de datos  
   final SQLiteDatabase _localDb = Get.find<SQLiteDatabase>();
   final SupabaseDatabase _remoteDb = Get.find<SupabaseDatabase>();
 

@@ -5,15 +5,20 @@ import 'package:zent/app/shared/controllers/theme_controller.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String pageTitle;
   final VoidCallback? onMenuPressed;
+  final TextEditingController buscarappbar;
 
-  const CustomAppBar({
+
+  CustomAppBar({
     super.key,
+    required this.buscarappbar,
     required this.pageTitle,
     this.onMenuPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    // buscarappbar = TextEditingController();
+    
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final ThemeController themeController = Get.find<ThemeController>();
@@ -108,6 +113,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
+                          controller: buscarappbar,
                           decoration: InputDecoration(
                             hintText: 'Buscar',
                             hintStyle: TextStyle(

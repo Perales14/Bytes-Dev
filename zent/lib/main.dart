@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:window_manager/window_manager.dart';
 import 'app/shared/controllers/sidebar_controller.dart';
 import 'app/shared/controllers/theme_controller.dart';
 import 'core/bindings/app_bindings.dart';
@@ -11,8 +12,13 @@ import 'routes/app_pages.dart';
 import 'app/data/providers/sqlite/sqlite_helper.dart';
 
 void main() async {
+
+  
+  
   // Asegúrate que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
+
+  await windowManager.setTitle("Nuevo Nombre"); // Cambia el nombre aquí
 
   // Cargar variables de entorno
   await dotenv.load(fileName: ".env");
@@ -32,6 +38,7 @@ void main() async {
   await initializeDependencies();
 
   await GetStorage.init();
+
   runApp(MyApp());
 }
 
