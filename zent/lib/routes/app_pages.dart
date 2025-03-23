@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'package:zent/app/modules/clients/bindings/clients_binding.dart';
+import 'package:zent/app/modules/clients/views/clients_view.dart';
 import 'package:zent/app/modules/employees/controllers/employee_details_controller.dart';
 import 'package:zent/app/modules/employees/views/employee_details_view.dart';
 import '../app/modules/employees/bindings/employees_binding.dart';
@@ -31,14 +33,18 @@ class AppPages {
       page: () => const EmployeesView(),
       binding: EmployeesBinding(),
     ),
-    ////////////////////////////////
+    GetPage(
+      name: _Paths.CLIENTS,
+      page: () => const ClientsView(),
+      binding: ClientsBinding(),
+    ),
     GetPage(
       name: '/employees/:id',
       page: () => const EmployeeDetailsView(),
       binding: BindingsBuilder(() {
-        Get.lazyPut<EmployeeDetailsController>(() => EmployeeDetailsController());
+        Get.lazyPut<EmployeeDetailsController>(
+            () => EmployeeDetailsController());
       }),
     ),
-    
   ];
 }

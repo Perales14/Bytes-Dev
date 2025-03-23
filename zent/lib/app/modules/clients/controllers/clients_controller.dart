@@ -1,11 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../data/models/cliente_model.dart';
 import '../../../data/repositories/cliente_repository.dart';
 
 class ClientsController extends GetxController {
   // Lista reactiva de clientes
-  var clients = <ClienteModel>[].obs;
-
+  final clients = <ClienteModel>[].obs;
+  final filtro = ''.obs;
+  final TextEditingController textController = TextEditingController();
   // Estado de carga
   var isLoading = true.obs;
 
@@ -24,6 +26,23 @@ class ClientsController extends GetxController {
   void onInit() {
     super.onInit();
     loadClients();
+    textController.addListener(() {
+      filtro.value = textController.text;
+    });
+  }
+
+  Future<List<ClienteModel>> filtrarClientes() async {
+    if (filtro.value.isEmpty) {
+      return [];
+    }
+    return clients.where((cliente) {
+      return cliente.nombre
+              .toLowerCase()
+              .contains(filtro.value.toLowerCase()) ||
+          cliente.apellidoPaterno
+              .toLowerCase()
+              .contains(filtro.value.toLowerCase());
+    }).toList();
   }
 
   // Cargar clientes desde el repositorio

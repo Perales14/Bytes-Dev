@@ -34,9 +34,9 @@ class ClienteRepository extends BaseRepository<ClienteModel> {
 
     // Eliminamos el campo enviado para Supabase
     // El campo se conservará en la base de datos local
-    if (!useLocalDB) {
-      map.remove('enviado');
-    }
+    // if (!useLocalDB) {
+    //   map.remove('enviado');
+    // }
 
     return map;
   }
@@ -117,7 +117,8 @@ class ClienteRepository extends BaseRepository<ClienteModel> {
   }
 
   // Método para buscar clientes por tipo y estado
-  Future<List<ClienteModel>> getClientesByTipoAndEstado(String tipo, int estadoId) async {
+  Future<List<ClienteModel>> getClientesByTipoAndEstado(
+      String tipo, int estadoId) async {
     try {
       return await query('tipo = ? AND estado_id = ?', [tipo, estadoId]);
     } catch (e) {
@@ -151,10 +152,11 @@ class ClienteRepository extends BaseRepository<ClienteModel> {
   Future<ClienteModel> create(ClienteModel model) async {
     try {
       // Validaciones específicas para clientes
-      if (model.tipo == 'empresa' && (model.nombreEmpresa == null || model.nombreEmpresa!.isEmpty)) {
+      if (model.tipo == 'empresa' &&
+          (model.nombreEmpresa == null || model.nombreEmpresa!.isEmpty)) {
         throw Exception('Cliente tipo empresa debe tener nombre de empresa');
       }
-      
+
       if (model.email != null && model.email!.isNotEmpty) {
         final existingClient = await findByEmail(model.email!);
         if (existingClient != null) {

@@ -12,6 +12,7 @@ class ClientsView extends GetView<ClientsController> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
+      text_controler: controller.textController,
       pageTitle: 'Clientes',
       child: Padding(
         padding: const EdgeInsets.all(16),
