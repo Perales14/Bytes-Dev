@@ -4,8 +4,8 @@ import 'dart:ui';
 
 import '../../../shared/widgets/main_layout.dart';
 import '../controllers/employees_controller.dart';
-import '../widgets/employees_cards_grid.dart';
 import '../widgets/add_employee_dialog.dart';
+import '../widgets/employees_table.dart'; // Importa el archivo donde está definido EmployeesTable
 
 class EmployeesView extends GetView<EmployeesController> {
   const EmployeesView({super.key});
@@ -21,7 +21,7 @@ class EmployeesView extends GetView<EmployeesController> {
           children: [
             const SizedBox(height: 28),
 
-            // Contenido principal con grid de tarjetas
+            // Contenido principal con la tabla de empleados
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -36,9 +36,8 @@ class EmployeesView extends GetView<EmployeesController> {
                   return _buildEmptyState();
                 }
 
-                return EmployeesCardsGrid(
-                  employees: controller.employees,
-                  onAddEmployee: () => _showAddEmployeeDialog(context),
+                return EmployeesTable(
+                employees: controller.employees.map((usuario) => usuario.toMap()).toList(),
                 );
               }),
             ),

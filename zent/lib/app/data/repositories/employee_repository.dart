@@ -59,7 +59,7 @@ class EmployeeRepository {
         cargo: 'Líder',
         departamento: 'Gestor',
         estadoId: 1,
-      ),
+      ),      
     ];
   }
 }
