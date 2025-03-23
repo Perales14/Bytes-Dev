@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../data/models/cliente_model.dart';
+import '../../data/models/observacion_model.dart';
 import '../../data/repositories/cliente_repository.dart';
+import '../../data/repositories/observacion_repository.dart';
 import 'base_form_controller.dart';
 import 'validators/validators.dart';
 
 /// Controller for the client registration form
 class ClientFormController extends BaseFormController {
-  // Cliente repository
-  final ClienteRepository _repository = Get.find<ClienteRepository>();
+  // Repositorios necesarios
+  final ClienteRepository _clienteRepository = Get.find<ClienteRepository>();
+  final ObservacionRepository _observacionRepository =
+      Get.find<ObservacionRepository>();
 
   // Modelo central que almacena todos los datos del cliente
   late ClienteModel clienteModel;
+
+  // Observaciones
+  final observacionText = ''.obs;
+
+  // ID del usuario actual (deberías obtenerlo de tu sistema de autenticación)
+  final int currentUserId = 1; // Ejemplo: ID del usuario logueado
 
   // Client types
   final List<String> tiposCliente = ['Particular', 'Empresa', 'Gobierno'];
@@ -32,9 +42,12 @@ class ClientFormController extends BaseFormController {
       telefono: '',
       nombreEmpresa: '',
       rfc: '',
-      tipo: '',
+      tipo: null,
       estadoId: 1, // Valor por defecto
     );
+
+    // Inicializar texto de observación
+    observacionText.value = '';
   }
 
   // Validation methods
@@ -64,13 +77,18 @@ class ClientFormController extends BaseFormController {
     _initializeClient();
   }
 
+  // Actualizar texto de observación
+  void updateObservacion(String value) {
+    observacionText.value = value;
+  }
+
   @override
   bool submitForm() {
     // Validamos el formulario completo primero
     if (_validateClientForm()) {
       try {
-        // Aquí iría la lógica para guardar el cliente
-        // _repository.save(clienteModel);
+        // Implementamos la llamada real al repositorio
+        saveClientWithObservacion();
         return true;
       } catch (e) {
         Get.snackbar(
@@ -84,6 +102,69 @@ class ClientFormController extends BaseFormController {
       }
     }
     return false;
+  }
+
+  // Método para guardar cliente y observación
+  Future<bool> saveClientWithObservacion() async {
+    try {
+      // Validar tipo
+      if (clienteModel.tipo == '') {
+        clienteModel.tipo = null;
+      }
+
+      // 1. Guardar el cliente primero
+      final savedClient = await _clienteRepository.create(clienteModel);
+
+      if (savedClient.id > 0) {
+        // 2. Si hay observación, guardarla
+        if (observacionText.value.trim().isNotEmpty) {
+          await _saveObservacion(savedClient.id);
+        }
+
+        Get.snackbar(
+          'Éxito',
+          'Cliente guardado correctamente',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'No se pudo guardar el cliente',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al guardar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+      return false;
+    }
+  }
+
+  // Método para guardar observación
+  Future<bool> _saveObservacion(int clienteId) async {
+    try {
+      // Crear modelo de observación
+      final observacion = ObservacionModel(
+        tablaOrigen: 'clientes', // Nombre de la tabla en la base de datos
+        idOrigen: clienteId,
+        observacion: observacionText.value.trim(),
+        usuarioId: currentUserId,
+      );
+
+      // Guardar observación en la base de datos
+      final savedObservacion = await _observacionRepository.create(observacion);
+      return savedObservacion.id > 0;
+    } catch (e) {
+      print('Error al guardar observación: $e');
+      return false;
+    }
   }
 
   /// Valida el formulario de cliente antes de enviar
@@ -120,21 +201,31 @@ class ClientFormController extends BaseFormController {
     String? tipo,
     int? estadoId,
   }) {
-    clienteModel = ClienteModel(
-      id: clienteModel.id,
-      nombre: nombre ?? clienteModel.nombre,
-      apellidoPaterno: apellidoPaterno ?? clienteModel.apellidoPaterno,
-      apellidoMaterno: apellidoMaterno ?? clienteModel.apellidoMaterno,
-      email: email ?? clienteModel.email,
-      telefono: telefono ?? clienteModel.telefono,
-      nombreEmpresa: nombreEmpresa ?? clienteModel.nombreEmpresa,
-      rfc: rfc ?? clienteModel.rfc,
-      tipo: tipo ?? clienteModel.tipo,
-      estadoId: estadoId ?? clienteModel.estadoId,
-      idDireccion: clienteModel.idDireccion,
-      createdAt: clienteModel.createdAt,
-      updatedAt: DateTime.now(),
-    );
+    // Validación para asegurar que tipo sea null o un valor válido
+    String? validTipo = tipo;
+    if (validTipo != null && validTipo.isEmpty) {
+      validTipo = null;
+    }
+
+    try {
+      clienteModel = ClienteModel(
+        id: clienteModel.id,
+        nombre: nombre ?? clienteModel.nombre,
+        apellidoPaterno: apellidoPaterno ?? clienteModel.apellidoPaterno,
+        apellidoMaterno: apellidoMaterno ?? clienteModel.apellidoMaterno,
+        email: email ?? clienteModel.email,
+        telefono: telefono ?? clienteModel.telefono,
+        nombreEmpresa: nombreEmpresa ?? clienteModel.nombreEmpresa,
+        rfc: rfc ?? clienteModel.rfc,
+        tipo: validTipo, // Usar el valor validado
+        estadoId: estadoId ?? clienteModel.estadoId,
+        idDireccion: clienteModel.idDireccion,
+        createdAt: clienteModel.createdAt,
+        updatedAt: DateTime.now(),
+      );
+    } catch (e) {
+      print("Error al actualizar cliente: $e");
+    }
   }
 
   // Obtener el modelo actual para guardarlo o enviarlo

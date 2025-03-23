@@ -6,6 +6,9 @@ import 'package:zent/app/shared/controllers/client_form_controller.dart';
 import 'package:zent/app/shared/models/form_config.dart';
 import 'package:zent/app/shared/widgets/form/client_form.dart';
 
+import '../../../data/repositories/cliente_repository.dart';
+import '../../../data/repositories/observacion_repository.dart';
+
 class AddClientsDialog extends StatefulWidget {
   final Function onSaveSuccess;
 
@@ -24,7 +27,16 @@ class _AddClientsDialogState extends State<AddClientsDialog> {
   @override
   void initState() {
     super.initState();
-    // Inicializamos el controlador utilizando GetX para gestión de dependencias
+    // Utilizamos lazyPut para permitir la inyección de dependencias
+    if (!Get.isRegistered<ObservacionRepository>()) {
+      Get.lazyPut(() => ObservacionRepository());
+    }
+
+    if (!Get.isRegistered<ClienteRepository>()) {
+      Get.lazyPut(() => ClienteRepository());
+    }
+
+    // Inicializamos el controlador
     controller = Get.put(ClientFormController());
   }
 
@@ -48,16 +60,7 @@ class _AddClientsDialogState extends State<AddClientsDialog> {
     bool isValid = controller.submitForm();
 
     if (isValid) {
-      // Aquí implementarías la lógica para guardar el cliente
-      // Por ejemplo: clienteRepository.save(controller.getClientModel());
-
-      // Muestra mensaje de éxito
-      Get.snackbar(
-        'Éxito',
-        'Cliente registrado correctamente',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
+      // El mensaje de éxito ya se muestra en el controlador
       // Cierra el diálogo y notifica al padre para refrescar datos
       if (mounted && Navigator.canPop(context)) {
         Navigator.of(context).pop();

@@ -105,19 +105,20 @@ class EmployeeFormController extends BaseFormController {
   void loadEmployeeData(UsuarioModel usuario) {
     try {
       print('Cargando datos del usuario en el formulario: ${usuario.toJson()}');
-      
+
       // Dividir el nombre completo en partes
       List<String> nombrePartes = [];
       if (usuario.nombreCompleto.isNotEmpty) {
         nombrePartes = usuario.nombreCompleto.split(' ');
       }
-      
+
       String nombre = nombrePartes.isNotEmpty ? nombrePartes[0] : '';
       String apellidoPaterno = nombrePartes.length > 1 ? nombrePartes[1] : '';
       String apellidoMaterno = nombrePartes.length > 2 ? nombrePartes[2] : '';
 
-      print('Nombre dividido - Nombre: $nombre, AP: $apellidoPaterno, AM: $apellidoMaterno');
-      
+      print(
+          'Nombre dividido - Nombre: $nombre, AP: $apellidoPaterno, AM: $apellidoMaterno');
+
       // Actualizar el modelo con los datos del usuario
       model = EmployeeModel(
         nombre: nombre,
@@ -128,12 +129,12 @@ class EmployeeFormController extends BaseFormController {
         fechaRegistro: usuario.fechaIngreso.toString().split(' ')[0],
         observaciones: usuario.departamento ?? '',
         nss: usuario.nss,
-        password: '', // No incluimos la contraseña por seguridad
+        password: '',
         salario: usuario.salario?.toString() ?? '',
         rol: usuario.rolId.toString(),
         tipoContrato: usuario.tipoContrato ?? '',
       );
-      
+
       print('Modelo actualizado exitosamente: ${model.nombre}');
       update(); // Notificar a GetX que los datos cambiaron
     } catch (e) {

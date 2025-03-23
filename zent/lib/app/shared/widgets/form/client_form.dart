@@ -158,9 +158,9 @@ class ClientForm extends BaseForm {
         const SizedBox(height: 20),
         TextFieldForm(
           label: 'Observaciones',
-          // Como ClienteModel no tiene observaciones, deberás manejar esto aparte
-          controller: TextEditingController(),
-          onChanged: (value) {},
+          controller: TextEditingController(
+              text: clientController.observacionText.value),
+          onChanged: (value) => clientController.updateObservacion(value),
           maxLines: 5,
         ),
       ],
