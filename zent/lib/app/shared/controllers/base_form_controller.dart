@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/shared/models/base_model.dart';
 import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
-import 'validators/validators.dart';
+import '../validators/validators.dart';
 
 abstract class BaseFormController extends GetxController {
   // Cada controlador debe tener su propia clave única

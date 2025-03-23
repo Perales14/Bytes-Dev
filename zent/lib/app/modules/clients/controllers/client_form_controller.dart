@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../data/models/cliente_model.dart';
-import '../../data/models/observacion_model.dart';
-import '../../data/repositories/cliente_repository.dart';
-import '../../data/repositories/observacion_repository.dart';
-import 'base_form_controller.dart';
-import 'validators/validators.dart';
+import '../../../data/models/cliente_model.dart';
+import '../../../data/models/observacion_model.dart';
+import '../../../data/repositories/cliente_repository.dart';
+import '../../../data/repositories/observacion_repository.dart';
+import '../../../shared/controllers/base_form_controller.dart';
+import '../../../shared/validators/validators.dart';
 
 /// Controller for the client registration form
 class ClientFormController extends BaseFormController {

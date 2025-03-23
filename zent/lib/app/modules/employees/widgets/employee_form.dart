@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../controllers/employee_form_controller.dart';
-import 'base_form.dart';
-import 'widgets/dropdown_form.dart';
-import 'widgets/file_upload_panel.dart';
-import 'widgets/label_display.dart';
-import 'widgets/text_field_form.dart';
+import '../controllers/employee_form_controller.dart';
+import '../../../shared/widgets/form/base_form.dart';
+import '../../../shared/widgets/form/widgets/dropdown_form.dart';
+import '../../../shared/widgets/form/widgets/file_upload_panel.dart';
+import '../../../shared/widgets/form/widgets/label_display.dart';
+import '../../../shared/widgets/form/widgets/text_field_form.dart';
+import '../../../shared/widgets/form/widgets/observations_field.dart';
 
 class EmployeeForm extends BaseForm {
   // Constructor sin redeclaraciones problemáticas
@@ -197,13 +198,13 @@ class EmployeeForm extends BaseForm {
       children: [
         buildSectionTitle(theme, 'Observaciones'),
         const SizedBox(height: 20),
-        TextFieldForm(
-          label: 'Observaciones',
-          controller: TextEditingController(
-              text: employeeController.model.observaciones),
-          onChanged: (value) =>
-              employeeController.updateEmployee(observaciones: value),
-          maxLines: 5,
+        SizedBox(
+          height: 150,
+          child: Obx(() => ObservationsField(
+                initialValue: employeeController.observacionText.value,
+                onChanged: (value) =>
+                    employeeController.updateObservacion(value),
+              )),
         ),
       ],
     );

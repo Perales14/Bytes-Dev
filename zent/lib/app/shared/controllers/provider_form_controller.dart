@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/shared/controllers/base_form_controller.dart';
-import 'package:zent/app/shared/controllers/validators/validators.dart';
+import 'package:zent/app/shared/validators/validators.dart';
 import 'package:zent/app/shared/models/provider_model.dart';
 
 class ProviderFormController extends BaseFormController {

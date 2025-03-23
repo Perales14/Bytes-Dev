@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/data/models/usuario_model.dart';
 
-import '../../data/repositories/employee_repository.dart';
-import '../models/employee_model.dart';
-import 'base_form_controller.dart';
-import 'validators/list_validator.dart';
-import 'validators/nss_validator.dart';
-import 'validators/password_validator.dart';
-import 'validators/salary_validator.dart';
+import '../../../data/repositories/employee_repository.dart';
+import '../../../shared/models/employee_model.dart';
+import '../../../shared/controllers/base_form_controller.dart';
+import '../../../shared/validators/list_validator.dart';
+import '../../../shared/validators/nss_validator.dart';
+import '../../../shared/validators/password_validator.dart';
+import '../../../shared/validators/salary_validator.dart';
 
 class EmployeeFormController extends BaseFormController {
   // Modelo central que almacena todos los datos del empleado
@@ -38,6 +38,9 @@ class EmployeeFormController extends BaseFormController {
     'Temporal', 'Indefinido', 'Por Obra'
   ];
 
+  // Propiedad reactiva para observaciones
+  final observacionText = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -60,6 +63,8 @@ class EmployeeFormController extends BaseFormController {
       rol: '2',
       tipoContrato: '',
     );
+    // Inicializar observación reactiva
+    observacionText.value = '';
     confirmPassword = '';
   }
 
@@ -102,6 +107,13 @@ class EmployeeFormController extends BaseFormController {
     confirmPassword = value;
   }
 
+  // Nuevo método para actualizar observaciones
+  void updateObservacion(String value) {
+    observacionText.value = value;
+    // También actualizamos el modelo para mantener consistencia
+    model = model.copyWith(observaciones: value);
+  }
+
   void loadEmployeeData(UsuarioModel usuario) {
     try {
       print('Cargando datos del usuario en el formulario: ${usuario.toJson()}');
@@ -119,6 +131,8 @@ class EmployeeFormController extends BaseFormController {
       print(
           'Nombre dividido - Nombre: $nombre, AP: $apellidoPaterno, AM: $apellidoMaterno');
 
+      String observaciones = usuario.departamento ?? '';
+
       // Actualizar el modelo con los datos del usuario
       model = EmployeeModel(
         nombre: nombre,
@@ -127,13 +141,16 @@ class EmployeeFormController extends BaseFormController {
         correo: usuario.email,
         telefono: usuario.telefono ?? '',
         fechaRegistro: usuario.fechaIngreso.toString().split(' ')[0],
-        observaciones: usuario.departamento ?? '',
+        observaciones: observaciones,
         nss: usuario.nss,
         password: '',
         salario: usuario.salario?.toString() ?? '',
         rol: usuario.rolId.toString(),
         tipoContrato: usuario.tipoContrato ?? '',
       );
+
+      // Actualizar también el campo reactivo
+      observacionText.value = observaciones;
 
       print('Modelo actualizado exitosamente: ${model.nombre}');
       update(); // Notificar a GetX que los datos cambiaron

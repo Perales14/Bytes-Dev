@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../controllers/client_form_controller.dart';
-import '../../models/form_config.dart';
-import 'base_form.dart';
-import 'widgets/text_field_form.dart';
-import 'widgets/dropdown_form.dart';
-import 'widgets/label_display.dart';
+import '../controllers/client_form_controller.dart';
+import '../../../shared/models/form_config.dart';
+import '../../../shared/widgets/form/base_form.dart';
+import '../../../shared/widgets/form/widgets/observations_field.dart';
+import '../../../shared/widgets/form/widgets/text_field_form.dart';
+import '../../../shared/widgets/form/widgets/dropdown_form.dart';
+import '../../../shared/widgets/form/widgets/label_display.dart';
 
 class ClientForm extends BaseForm {
   // Constructor sin redeclaraciones problemáticas
@@ -156,12 +157,12 @@ class ClientForm extends BaseForm {
       children: [
         buildSectionTitle(theme, 'Observaciones'),
         const SizedBox(height: 20),
-        TextFieldForm(
-          label: 'Observaciones',
-          controller: TextEditingController(
-              text: clientController.observacionText.value),
-          onChanged: (value) => clientController.updateObservacion(value),
-          maxLines: 5,
+        SizedBox(
+          height: 150,
+          child: Obx(() => ObservationsField(
+                initialValue: clientController.observacionText.value,
+                onChanged: (value) => clientController.updateObservacion(value),
+              )),
         ),
       ],
     );

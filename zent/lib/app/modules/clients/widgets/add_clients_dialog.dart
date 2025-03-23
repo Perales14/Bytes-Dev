@@ -2,9 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/shared/controllers/client_form_controller.dart';
+import 'package:zent/app/modules/clients/controllers/client_form_controller.dart';
 import 'package:zent/app/shared/models/form_config.dart';
-import 'package:zent/app/shared/widgets/form/client_form.dart';
+import 'package:zent/app/modules/clients/widgets/client_form.dart';
 
 import '../../../data/repositories/cliente_repository.dart';
 import '../../../data/repositories/observacion_repository.dart';

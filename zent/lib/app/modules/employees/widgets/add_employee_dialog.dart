@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/data/models/usuario_model.dart';
-import 'package:zent/app/shared/controllers/employee_form_controller.dart';
+import 'package:zent/app/modules/employees/controllers/employee_form_controller.dart';
 import 'package:zent/app/shared/models/form_config.dart';
-import 'package:zent/app/shared/widgets/form/employee_form.dart';
+import 'package:zent/app/modules/employees/widgets/employee_form.dart';
 
 class AddEmployeeDialog extends StatefulWidget {
   final Function onSaveSuccess;
@@ -53,16 +53,15 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
     // controller.employeeRepository.create(usuario);
     // controller;
 
-    
     bool save = controller.saveEmployee();
-    if(save){
+    if (save) {
       Get.snackbar(
-      'LEEMEE',
-      'INTENTO DE GUARDADO',
-      snackPosition: SnackPosition.BOTTOM,
+        'LEEMEE',
+        'INTENTO DE GUARDADO',
+        snackPosition: SnackPosition.BOTTOM,
       );
     }
-    
+
     // No sera necesario mostrat este snackbar, ya que en otra parte, ya se le comunica de esto.
     // Get.snackbar(
     //   'Registro Exitos', 'Bienvenido: ${controller.model_base.nombre} ${controller.model_base.apellidoPaterno}',
@@ -80,8 +79,6 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
     }
 
     //volver a recargar la pantalla de empleados
-    
-
   }
 
   @override
