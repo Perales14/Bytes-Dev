@@ -13,10 +13,10 @@ class SupabaseDatabase implements DatabaseInterface {
   }
 
   void initialize() {
-        if (!_initialized) {
-
-    _client = Supabase.instance.client;
-    _initialized = true;}
+    if (!_initialized) {
+      _client = Supabase.instance.client;
+      _initialized = true;
+    }
   }
 
   @override
@@ -31,7 +31,13 @@ class SupabaseDatabase implements DatabaseInterface {
 
   @override
   Future<List<Map<String, dynamic>>> getAll(String table) async {
+    initialize();
+    print('Supabase - Consultando todos los registros de $table');
     final response = await _client.from(table).select();
+    for (var item in response) {
+      print(item);
+    }
+    print('query response: $response');
     return List<Map<String, dynamic>>.from(response);
   }
 
@@ -40,23 +46,18 @@ class SupabaseDatabase implements DatabaseInterface {
     try {
       // Asegurar inicialización
       initialize();
-      
+
       print('Supabase - Consultando $table con ID: $id');
-      
-      // Verificar que el cliente esté conectado
-      if (_client == null) {
-        print('Supabase - Cliente no inicializado correctamente');
-        return null;
-      }
-      
-      final response = await _client.from(table).select().eq('id', id).maybeSingle();
-      
+
+      final response =
+          await _client.from(table).select().eq('id', id).maybeSingle();
+
       print('Supabase - Respuesta recibida: $response');
-      
+
       return response;
     } catch (e) {
       print('Supabase - Error en getById: $e');
-      return null;  // Devolver null en lugar de propagar el error
+      return null; // Devolver null en lugar de propagar el error
     }
   }
 

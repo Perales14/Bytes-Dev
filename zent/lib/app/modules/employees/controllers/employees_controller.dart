@@ -25,12 +25,12 @@ class EmployeesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     loadEmployees();
 
     // Configurar listener para el filtro de texto
     textController.addListener(() {
       filtro.value = textController.text;
-      filterEmployees();
     });
   }
 
@@ -38,6 +38,25 @@ class EmployeesController extends GetxController {
   void onClose() {
     textController.dispose();
     super.onClose();
+  }
+
+  List<UsuarioModel> empleadosFiltrados() {
+    if (employees.isEmpty) {
+      print('No hay empleados');
+      return <UsuarioModel>[].obs;
+    }
+
+    final empleados = <UsuarioModel>[];
+
+    for (var valor in employees) {
+      if (valor.nombreCompleto
+          .toLowerCase()
+          .contains(filtro.value.toLowerCase())) {
+        empleados.add(valor);
+      }
+    }
+
+    return empleados;
   }
 
   // Obtener todos los empleados
@@ -56,28 +75,29 @@ class EmployeesController extends GetxController {
   }
 
   // Filtrar empleados por texto
-  void filterEmployees() {
-    if (filtro.isEmpty) {
-      loadEmployees();
-      return;
-    }
+  // void filterEmployees() {
+  //   if (filtro.isEmpty) {
+  //     loadEmployees();
+  //     return;
+  //   }
 
-    try {
-      final searchText = filtro.value.toLowerCase();
-      final filteredEmployees = employees.where((employee) {
-        return employee.nombreCompleto.toLowerCase().contains(searchText) ||
-            employee.email.toLowerCase().contains(searchText) ||
-            (employee.departamento?.toLowerCase().contains(searchText) ??
-                false);
-      }).toList();
+  //   try {
+  //     final searchText = filtro.value.toLowerCase();
+  //     print('Filtrando empleados por: $searchText');
+  //     final filteredEmployees = employees.where((employee) {
+  //       return employee.nombreCompleto.toLowerCase().contains(searchText) ||
+  //           employee.email.toLowerCase().contains(searchText) ||
+  //           (employee.departamento?.toLowerCase().contains(searchText) ??
+  //               false);
+  //     }).toList();
 
-      employees.assignAll(filteredEmployees);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error al filtrar: $e');
-      }
-    }
-  }
+  //     employees.assignAll(filteredEmployees);
+  //   } catch (e) {
+  //     if (kDebugMode) {
+  //       print('Error al filtrar: $e');
+  //     }
+  //   }
+  // }
 
   // Recargar datos
   void refreshData() {
@@ -85,4 +105,12 @@ class EmployeesController extends GetxController {
   }
 
   bool employeesEmpty() => employees.isEmpty;
+
+  UsuarioModel getUserById(int id) {
+    try {
+      return employees.firstWhere((user) => user.id == id);
+    } catch (e) {
+      throw Exception('Usuario con ID $id no encontrado');
+    }
+  }
 }

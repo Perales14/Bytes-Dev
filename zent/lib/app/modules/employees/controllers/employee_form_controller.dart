@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/data/models/rol_model.dart';
 import '../../../data/models/usuario_model.dart';
 import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/repositories/rol_repository.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/list_validator.dart';
 import '../../../shared/validators/nss_validator.dart';
@@ -36,19 +38,41 @@ class EmployeeFormController extends BaseFormController {
   final showPassword = false.obs;
 
   // Catálogos
-  final List<String> roles = [
-    'Admin',
-    'Captador de Campo',
-    'Promotor',
-    'Recursos Humanos'
-  ];
+  late List<String> roles = ['Administrador'];
+  //  = [
+  //   'Admin',
+  //   'Captador de Campo',
+  //   'Promotor',
+  //   'Recursos Humanos'
+  // ];
 
   final List<String> tiposContrato = ['Temporal', 'Indefinido', 'Por Obra'];
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
+    // roles = await getRoles();
+    // roles = await
+    // Get.find<RolRepository>().getRolesNames().then((value) => roles = value);
+    roles = await RolRepository().getRolesNames();
+    // .getRolesNames().then((value) => roles = value);
+    // print('antes de imprimir roles');
+    print('Roles: $roles');
+    // for (var rol in roles) {
+    //   print(rol);
+    // }
     resetForm();
+  }
+
+  int _getRolId(String? rolName) {
+    if (rolName == null) return 0;
+    print('Rol Name: $rolName');
+    int rolId = 0;
+    // RolRepository().findByNombre(rolName).then((value) => rolId = value!.id);
+    rolId = roles.indexOf(rolName) + 1;
+    // await RolRepository().findByNombre(rolName).then((value) => value!.id);
+    print('Rol ID: $rolId');
+    return rolId;
   }
 
   // Inicializar o resetear formulario

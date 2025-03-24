@@ -52,14 +52,16 @@ class ClientFormController extends BaseFormController {
 
   // Validation methods
   String? validateRFC(String? value) {
+    print('Validating RFC: $value');
     if (value == null || value.isEmpty) {
-      return null; // RFC es opcional
+      return 'null'; // RFC es opcional
     }
 
     // Regex para validar RFC
     final rfcRegExp = RegExp(
         r'^([A-ZÑ&]{3,4})(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))([A-Z\d]{2})([A\d])$');
     if (!rfcRegExp.hasMatch(value)) {
+      // print('RFC inválido');
       return 'RFC inválido';
     }
     return null;

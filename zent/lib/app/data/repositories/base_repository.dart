@@ -56,7 +56,8 @@ abstract class BaseRepository<T extends BaseModel> {
   // READ: Obtener todos los registros
   Future<List<T>> getAll() async {
     try {
-      final List<Map<String, dynamic>> data = await _localDb.getAll(tableName);
+      final List<Map<String, dynamic>> data = await _remoteDb.getAll(tableName);
+      print('paso data');
       return data.map((map) => fromMap(map)).toList();
     } catch (e) {
       throw Exception('Error al obtener todos los $tableName: $e');
