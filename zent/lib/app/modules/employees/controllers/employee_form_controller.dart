@@ -64,7 +64,7 @@ class EmployeeFormController extends BaseFormController {
     resetForm();
   }
 
-  int _getRolId(String? rolName) {
+  int getRolId(String? rolName) {
     if (rolName == null) return 0;
     print('Rol Name: $rolName');
     int rolId = 0;
@@ -127,6 +127,10 @@ class EmployeeFormController extends BaseFormController {
         if (fechaIngreso != null) val.fechaIngreso = fechaIngreso;
       }
     });
+
+    // Trigger UI update and log values for debugging
+    update();
+    print('Usuario actualizado: ${usuario.value.toJson()}');
   }
 
   // Actualiza la confirmación de contraseña

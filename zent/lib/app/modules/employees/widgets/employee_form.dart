@@ -269,7 +269,7 @@ class EmployeeForm extends BaseForm {
                     value: _getRolName(employeeController.usuario.value.rolId),
                     onChanged: (value) async =>
                         employeeController.updateUsuario(
-                      rolId: await _getRolId(value).obs.value,
+                      rolId: employeeController.getRolId(value),
                     ),
                   ),
                 ),
