@@ -39,4 +39,23 @@ class EspecialidadRepository extends BaseRepository<EspecialidadModel> {
       throw Exception('Error al buscar especialidades por término: $e');
     }
   }
+
+  // Método para buscar especialidad por ID
+  @override
+  Future<EspecialidadModel> getById(int id) async {
+    try {
+      final results = await query('id = ?', [id]);
+      if (results.isEmpty) {
+        return EspecialidadModel(
+          id: id,
+          nombre: 'Desconocida',
+          descripcion: 'No se encontró la especialidad',
+        );
+      }
+      return results.first;
+    } catch (e) {
+      print('Error al buscar especialidad por ID: $e');
+      throw Exception('Error al buscar especialidad por ID: $e');
+    }
+  }
 }

@@ -7,43 +7,103 @@ class EmployeesTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return DataTable(
-            columns: const [
-              DataColumn(
-                label: Center(child: Text('Nombre')), // Centrar el texto del encabezado
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height *
+                  0.8, // Ajusta la altura según sea necesario
+              child: SingleChildScrollView(
+                scrollDirection: Axis.vertical, // Desplazamiento vertical
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal, // Desplazamiento horizontal
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        minWidth: MediaQuery.of(context).size.width),
+                    child: DataTableTheme(
+                      data: DataTableThemeData(
+                        headingRowColor:
+                            WidgetStateProperty.all(Colors.blueGrey[800]),
+                        headingTextStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+                          (Set<WidgetState> states) {
+                            return states.contains(WidgetState.selected)
+                                ? Colors.blueGrey[100]
+                                : null;
+                          },
+                        ),
+                      ),
+                      child: DataTable(
+                        columnSpacing: 24.0,
+                        dividerThickness: 1.2,
+                        columns: const [
+                          DataColumn(label: Center(child: Text('Nombre'))),
+                          DataColumn(label: Center(child: Text('NSS'))),
+                          DataColumn(label: Center(child: Text('Email'))),
+                          DataColumn(label: Center(child: Text('Cargo'))),
+                          DataColumn(
+                              label: Center(child: Text('Departamento'))),
+                          DataColumn(label: Center(child: Text('Teléfono'))),
+                          DataColumn(label: Center(child: Text('Editar'))),
+                        ],
+                        rows: employees.map((empleado) {
+                          return DataRow(
+                            cells: [
+                              _buildCell(
+                                  empleado['nombre_completo'] ?? 'Sin nombre'),
+                              _buildCell(empleado['nss'] ?? 'Sin NSS'),
+                              _buildCell(empleado['email'] ?? 'Sin email'),
+                              _buildCell(empleado['cargo'] ?? 'Sin cargo'),
+                              _buildCell(empleado['departamento'] ??
+                                  'Sin departamento'),
+                              _buildCell(
+                                  empleado['telefono'] ?? 'Sin teléfono'),
+                              DataCell(
+                                Center(
+                                  child: IconButton(
+                                    icon: const Icon(Icons.edit,
+                                        color: Colors.blue),
+                                    onPressed: () {},
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              DataColumn(
-                label: Center(child: Text('NSS')), // Centrar el texto del encabezado
-              ),
-              DataColumn(
-                label: Center(child: Text('Email')), // Centrar el texto del encabezado
-              ),
-              DataColumn(
-                label: Center(child: Text('Cargo')), // Centrar el texto del encabezado
-              ),
-              DataColumn(
-                label: Center(child: Text('Departamento')), // Centrar el texto del encabezado
-              ),
-              DataColumn(
-                label: Center(child: Text('Telefono')), // Centrar el texto del encabezado
-              ),
-            ],
-            rows: employees.map((empleado) {
-              return DataRow(cells: [
-                DataCell(Center(child: Text(empleado['nombre_completo'] ?? 'Sin nombre'))),
-                DataCell(Center(child: Text(empleado['nss'] ?? 'Sin NSS'))),
-                DataCell(Center(child: Text(empleado['email'] ?? 'Sin email'))),
-                DataCell(Center(child: Text(empleado['cargo'] ?? 'Sin cargo'))),
-                DataCell(Center(child: Text(empleado['departamento'] ?? 'Sin departamento'))),
-                DataCell(Center(child: Text(empleado['telefono'] ?? 'Sin telefono'))),
-              ]);
-            }).toList(),
-          );
-        },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  DataCell _buildCell(String text) {
+    return DataCell(
+      Center(
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14),
+        ),
       ),
     );
   }

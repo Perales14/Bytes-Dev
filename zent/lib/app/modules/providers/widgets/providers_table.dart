@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class ClientsTable extends StatelessWidget {
-  final List<Map<String, dynamic>> clients;
+class ProvidersTable extends StatelessWidget {
+  final List<Map<String, dynamic>> providers;
 
-  const ClientsTable({super.key, required this.clients});
+  const ProvidersTable({super.key, required this.providers});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,7 @@ class ClientsTable extends StatelessWidget {
                           DataColumn(label: Center(child: Text('Teléfono'))),
                           DataColumn(label: Center(child: Text('Editar'))),
                         ],
-                        rows: clients.map((empleado) {
+                        rows: providers.map((empleado) {
                           return DataRow(
                             cells: [
                               _buildCell(

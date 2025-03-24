@@ -29,4 +29,8 @@ class FormConfig {
     title: 'REGISTRO DE CLIENTE',
     observationsFlex: 1, // Changed from 2 to 1 to reduce size
   );
+  static const FormConfig provider = FormConfig(
+    title: 'REGISTRO DE PROVEEDOR',
+    observationsFlex: 1, // Changed from 2 to 1 to reduce size
+  );
 }

@@ -7,6 +7,8 @@ import '../app/modules/employees/bindings/employees_binding.dart';
 import '../app/modules/employees/views/employees_view.dart';
 import '../app/modules/home/bindings/home_binding.dart';
 import '../app/modules/home/views/home_view.dart';
+import '../app/modules/providers/bindings/providers_binding.dart';
+import '../app/modules/providers/views/providers_view.dart';
 // <<<<<<< HEAD:zent/lib/Core/routes/app_pages.dart
 
 // import '../../modules/home/bindings/home_binding.dart';
@@ -45,6 +47,11 @@ class AppPages {
         Get.lazyPut<EmployeeDetailsController>(
             () => EmployeeDetailsController());
       }),
+    ),
+    GetPage(
+      name: _Paths.PROVIDERS,
+      page: () => const ProvidersView(),
+      binding: ProvidersBinding(),
     ),
   ];
 }

@@ -54,83 +54,75 @@ class EmployeeForm extends BaseForm {
         const SizedBox(height: 20),
 
         // Nombre, Apellido Paterno, Apellido Materno
-        Obx(() => Row(
-              children: [
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'Nombre',
-                    controller: TextEditingController(
-                        text: employeeController.usuario.value.nombre),
-                    validator: employeeController.validateRequired,
-                    onChanged: (value) =>
-                        employeeController.updateUsuario(nombre: value),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'Apellido Paterno',
-                    controller: TextEditingController(
-                        text: employeeController.usuario.value.apellidoPaterno),
-                    validator: employeeController.validateRequired,
-                    onChanged: (value) => employeeController.updateUsuario(
-                        apellidoPaterno: value),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'Apellido Materno',
-                    controller: TextEditingController(
-                        text:
-                            employeeController.usuario.value.apellidoMaterno ??
-                                ''),
-                    onChanged: (value) => employeeController.updateUsuario(
-                        apellidoMaterno: value),
-                  ),
-                ),
-              ],
-            )),
+        Row(
+          children: [
+            Expanded(
+              child: TextFieldForm(
+                label: 'Nombre',
+                controller: employeeController.nombreController,
+                validator: employeeController.validateRequired,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(nombre: value),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Apellido Paterno',
+                controller: employeeController.apellidoPaternoController,
+                validator: employeeController.validateRequired,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(apellidoPaterno: value),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Apellido Materno',
+                controller: employeeController.apellidoMaternoController,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(apellidoMaterno: value),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
 
         // Correo, Teléfono, NSS
-        Obx(() => Row(
-              children: [
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'Correo Electrónico',
-                    controller: TextEditingController(
-                        text: employeeController.usuario.value.email),
-                    validator: employeeController.validateEmail,
-                    onChanged: (value) =>
-                        employeeController.updateUsuario(email: value),
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'Teléfono',
-                    controller: TextEditingController(
-                        text: employeeController.usuario.value.telefono ?? ''),
-                    onChanged: (value) =>
-                        employeeController.updateUsuario(telefono: value),
-                    keyboardType: TextInputType.phone,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'NSS',
-                    controller: TextEditingController(
-                        text: employeeController.usuario.value.nss),
-                    validator: employeeController.validateNSS,
-                    onChanged: (value) =>
-                        employeeController.updateUsuario(nss: value),
-                  ),
-                ),
-              ],
-            )),
+        Row(
+          children: [
+            Expanded(
+              child: TextFieldForm(
+                label: 'Correo Electrónico',
+                controller: employeeController.emailController,
+                validator: employeeController.validateEmail,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(email: value),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'Teléfono',
+                controller: employeeController.telefonoController,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(telefono: value),
+                keyboardType: TextInputType.phone,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextFieldForm(
+                label: 'NSS',
+                controller: employeeController.nssController,
+                validator: employeeController.validateNSS,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(nss: value),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
 
         // Contraseña y Confirmación de Contraseña
@@ -146,8 +138,7 @@ class EmployeeForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Contraseña',
                 obscureText: !employeeController.showPassword.value,
-                controller: TextEditingController(
-                    text: employeeController.usuario.value.contrasenaHash),
+                controller: employeeController.contrasenaController,
                 validator: employeeController.usuario.value.id > 0
                     ? null
                     : employeeController.validatePassword,
@@ -170,8 +161,7 @@ class EmployeeForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Confirmar Contraseña',
                 obscureText: !employeeController.showPassword.value,
-                controller: TextEditingController(
-                    text: employeeController.confirmPassword.value),
+                controller: employeeController.confirmPasswordController,
                 validator: employeeController.usuario.value.id > 0
                     ? null
                     : employeeController.validateConfirmPassword,
@@ -201,11 +191,10 @@ class EmployeeForm extends BaseForm {
         const SizedBox(height: 20),
         SizedBox(
           height: 150,
-          child: Obx(() => ObservationsField(
-                initialValue: employeeController.observacionText.value,
-                onChanged: (value) =>
-                    employeeController.updateObservacion(value),
-              )),
+          child: ObservationsField(
+            initialValue: employeeController.observacionText.value,
+            onChanged: (value) => employeeController.updateObservacion(value),
+          ),
         ),
       ],
     );
@@ -219,51 +208,48 @@ class EmployeeForm extends BaseForm {
         const SizedBox(height: 20),
 
         // Fecha de ingreso y tipo contrato
-        Obx(() => Row(
-              children: [
-                Expanded(
-                  child: LabelDisplay(
+        Row(
+          children: [
+            Expanded(
+              child: Obx(() => LabelDisplay(
                     label: 'Fecha de Ingreso',
                     value: employeeController.usuario.value.fechaIngreso
                         .toString()
                         .split(' ')[0],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownForm(
-                    label: 'Tipo de Contrato',
-                    opciones: employeeController.tiposContrato,
-                    value: employeeController.usuario.value.tipoContrato,
-                    onChanged: (value) =>
-                        employeeController.updateUsuario(tipoContrato: value),
-                    validator: employeeController.validateTipoContrato,
-                  ),
-                ),
-              ],
-            )),
+                  )),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: DropdownForm(
+                label: 'Tipo de Contrato',
+                opciones: employeeController.tiposContrato,
+                value: employeeController.usuario.value.tipoContrato,
+                onChanged: (value) =>
+                    employeeController.updateUsuario(tipoContrato: value),
+                validator: employeeController.validateTipoContrato,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
 
         // Salario y rol
-        Obx(() => Row(
-              children: [
-                Expanded(
-                  child: TextFieldForm(
-                    label: 'Salario',
-                    controller: TextEditingController(
-                        text: employeeController.usuario.value.salario
-                                ?.toString() ??
-                            ''),
-                    keyboardType: TextInputType.number,
-                    onChanged: (value) => employeeController.updateUsuario(
-                      salario: value.isEmpty ? null : double.tryParse(value),
-                    ),
-                    validator: employeeController.validateSalario,
-                  ),
+        Row(
+          children: [
+            Expanded(
+              child: TextFieldForm(
+                label: 'Salario',
+                controller: employeeController.salarioController,
+                keyboardType: TextInputType.number,
+                onChanged: (value) => employeeController.updateUsuario(
+                  salario: value.isEmpty ? null : double.tryParse(value),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownForm(
+                validator: employeeController.validateSalario,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Obx(() => DropdownForm(
                     label: 'Rol',
                     opciones: employeeController.roles,
                     value: _getRolName(employeeController.usuario.value.rolId),
@@ -271,12 +257,12 @@ class EmployeeForm extends BaseForm {
                         employeeController.updateUsuario(
                       rolId: employeeController.getRolId(value),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: Container()),
-              ],
-            )),
+                  )),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Container()),
+          ],
+        ),
       ],
     );
   }

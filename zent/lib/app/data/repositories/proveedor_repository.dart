@@ -19,9 +19,9 @@ class ProveedorRepository extends BaseRepository<ProveedorModel> {
       tipoServicio: map['tipo_servicio'],
       condicionesPago: map['condiciones_pago'],
       idDireccion: map['id_direccion'],
-      estadoId: map['estado_id'] ?? 0,
-      createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
-      updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
+      estadoId: map['estado_id'] ?? 1,
+      createdAt: BaseModel.parseDateTime(map['created_at']),
+      updatedAt: BaseModel.parseDateTime(map['updated_at']),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
     );
   }
@@ -81,6 +81,40 @@ class ProveedorRepository extends BaseRepository<ProveedorModel> {
       return await query('contacto_principal LIKE ?', ['%$contacto%']);
     } catch (e) {
       throw Exception('Error al buscar proveedores por contacto principal: $e');
+    }
+  }
+
+  // Método para verificar si ya existe un RFC registrado
+  Future<bool> existsRFC(String rfc) async {
+    if (rfc.isEmpty) return false;
+
+    try {
+      final results = await query('rfc = ?', [rfc]);
+      return results.isNotEmpty;
+    } catch (e) {
+      throw Exception('Error al verificar RFC: $e');
+    }
+  }
+
+  // Método para verificar si ya existe un email registrado
+  Future<bool> existsEmail(String email) async {
+    if (email.isEmpty) return false;
+
+    try {
+      final results = await query('email = ?', [email]);
+      return results.isNotEmpty;
+    } catch (e) {
+      throw Exception('Error al verificar email: $e');
+    }
+  }
+
+  // Método para obtener proveedores activos
+  Future<List<ProveedorModel>> getAllActive() async {
+    try {
+      return await query('estado_id = ?', [1]); // 1 para estado activo
+    } catch (e) {
+      print('Error en getAllActive: $e');
+      throw Exception('Error al obtener proveedores activos: $e');
     }
   }
 }

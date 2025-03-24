@@ -27,6 +27,18 @@ class EmployeeFormController extends BaseFormController {
   // Repository para operaciones de base de datos
   final UsuarioRepository _repository = Get.find<UsuarioRepository>();
 
+  // Controladores de texto persistentes
+  final nombreController = TextEditingController();
+  final apellidoPaternoController = TextEditingController();
+  final apellidoMaternoController = TextEditingController();
+  final emailController = TextEditingController();
+  final telefonoController = TextEditingController();
+  final nssController = TextEditingController();
+  final contrasenaController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  final salarioController = TextEditingController();
+  final departamentoController = TextEditingController();
+
   // Contraseña de confirmación
   final RxString confirmPassword = ''.obs;
 
@@ -39,40 +51,30 @@ class EmployeeFormController extends BaseFormController {
 
   // Catálogos
   late List<String> roles = ['Administrador'];
-  //  = [
-  //   'Admin',
-  //   'Captador de Campo',
-  //   'Promotor',
-  //   'Recursos Humanos'
-  // ];
-
   final List<String> tiposContrato = ['Temporal', 'Indefinido', 'Por Obra'];
 
   @override
   Future<void> onInit() async {
     super.onInit();
-    // roles = await getRoles();
-    // roles = await
-    // Get.find<RolRepository>().getRolesNames().then((value) => roles = value);
     roles = await RolRepository().getRolesNames();
-    // .getRolesNames().then((value) => roles = value);
-    // print('antes de imprimir roles');
     print('Roles: $roles');
-    // for (var rol in roles) {
-    //   print(rol);
-    // }
     resetForm();
   }
 
-  int getRolId(String? rolName) {
-    if (rolName == null) return 0;
-    print('Rol Name: $rolName');
-    int rolId = 0;
-    // RolRepository().findByNombre(rolName).then((value) => rolId = value!.id);
-    rolId = roles.indexOf(rolName) + 1;
-    // await RolRepository().findByNombre(rolName).then((value) => value!.id);
-    print('Rol ID: $rolId');
-    return rolId;
+  @override
+  void onClose() {
+    // Liberar recursos de los controladores
+    nombreController.dispose();
+    apellidoPaternoController.dispose();
+    apellidoMaternoController.dispose();
+    emailController.dispose();
+    telefonoController.dispose();
+    nssController.dispose();
+    contrasenaController.dispose();
+    confirmPasswordController.dispose();
+    salarioController.dispose();
+    departamentoController.dispose();
+    super.onClose();
   }
 
   // Inicializar o resetear formulario
@@ -93,6 +95,19 @@ class EmployeeFormController extends BaseFormController {
     confirmPassword.value = '';
     observacionText.value = '';
     showPassword.value = false;
+
+    // Inicializar los controladores con los valores iniciales
+    nombreController.text = usuario.value.nombre;
+    apellidoPaternoController.text = usuario.value.apellidoPaterno;
+    apellidoMaternoController.text = usuario.value.apellidoMaterno ?? '';
+    emailController.text = usuario.value.email;
+    telefonoController.text = usuario.value.telefono ?? '';
+    nssController.text = usuario.value.nss;
+    contrasenaController.text = usuario.value.contrasenaHash;
+    confirmPasswordController.text = confirmPassword.value;
+    salarioController.text = usuario.value.salario?.toString() ?? '';
+    departamentoController.text = usuario.value.departamento ?? '';
+
     formKey.currentState?.reset();
   }
 
@@ -143,6 +158,30 @@ class EmployeeFormController extends BaseFormController {
     observacionText.value = value;
   }
 
+  // Preparar el modelo para guardarlo
+  void prepareModelForSave() {
+    usuario.update((val) {
+      if (val != null) {
+        val.nombre = nombreController.text;
+        val.apellidoPaterno = apellidoPaternoController.text;
+        val.apellidoMaterno = apellidoMaternoController.text.isEmpty
+            ? null
+            : apellidoMaternoController.text;
+        val.email = emailController.text;
+        val.telefono =
+            telefonoController.text.isEmpty ? null : telefonoController.text;
+        val.nss = nssController.text;
+        val.contrasenaHash = contrasenaController.text;
+        val.departamento = departamentoController.text.isEmpty
+            ? null
+            : departamentoController.text;
+        val.salario = salarioController.text.isEmpty
+            ? null
+            : double.tryParse(salarioController.text);
+      }
+    });
+  }
+
   // Muestra/oculta la contraseña
   @override
   void togglePasswordVisibility() {
@@ -153,6 +192,18 @@ class EmployeeFormController extends BaseFormController {
   void loadUsuario(UsuarioModel model) {
     usuario.value = model;
     observacionText.value = model.departamento ?? '';
+
+    // Actualizar también los controladores
+    nombreController.text = model.nombre;
+    apellidoPaternoController.text = model.apellidoPaterno;
+    apellidoMaternoController.text = model.apellidoMaterno ?? '';
+    emailController.text = model.email;
+    telefonoController.text = model.telefono ?? '';
+    nssController.text = model.nss;
+    contrasenaController.text = model.contrasenaHash;
+    salarioController.text = model.salario?.toString() ?? '';
+    departamentoController.text = model.departamento ?? '';
+
     update();
   }
 
@@ -190,6 +241,7 @@ class EmployeeFormController extends BaseFormController {
   bool submitForm() {
     if (_validateForm()) {
       try {
+        prepareModelForSave(); // Preparar el modelo antes de guardar
         saveEmployee();
         return true;
       } catch (e) {
