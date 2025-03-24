@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../data/models/direccion_model.dart';
+import '../../../data/models/especialidad_model.dart';
 import '../../../data/models/proveedor_model.dart';
 import '../../../data/repositories/direccion_repository.dart';
 import '../../../data/repositories/proveedor_repository.dart';
 import '../../../data/repositories/estado_repository.dart';
+import '../../../data/repositories/especialidad_repository.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart';
 
@@ -16,6 +18,8 @@ class ProviderFormController extends BaseFormController {
   final DireccionRepository _direccionRepository =
       Get.find<DireccionRepository>();
   final EstadoRepository _estadoRepository = Get.find<EstadoRepository>();
+  final EspecialidadRepository _especialidadRepository =
+      Get.find<EspecialidadRepository>();
 
   // Modelos
   final Rx<ProveedorModel> proveedor = ProveedorModel(
@@ -31,12 +35,15 @@ class ProviderFormController extends BaseFormController {
   final observacionText = ''.obs;
 
   // Listas para dropdowns
-  final RxList<Map<String, dynamic>> especialidades =
-      <Map<String, dynamic>>[].obs;
+  final RxList<EspecialidadModel> especialidades = <EspecialidadModel>[].obs;
   final tiposServicio =
       ['Consultoría', 'Insumos', 'Mantenimiento', 'Software'].obs;
   final condicionesPago =
       ['Contado', '15 días', '30 días', '45 días', '60 días'].obs;
+
+  // Estado de carga
+  final isLoadingEspecialidades = true.obs;
+  final hasErrorEspecialidades = false.obs;
 
   @override
   void onInit() {
@@ -46,25 +53,49 @@ class ProviderFormController extends BaseFormController {
   }
 
   // Cargar especialidades desde la base de datos
-  void _loadEspecialidades() async {
+  Future<void> _loadEspecialidades() async {
     try {
-      // Aquí deberías cargar las especialidades de tu base de datos
-      // Por ahora usaremos datos de ejemplo
-      especialidades.value = [
-        {'id': 1, 'nombre': 'Construcción'},
-        {'id': 2, 'nombre': 'Electricidad'},
-        {'id': 3, 'nombre': 'Plomería'},
-        {'id': 4, 'nombre': 'Informática'},
-      ];
+      isLoadingEspecialidades(true);
+      hasErrorEspecialidades(false);
+
+      // Obtener todas las especialidades desde la base de datos
+      final result = await _especialidadRepository.getAll();
+      print('Especialidades cargadas: ${result.length}');
+
+      // Si no hay especialidades, agregar una por defecto para evitar errores
+      if (result.isEmpty) {
+        especialidades.add(EspecialidadModel(
+          id: 1,
+          nombre: 'General',
+          descripcion: 'Especialidad por defecto',
+        ));
+      } else {
+        especialidades.assignAll(result);
+      }
+
+      // Actualizar el modelo si es necesario
+      if (proveedor.value.id == 0 && especialidades.isNotEmpty) {
+        updateProveedor(especialidadId: especialidades.first.id);
+      }
     } catch (e) {
+      hasErrorEspecialidades(true);
       print('Error al cargar especialidades: $e');
+
+      // Agregar una especialidad por defecto en caso de error
+      especialidades.add(EspecialidadModel(
+        id: 1,
+        nombre: 'General',
+        descripcion: 'Especialidad por defecto',
+      ));
+    } finally {
+      isLoadingEspecialidades(false);
     }
   }
 
   // Inicializa los modelos con valores por defecto
   void _initializeProvider() {
     proveedor.value = ProveedorModel(
-      especialidadId: especialidades.isNotEmpty ? especialidades[0]['id'] : 1,
+      especialidadId: especialidades.isNotEmpty ? especialidades.first.id : 1,
       nombreEmpresa: '',
       contactoPrincipal: '',
       telefono: '',
@@ -87,6 +118,21 @@ class ProviderFormController extends BaseFormController {
 
     observacionText.value = '';
   }
+
+  // Obtener la especialidad actual por ID
+  EspecialidadModel? getCurrentEspecialidad() {
+    try {
+      return especialidades.firstWhere(
+        (e) => e.id == proveedor.value.especialidadId,
+      );
+    } catch (e) {
+      // Si no se encuentra, retornar la primera o null
+      return especialidades.isNotEmpty ? especialidades.first : null;
+    }
+  }
+
+  // El resto del código permanece igual, solo actualizamos los métodos necesarios
+  // ...
 
   // Actualizar datos del proveedor
   void updateProveedor({

@@ -66,27 +66,41 @@ class ProviderForm extends BaseForm {
             Row(
               children: [
                 Expanded(
-                  child: DropdownForm(
-                    label: 'Especialidad',
-                    opciones: providerController.especialidades
-                        .map((esp) => esp['nombre'] as String)
-                        .toList(),
-                    value: providerController.especialidades.firstWhere(
-                        (esp) =>
-                            esp['id'] ==
-                            providerController.proveedor.value.especialidadId,
-                        orElse: () => providerController
-                                .especialidades.isNotEmpty
-                            ? providerController.especialidades.first
-                            : {'id': 1, 'nombre': 'No disponible'})['nombre'],
-                    onChanged: (value) {
-                      final especialidad = providerController.especialidades
-                          .firstWhere((esp) => esp['nombre'] == value);
-                      providerController.updateProveedor(
-                          especialidadId: especialidad['id']);
-                    },
-                    validator: providerController.validateRequired,
-                  ),
+                  child: Obx(() {
+                    if (providerController.isLoadingEspecialidades.value) {
+                      return const Center(
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    }
+
+                    final especialidadActual =
+                        providerController.getCurrentEspecialidad();
+
+                    return DropdownForm(
+                      label: 'Especialidad',
+                      opciones: providerController.especialidades
+                          .map((esp) => esp.nombre)
+                          .toList(),
+                      value: especialidadActual?.nombre ??
+                          (providerController.especialidades.isNotEmpty
+                              ? providerController.especialidades.first.nombre
+                              : 'Cargando...'),
+                      onChanged: (value) {
+                        final especialidad =
+                            providerController.especialidades.firstWhere(
+                          (esp) => esp.nombre == value,
+                          orElse: () => providerController.especialidades.first,
+                        );
+                        providerController.updateProveedor(
+                            especialidadId: especialidad.id);
+                      },
+                      validator: providerController.validateRequired,
+                    );
+                  }),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

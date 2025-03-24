@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-
 import '../../../shared/widgets/add_entity_card.dart';
 
-class AddProvidersCard extends StatelessWidget {
+class AddProviderCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  const AddProvidersCard({
+  const AddProviderCard({
     super.key,
     required this.onTap,
   });
@@ -14,7 +12,7 @@ class AddProvidersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AddEntityCard(
-      labelText: 'Agregar Cliente',
+      labelText: 'Agregar Proveedor',
       onTap: onTap,
     );
   }

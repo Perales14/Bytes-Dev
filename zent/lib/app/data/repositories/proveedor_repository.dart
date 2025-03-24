@@ -107,4 +107,14 @@ class ProveedorRepository extends BaseRepository<ProveedorModel> {
       throw Exception('Error al verificar email: $e');
     }
   }
+
+  // Método para obtener proveedores activos
+  Future<List<ProveedorModel>> getAllActive() async {
+    try {
+      return await query('estado_id = ?', [1]); // 1 para estado activo
+    } catch (e) {
+      print('Error en getAllActive: $e');
+      throw Exception('Error al obtener proveedores activos: $e');
+    }
+  }
 }

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../data/repositories/especialidad_repository.dart';
 import '../controllers/provider_form_controller.dart';
 import '../../../shared/models/form_config.dart';
 import '../../../data/repositories/direccion_repository.dart';
@@ -27,7 +28,7 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
   @override
   void initState() {
     super.initState();
-    // Asegurar que todos los repositorios estén registrados
+    // Asegurar que todos los repositorios estén registrados (sin duplicados)
     if (!Get.isRegistered<ProveedorRepository>()) {
       Get.lazyPut(() => ProveedorRepository());
     }
@@ -38,6 +39,10 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
 
     if (!Get.isRegistered<EstadoRepository>()) {
       Get.lazyPut(() => EstadoRepository());
+    }
+
+    if (!Get.isRegistered<EspecialidadRepository>()) {
+      Get.lazyPut(() => EspecialidadRepository());
     }
 
     // Inicializamos el controlador
