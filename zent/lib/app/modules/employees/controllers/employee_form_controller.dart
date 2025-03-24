@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/data/models/usuario_model.dart';
-
-import '../../../data/repositories/employee_repository.dart';
-import '../../../shared/models/employee_model.dart';
+import '../../../data/models/usuario_model.dart';
+import '../../../data/repositories/usuario_repository.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/list_validator.dart';
 import '../../../shared/validators/nss_validator.dart';
@@ -11,18 +9,33 @@ import '../../../shared/validators/password_validator.dart';
 import '../../../shared/validators/salary_validator.dart';
 
 class EmployeeFormController extends BaseFormController {
-  // Modelo central que almacena todos los datos del empleado
-  late EmployeeModel model;
-  final employeeRepository = EmployeeRepository();
+  // Modelo del usuario que estamos editando
+  final Rx<UsuarioModel> usuario = UsuarioModel(
+    rolId: 2, // Por defecto es empleado
+    nombre: '',
+    apellidoPaterno: '',
+    apellidoMaterno: '',
+    email: '',
+    nss: '',
+    contrasenaHash: '',
+    fechaIngreso: DateTime.now(),
+    estadoId: 1, // Activo por defecto
+  ).obs;
 
-  // Contraseña de confirmación (mantenida solo en el controlador)
-  String confirmPassword = '';
+  // Repository para operaciones de base de datos
+  final UsuarioRepository _repository = Get.find<UsuarioRepository>();
 
-  // Variable para mostrar/ocultar contraseña
+  // Contraseña de confirmación
+  final RxString confirmPassword = ''.obs;
+
+  // Observaciones (manejadas por separado ya que es una tabla polimorfa)
+  final observacionText = ''.obs;
+
+  // Variables para controlar UI
   @override
   final showPassword = false.obs;
 
-  // Roles and contract types
+  // Catálogos
   final List<String> roles = [
     'Admin',
     'Captador de Campo',
@@ -30,45 +43,93 @@ class EmployeeFormController extends BaseFormController {
     'Recursos Humanos'
   ];
 
-  final List<String> tiposContrato = [
-    // 'Indeterminado',
-    // 'Determinado',
-    // 'Obra/Servicio',
-    // 'Capacitación'
-    'Temporal', 'Indefinido', 'Por Obra'
-  ];
-
-  // Propiedad reactiva para observaciones
-  final observacionText = ''.obs;
+  final List<String> tiposContrato = ['Temporal', 'Indefinido', 'Por Obra'];
 
   @override
   void onInit() {
     super.onInit();
-    _initializeEmployee();
+    resetForm();
   }
 
-  // Inicializa el modelo de empleado con valores por defecto
-  void _initializeEmployee() {
-    model = EmployeeModel(
+  // Inicializar o resetear formulario
+  @override
+  void resetForm() {
+    usuario.value = UsuarioModel(
+      rolId: 2, // Por defecto es empleado
       nombre: '',
       apellidoPaterno: '',
       apellidoMaterno: '',
-      correo: '',
-      telefono: '',
-      fechaRegistro: DateTime.now().toString().split(' ')[0],
-      observaciones: '',
+      email: '',
       nss: '',
-      password: '',
-      salario: '',
-      rol: '2',
-      tipoContrato: '',
+      contrasenaHash: '',
+      fechaIngreso: DateTime.now(),
+      estadoId: 1, // Activo por defecto
     );
-    // Inicializar observación reactiva
+
+    confirmPassword.value = '';
     observacionText.value = '';
-    confirmPassword = '';
+    showPassword.value = false;
+    formKey.currentState?.reset();
   }
 
-  // Employee-specific validations
+  // Actualizar campos del modelo de usuario
+  void updateUsuario({
+    String? nombre,
+    String? apellidoPaterno,
+    String? apellidoMaterno,
+    String? email,
+    String? telefono,
+    String? nss,
+    String? contrasenaHash,
+    double? salario,
+    String? tipoContrato,
+    String? departamento,
+    int? rolId,
+    DateTime? fechaIngreso,
+  }) {
+    usuario.update((val) {
+      if (val != null) {
+        if (nombre != null) val.nombre = nombre;
+        if (apellidoPaterno != null) val.apellidoPaterno = apellidoPaterno;
+        if (apellidoMaterno != null) val.apellidoMaterno = apellidoMaterno;
+        if (email != null) val.email = email;
+        if (telefono != null) val.telefono = telefono;
+        if (nss != null) val.nss = nss;
+        if (contrasenaHash != null) val.contrasenaHash = contrasenaHash;
+        if (salario != null) val.salario = salario;
+        if (tipoContrato != null) val.tipoContrato = tipoContrato;
+        if (departamento != null) val.departamento = departamento;
+        if (rolId != null) val.rolId = rolId;
+        if (fechaIngreso != null) val.fechaIngreso = fechaIngreso;
+      }
+    });
+  }
+
+  // Actualiza la confirmación de contraseña
+  void updateConfirmPassword(String value) {
+    confirmPassword.value = value;
+  }
+
+  // Actualizar texto de observación
+  void updateObservacion(String value) {
+    observacionText.value = value;
+  }
+
+  // Muestra/oculta la contraseña
+  @override
+  void togglePasswordVisibility() {
+    showPassword.value = !showPassword.value;
+  }
+
+  // Carga los datos de un usuario existente
+  void loadUsuario(UsuarioModel model) {
+    usuario.value = model;
+    observacionText.value = model.departamento ?? '';
+    update();
+  }
+
+  // VALIDACIONES
+
   String? validatePassword(String? value) {
     return validate_Password(value);
   }
@@ -77,12 +138,6 @@ class EmployeeFormController extends BaseFormController {
     return validate_NSS(value);
   }
 
-  // Validación para el rol de empleado
-  String? validateRol(String? value) {
-    return validateInList(value, roles, fieldName: 'rol');
-  }
-
-  // Validación para el tipo de contrato
   String? validateTipoContrato(String? value) {
     return validateInList(value, tiposContrato, fieldName: 'tipo de contrato');
   }
@@ -91,263 +146,101 @@ class EmployeeFormController extends BaseFormController {
     return validateSalary(value);
   }
 
-  // Validación para confirmar contraseña
   String? validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Este campo es requerido';
     }
-    if (value != model.password) {
+    if (value != usuario.value.contrasenaHash) {
       return 'Las contraseñas no coinciden';
     }
     return null;
   }
 
-  // Método para actualizar la confirmación de contraseña
-  void updateConfirmPassword(String value) {
-    confirmPassword = value;
-  }
-
-  // Nuevo método para actualizar observaciones
-  void updateObservacion(String value) {
-    observacionText.value = value;
-    // También actualizamos el modelo para mantener consistencia
-    model = model.copyWith(observaciones: value);
-  }
-
-  void loadEmployeeData(UsuarioModel usuario) {
-    try {
-      print('Cargando datos del usuario en el formulario: ${usuario.toJson()}');
-
-      // Dividir el nombre completo en partes
-      List<String> nombrePartes = [];
-      if (usuario.nombreCompleto.isNotEmpty) {
-        nombrePartes = usuario.nombreCompleto.split(' ');
-      }
-
-      String nombre = nombrePartes.isNotEmpty ? nombrePartes[0] : '';
-      String apellidoPaterno = nombrePartes.length > 1 ? nombrePartes[1] : '';
-      String apellidoMaterno = nombrePartes.length > 2 ? nombrePartes[2] : '';
-
-      print(
-          'Nombre dividido - Nombre: $nombre, AP: $apellidoPaterno, AM: $apellidoMaterno');
-
-      String observaciones = usuario.departamento ?? '';
-
-      // Actualizar el modelo con los datos del usuario
-      model = EmployeeModel(
-        nombre: nombre,
-        apellidoPaterno: apellidoPaterno,
-        apellidoMaterno: apellidoMaterno,
-        correo: usuario.email,
-        telefono: usuario.telefono ?? '',
-        fechaRegistro: usuario.fechaIngreso.toString().split(' ')[0],
-        observaciones: observaciones,
-        nss: usuario.nss,
-        password: '',
-        salario: usuario.salario?.toString() ?? '',
-        rol: usuario.rolId.toString(),
-        tipoContrato: usuario.tipoContrato ?? '',
-      );
-
-      // Actualizar también el campo reactivo
-      observacionText.value = observaciones;
-
-      print('Modelo actualizado exitosamente: ${model.nombre}');
-      update(); // Notificar a GetX que los datos cambiaron
-    } catch (e) {
-      print('Error al cargar datos en el formulario: $e');
-      throw Exception('Error al cargar datos en el formulario: $e');
-    }
-  }
+  // GUARDAR EMPLEADO
 
   @override
   bool submitForm() {
-    if (_validateEmployeeForm()) {
-      // UsuarioModel usuario = UsuarioModel(
-      //   rolId: model.rol as int,
-      //   nombreCompleto: model_base.nombre,
-      //   email: model_base.correo,
-      //   nss: model.nss,
-      //   contrasenaHash: model.password,
-      //   fechaIngreso: model.fechaRegistro as DateTime,
-      //   estadoId: 1,
-      // );
-      // employeeRepository.create(usuario);
-
-      Get.snackbar(
-        'Éxito',
-        'Empleado VALIDADO registrado correctamente',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return true;
-    } else {
-      Get.snackbar(
-        'Éxito',
-        'Empleado NO VALIDADO',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    if (_validateForm()) {
+      try {
+        saveEmployee();
+        return true;
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Error al guardar empleado: $e',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
     }
     return false;
   }
 
-  bool saveEmployee() {
-    bool save = false;
-    print(model.rol);
-    int rol = 0;
+  Future<bool> saveEmployee() async {
+    try {
+      // El departamento se puede usar para guardar información temporal
+      // que luego se puede mover a la tabla de observaciones
+      if (observacionText.value.isNotEmpty) {
+        usuario.update((val) {
+          if (val != null) val.departamento = observacionText.value;
+        });
+      }
 
-    switch (model.rol) {
-      case 'Admin':
-        rol = 2;
-        break;
-      case 'Captador de Campo':
-        rol = 1;
-        break;
-      case 'Promotor':
-        rol = 3;
-        break;
-      case 'Recursos Humanos':
-        rol = 4;
-        break;
-      default:
-        rol = 2;
+      // Guardar o actualizar el usuario
+      final savedUser = usuario.value.id > 0
+          ? await _repository.update(usuario.value)
+          : await _repository.createEmployee(usuario.value);
+
+      if (savedUser.id > 0) {
+        Get.snackbar(
+          'Éxito',
+          'Empleado guardado correctamente',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        // También podrías guardar la observación en su tabla correspondiente aquí
+
+        return true;
+      } else {
+        throw Exception('No se pudo guardar el empleado');
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al guardar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
     }
-    // print('model: ${model.fechaRegistro}');
-    // print('model: ');
-    // print(model.toJson());
-    // print('model_base: ');
-    // print(model_base.toJson());
-
-    UsuarioModel usuario = UsuarioModel(
-      //valores que son nulos actualmente.
-      //cargo,depatamento,especialidadId,salario,supervisorId,telefono,tipoContrato
-      rolId: rol,
-      nombreCompleto:
-          '${model_base.nombre} ${model_base.apellidoPaterno} ${model_base.apellidoMaterno}',
-      email: model_base.correo,
-      telefono: model_base.telefono,
-      nss: model.nss,
-      contrasenaHash: model.password,
-      // salario: model.salario as double,
-      salario: double.parse(model.salario),
-
-      tipoContrato: model.tipoContrato,
-      // cargo: model.rol,
-
-      // salario: model.salario as double,
-      // fechaIngreso: model.fechaRegistro as DateTime,
-      fechaIngreso: DateTime.parse(model.fechaRegistro),
-
-      estadoId: 1,
-    );
-
-    print(usuario.toJson());
-
-    employeeRepository.create(usuario).then(
-      (value) {
-        print('value: ${value.id}');
-        if (value.id > 0) {
-          save = true;
-        }
-      },
-    );
-    return save;
   }
 
-  /// Valida el formulario de empleado antes de enviar
-  ///
-  /// Este método realiza múltiples validaciones:
-  /// 1. Verifica que todos los campos del formulario pasen sus validaciones individuales
-  /// 2. Verifica específicamente que se haya seleccionado un rol
-  /// 3. Verifica específicamente que se haya seleccionado un tipo de contrato
-  ///
-  /// @return true si todas las validaciones pasan, false en caso contrario
-  bool _validateEmployeeForm() {
-    // Validar todos los campos del formulario
+  bool _validateForm() {
     if (!formKey.currentState!.validate()) {
       return false;
     }
 
-    // Validación específica para el rol
-    if (model.rol.isEmpty) {
+    // Validar tipo contrato
+    if (usuario.value.tipoContrato == null ||
+        usuario.value.tipoContrato!.isEmpty) {
       Get.snackbar(
-        'Error de validación',
-        'Debe seleccionar un rol',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-      return false;
-    }
-
-    // Validación específica para el tipo de contrato
-    if (model.tipoContrato.isEmpty) {
-      Get.snackbar(
-        'Error de validación',
+        'Error',
         'Debe seleccionar un tipo de contrato',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
       );
       return false;
     }
 
-    // Validación específica para la confirmación de contraseña
-    if (model.password != confirmPassword) {
+    // Validar contraseña y confirmación
+    if (usuario.value.id == 0 && // Solo para nuevos usuarios
+        usuario.value.contrasenaHash != confirmPassword.value) {
       Get.snackbar(
-        'Error de validación',
+        'Error',
         'Las contraseñas no coinciden',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
       );
       return false;
     }
 
     return true;
-  }
-
-  @override
-  void resetForm() {
-    formKey.currentState?.reset();
-    _initializeEmployee();
-    showPassword.value = false;
-    showConfirmPassword.value = false;
-    files.clear();
-  }
-
-  // Actualiza el modelo del empleado con nuevos valores
-  void updateEmployee({
-    String? nombre,
-    String? apellidoPaterno,
-    String? apellidoMaterno,
-    String? correo,
-    String? telefono,
-    String? observaciones,
-    String? nss,
-    String? password,
-    String? salario,
-    String? rol,
-    String? tipoContrato,
-    String? fechaRegistro,
-  }) {
-    model = model.copyWith(
-      nombre: nombre,
-      apellidoPaterno: apellidoPaterno,
-      apellidoMaterno: apellidoMaterno,
-      correo: correo,
-      telefono: telefono,
-      observaciones: observaciones,
-      nss: nss,
-      password: password,
-      salario: salario,
-      rol: rol,
-      tipoContrato: tipoContrato,
-      fechaRegistro: fechaRegistro,
-    );
-  }
-
-  // Obtener el modelo actual para guardarlo o enviarlo
-  EmployeeModel getEmployeeModel() {
-    return model;
   }
 }

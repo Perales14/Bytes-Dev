@@ -172,7 +172,7 @@ class ClientForm extends BaseForm {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildSectionTitle(theme, 'Datos de la Empresa'),
+        buildSectionTitle(theme, 'Otros Datos'),
         const SizedBox(height: 20),
 
         // Nombre Empresa
@@ -192,6 +192,7 @@ class ClientForm extends BaseForm {
           ],
         ),
         const SizedBox(height: 10),
+        //calle, numero, colonia, cp
       ],
     );
   }

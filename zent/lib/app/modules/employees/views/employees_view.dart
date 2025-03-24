@@ -12,7 +12,8 @@ class EmployeesView extends GetView<EmployeesController> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      text_controler:  controller.Textcontrolador,
+      // Corregido el nombre del controlador de texto
+      text_controler: controller.textController,
       pageTitle: 'Empleados',
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -36,9 +37,9 @@ class EmployeesView extends GetView<EmployeesController> {
                   return _buildEmptyState();
                 }
 
+                // Usamos directamente los employees filtrados del controlador
                 return EmployeesCardsGrid(
-                  employees: controller.empleadosFiltrados(),
-                  // employees: controller.employees,
+                  employees: controller.employees,
                   onAddEmployee: () => _showAddEmployeeDialog(context),
                 );
               }),

@@ -62,7 +62,9 @@ class Sidebar extends GetView<SidebarController> {
                               style: theme.textTheme.headlineMedium,
                             ),
                           ),
-
+                          SizedBox(
+                            height: 16,
+                          ),
                           // Botones dinámicos (según el rol)
                           Column(
                             children: controller.visibleSidebarItems

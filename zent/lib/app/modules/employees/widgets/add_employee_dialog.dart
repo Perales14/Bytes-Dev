@@ -2,10 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/data/models/usuario_model.dart';
-import 'package:zent/app/modules/employees/controllers/employee_form_controller.dart';
-import 'package:zent/app/shared/models/form_config.dart';
-import 'package:zent/app/modules/employees/widgets/employee_form.dart';
+
+import '../../../shared/models/form_config.dart';
+import '../../../data/repositories/usuario_repository.dart';
+import '../controllers/employee_form_controller.dart';
+import 'employee_form.dart';
 
 class AddEmployeeDialog extends StatefulWidget {
   final Function onSaveSuccess;
@@ -25,6 +26,11 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
   @override
   void initState() {
     super.initState();
+    // Asegurar que el repositorio esté registrado
+    if (!Get.isRegistered<UsuarioRepository>()) {
+      Get.lazyPut<UsuarioRepository>(() => UsuarioRepository());
+    }
+
     // Inicializamos el controlador utilizando GetX para gestión de dependencias
     controller = Get.put(EmployeeFormController());
   }
@@ -45,40 +51,30 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
   }
 
   // Función que se ejecuta cuando se intenta guardar el formulario
-  void _handleSubmit() {
-    // Muestra mensaje de funcionalidad pendiente para backend
+  void _handleSubmit() async {
+    try {
+      final isValid = controller.submitForm();
 
-    //guardar en la base de datos
+      if (isValid) {
+        // Ya no es necesario mostrar este snackbar aquí, ya que
+        // el controlador ya muestra un mensaje de éxito
 
-    // controller.employeeRepository.create(usuario);
-    // controller;
-
-    bool save = controller.saveEmployee();
-    if (save) {
+        // Cierra el diálogo y notifica al padre para refrescar datos
+        if (mounted && Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+          widget.onSaveSuccess();
+        }
+      }
+    } catch (e) {
+      // Si ocurre un error no manejado, mostramos un mensaje
       Get.snackbar(
-        'LEEMEE',
-        'INTENTO DE GUARDADO',
+        'Error',
+        'Ocurrió un error inesperado: $e',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
       );
     }
-
-    // No sera necesario mostrat este snackbar, ya que en otra parte, ya se le comunica de esto.
-    // Get.snackbar(
-    //   'Registro Exitos', 'Bienvenido: ${controller.model_base.nombre} ${controller.model_base.apellidoPaterno}',
-    //   snackPosition: SnackPosition.BOTTOM,
-    // );
-
-    // print('REGISTRO EMPLEADO');
-    // print('Datos del empleado: ${controller.model_base.toJson()}');
-    // print('Contraseña de confirmación: ${controller.confirmPassword}');
-    // print('Mostrar contraseña: ${controller.showPassword.value}');
-    // Cierra el diálogo y notifica al padre para refrescar datos
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.of(context).pop();
-      widget.onSaveSuccess();
-    }
-
-    //volver a recargar la pantalla de empleados
   }
 
   @override

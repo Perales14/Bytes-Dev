@@ -4,31 +4,33 @@ import '../controllers/employee_details_controller.dart';
 import '../../../shared/models/form_config.dart';
 
 class EmployeeDetailsView extends GetView<EmployeeDetailsController> {
-  const EmployeeDetailsView({Key? key}) : super(key: key);
+  const EmployeeDetailsView({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalles del Empleado'),
         centerTitle: true,
         actions: [
-          /*IconButton(
+          IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: () => Get.toNamed('/employees/${controller.employeeId}/edit'),
+            onPressed: () =>
+                Get.toNamed('/employees/${controller.employeeId}/edit'),
             tooltip: 'Editar información',
-          ) */
+          )
         ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }
-        
-        final employee = controller.formController.model;
-        
+
+        // Ahora usamos el campo usuario del controlador
+        final employee = controller.formController.usuario.value;
+
         return Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -57,47 +59,53 @@ class EmployeeDetailsView extends GetView<EmployeeDetailsController> {
                     ),
                   ),
                   const SizedBox(height: 36),
-                  
+
                   // Sección: Datos Personales
                   _buildSectionTitle(theme, 'Datos Personales'),
                   const SizedBox(height: 16),
-                  
+
                   // Nombre completo
-                  _buildInfoRow(
-                    theme, 
-                    'Nombre completo:', 
-                    '${employee.nombre} ${employee.apellidoPaterno} ${employee.apellidoMaterno}'
-                  ),
-                  
-                  // Correo electrónico
-                  _buildInfoRow(theme, 'Correo electrónico:', employee.correo),
-                  
+                  _buildInfoRow(theme, 'Nombre completo:',
+                      '${employee.nombre} ${employee.apellidoPaterno} ${employee.apellidoMaterno ?? ""}'),
+
+                  // Correo electrónico (cambio de correo a email)
+                  _buildInfoRow(theme, 'Correo electrónico:', employee.email),
+
                   // Teléfono
-                  _buildInfoRow(theme, 'Teléfono:', employee.telefono),
-                  
+                  _buildInfoRow(
+                      theme, 'Teléfono:', employee.telefono ?? 'No disponible'),
+
                   // NSS
                   _buildInfoRow(theme, 'NSS:', employee.nss),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Sección: Datos Laborales
                   _buildSectionTitle(theme, 'Datos Laborales'),
                   const SizedBox(height: 16),
-                  
-                  // Fecha de registro
-                  _buildInfoRow(theme, 'Fecha de registro:', employee.fechaRegistro),
-                  
-                  // Rol
-                  _buildInfoRow(theme, 'Rol:', _getRolName(employee.rol)),
-                  
+
+                  // Fecha de ingreso (cambio de fechaRegistro a fechaIngreso)
+                  _buildInfoRow(theme, 'Fecha de ingreso:',
+                      employee.fechaIngreso.toString().split(' ')[0]),
+
+                  // Rol (ahora es un int)
+                  _buildInfoRow(theme, 'Rol:', _getRolName(employee.rolId)),
+
                   // Tipo de contrato
-                  _buildInfoRow(theme, 'Tipo de contrato:', employee.tipoContrato),
-                  
+                  _buildInfoRow(theme, 'Tipo de contrato:',
+                      employee.tipoContrato ?? 'No especificado'),
+
                   // Salario
-                  _buildInfoRow(theme, 'Salario:', '\$${employee.salario}'),
-                  
-                  // Observaciones (si hay)
-                  if (employee.observaciones.isNotEmpty) ...[
+                  _buildInfoRow(
+                      theme,
+                      'Salario:',
+                      employee.salario != null
+                          ? '\$${employee.salario}'
+                          : 'No especificado'),
+
+                  // Observaciones (ahora en departamento)
+                  if (employee.departamento != null &&
+                      employee.departamento!.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     _buildSectionTitle(theme, 'Observaciones'),
                     const SizedBox(height: 16),
@@ -106,28 +114,31 @@ class EmployeeDetailsView extends GetView<EmployeeDetailsController> {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+                        border: Border.all(
+                            color: theme.colorScheme.outline.withOpacity(0.3)),
                       ),
                       child: Text(
-                        employee.observaciones,
+                        employee.departamento!,
                         style: theme.textTheme.bodyLarge,
                       ),
                     ),
                   ],
-                  
+
                   const SizedBox(height: 36),
-                  
+
                   // Botón para editar
                   Center(
                     child: ElevatedButton.icon(
-                      onPressed: () /*=> Get.toNamed('/employees/${controller.employeeId}/edit')*/ {},
+                      onPressed: () => Get.toNamed(
+                          '/employees/${controller.employeeId}/edit'),
                       icon: const Icon(Icons.edit),
                       label: const Text('Editar información'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                       ),
                     ),
-                  ), 
+                  ),
                 ],
               ),
             ),
@@ -136,7 +147,7 @@ class EmployeeDetailsView extends GetView<EmployeeDetailsController> {
       }),
     );
   }
-  
+
   Widget _buildSectionTitle(ThemeData theme, String title) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,11 +164,11 @@ class EmployeeDetailsView extends GetView<EmployeeDetailsController> {
       ],
     );
   }
-  
+
   Widget _buildInfoRow(ThemeData theme, String label, String value) {
     // Si el valor es vacío, mostrar un texto predeterminado
     final displayValue = value.isEmpty ? 'No disponible' : value;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -182,14 +193,20 @@ class EmployeeDetailsView extends GetView<EmployeeDetailsController> {
       ),
     );
   }
-  
-  String _getRolName(String rolId) {
+
+  // Actualizado para usar integers en lugar de strings
+  String _getRolName(int rolId) {
     switch (rolId) {
-      case '1': return 'Admin';
-      case '2': return 'Captador de Campo';
-      case '3': return 'Promotor';
-      case '4': return 'Recursos Humanos';
-      default: return 'Desconocido';
+      case 2:
+        return 'Admin';
+      case 1:
+        return 'Captador de Campo';
+      case 3:
+        return 'Promotor';
+      case 4:
+        return 'Recursos Humanos';
+      default:
+        return 'Desconocido';
     }
   }
 }
