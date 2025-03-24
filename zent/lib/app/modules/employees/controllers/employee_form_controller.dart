@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/data/models/rol_model.dart';
 import '../../../data/models/usuario_model.dart';
 import '../../../data/repositories/usuario_repository.dart';
 import '../../../data/repositories/rol_repository.dart';
@@ -158,6 +157,17 @@ class EmployeeFormController extends BaseFormController {
     observacionText.value = value;
   }
 
+  int getRolId(String? rolName) {
+    if (rolName == null) return 0;
+    print('Rol Name: $rolName');
+    int rolId = 0;
+    // RolRepository().findByNombre(rolName).then((value) => rolId = value!.id);
+    rolId = roles.indexOf(rolName) + 1;
+    // await RolRepository().findByNombre(rolName).then((value) => value!.id);
+    print('Rol ID: $rolId');
+    return rolId;
+  }
+
   // Preparar el modelo para guardarlo
   void prepareModelForSave() {
     usuario.update((val) {
@@ -239,7 +249,7 @@ class EmployeeFormController extends BaseFormController {
 
   @override
   bool submitForm() {
-    if (_validateForm()) {
+    if (validateForm()) {
       try {
         prepareModelForSave(); // Preparar el modelo antes de guardar
         saveEmployee();
@@ -294,7 +304,7 @@ class EmployeeFormController extends BaseFormController {
     }
   }
 
-  bool _validateForm() {
+  bool validateForm() {
     if (!formKey.currentState!.validate()) {
       return false;
     }
