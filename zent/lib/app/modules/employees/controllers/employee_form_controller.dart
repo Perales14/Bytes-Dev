@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/data/models/rol_model.dart';
 import '../../../data/models/usuario_model.dart';
 import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/repositories/rol_repository.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/list_validator.dart';
 import '../../../shared/validators/nss_validator.dart';
@@ -48,18 +50,14 @@ class EmployeeFormController extends BaseFormController {
   final showPassword = false.obs;
 
   // Catálogos
-  final List<String> roles = [
-    'Admin',
-    'Captador de Campo',
-    'Promotor',
-    'Recursos Humanos'
-  ];
-
+  late List<String> roles = ['Administrador'];
   final List<String> tiposContrato = ['Temporal', 'Indefinido', 'Por Obra'];
 
   @override
-  void onInit() {
+  Future<void> onInit() async {
     super.onInit();
+    roles = await RolRepository().getRolesNames();
+    print('Roles: $roles');
     resetForm();
   }
 
@@ -144,6 +142,10 @@ class EmployeeFormController extends BaseFormController {
         if (fechaIngreso != null) val.fechaIngreso = fechaIngreso;
       }
     });
+
+    // Trigger UI update and log values for debugging
+    update();
+    print('Usuario actualizado: ${usuario.value.toJson()}');
   }
 
   // Actualiza la confirmación de contraseña

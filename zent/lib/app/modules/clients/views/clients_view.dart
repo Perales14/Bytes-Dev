@@ -37,7 +37,7 @@ class ClientsView extends GetView<ClientsController> {
                 // }
 
                 return ClientsCardsGrid(
-                  clients: controller.clients,
+                  clients: controller.empleadosFiltrados(),
                   onAddClient: () => _showAddClientDialog(context),
                 );
               }),
