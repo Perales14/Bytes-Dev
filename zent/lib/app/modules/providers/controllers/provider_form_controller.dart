@@ -34,6 +34,21 @@ class ProviderFormController extends BaseFormController {
   final showDireccion = false.obs;
   final observacionText = ''.obs;
 
+  // Controladores de texto persistentes
+  final nombreEmpresaController = TextEditingController();
+  final contactoPrincipalController = TextEditingController();
+  final telefonoController = TextEditingController();
+  final emailController = TextEditingController();
+  final rfcController = TextEditingController();
+
+  // Controladores para dirección
+  final calleController = TextEditingController();
+  final numeroController = TextEditingController();
+  final coloniaController = TextEditingController();
+  final cpController = TextEditingController();
+  final estadoController = TextEditingController();
+  final paisController = TextEditingController();
+
   // Listas para dropdowns
   final RxList<EspecialidadModel> especialidades = <EspecialidadModel>[].obs;
   final tiposServicio =
@@ -50,6 +65,23 @@ class ProviderFormController extends BaseFormController {
     super.onInit();
     _initializeProvider();
     _loadEspecialidades();
+  }
+
+  @override
+  void onClose() {
+    // Liberar recursos de los controladores
+    nombreEmpresaController.dispose();
+    contactoPrincipalController.dispose();
+    telefonoController.dispose();
+    emailController.dispose();
+    rfcController.dispose();
+    calleController.dispose();
+    numeroController.dispose();
+    coloniaController.dispose();
+    cpController.dispose();
+    estadoController.dispose();
+    paisController.dispose();
+    super.onClose();
   }
 
   // Cargar especialidades desde la base de datos
@@ -107,6 +139,13 @@ class ProviderFormController extends BaseFormController {
       estadoId: 1, // Activo por defecto
     );
 
+    // Inicializar los controladores con los valores iniciales
+    nombreEmpresaController.text = proveedor.value.nombreEmpresa;
+    contactoPrincipalController.text = proveedor.value.contactoPrincipal ?? '';
+    telefonoController.text = proveedor.value.telefono ?? '';
+    emailController.text = proveedor.value.email ?? '';
+    rfcController.text = proveedor.value.rfc ?? '';
+
     direccion = DireccionModel(
       calle: '',
       numero: '',
@@ -115,6 +154,14 @@ class ProviderFormController extends BaseFormController {
       estado: '',
       pais: 'México', // Default
     );
+
+    // Inicializar controladores de dirección
+    calleController.text = direccion.calle;
+    numeroController.text = direccion.numero;
+    coloniaController.text = direccion.colonia;
+    cpController.text = direccion.cp;
+    estadoController.text = direccion.estado ?? '';
+    paisController.text = direccion.pais ?? 'México';
 
     observacionText.value = '';
   }
@@ -245,6 +292,7 @@ class ProviderFormController extends BaseFormController {
   bool submitForm() {
     if (_validateForm()) {
       try {
+        prepareModelForSave(); // Preparar el modelo antes de guardar
         saveProveedorWithData();
         return true;
       } catch (e) {
@@ -388,5 +436,33 @@ class ProviderFormController extends BaseFormController {
     formKey.currentState?.reset();
     _initializeProvider();
     showDireccion.value = false;
+  }
+
+  // Preparar el modelo para guardarlo
+  void prepareModelForSave() {
+    proveedor.update((val) {
+      if (val != null) {
+        val.nombreEmpresa = nombreEmpresaController.text;
+        val.contactoPrincipal = contactoPrincipalController.text.isEmpty
+            ? null
+            : contactoPrincipalController.text;
+        val.telefono =
+            telefonoController.text.isEmpty ? null : telefonoController.text;
+        val.email = emailController.text.isEmpty ? null : emailController.text;
+        val.rfc = rfcController.text.isEmpty ? null : rfcController.text;
+      }
+    });
+
+    direccion = DireccionModel(
+      id: direccion.id,
+      calle: calleController.text,
+      numero: numeroController.text,
+      colonia: coloniaController.text,
+      cp: cpController.text,
+      estado: estadoController.text.isEmpty ? null : estadoController.text,
+      pais: paisController.text.isEmpty ? null : paisController.text,
+      createdAt: direccion.createdAt,
+      updatedAt: DateTime.now(),
+    );
   }
 }
