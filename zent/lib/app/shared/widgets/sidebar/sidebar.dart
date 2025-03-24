@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/shared/controllers/sidebar_controller.dart';
-import 'package:zent/app/shared/widgets/sidebar/sidebar_button.dart';
-import 'package:zent/app/shared/widgets/sidebar/sidebar_user_header.dart';
+
+import '../../controllers/sidebar_controller.dart';
+import 'sidebar_button.dart';
+import 'sidebar_user_header.dart';
 
 class Sidebar extends GetView<SidebarController> {
   const Sidebar({super.key});

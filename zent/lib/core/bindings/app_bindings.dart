@@ -21,11 +21,10 @@ class AppBindings extends Bindings {
     // Get.put(SQLiteDatabase());
     // Get.put(SupabaseDatabase());
 
-
-    Get.lazyPut(() => SQLiteDatabase(),fenix: true);
-    Get.lazyPut(() => SupabaseDatabase(),fenix: true);
-    Get.lazyPut(() => ConnectivityHelper(),fenix: true);
-    Get.lazyPut(() => SyncService(),fenix: true);
+    Get.lazyPut(() => SQLiteDatabase(), fenix: true);
+    Get.lazyPut(() => SupabaseDatabase(), fenix: true);
+    Get.lazyPut(() => ConnectivityHelper(), fenix: true);
+    Get.lazyPut(() => SyncService(), fenix: true);
 
     // Repositories
     Get.lazyPut(() => UsuarioRepository());

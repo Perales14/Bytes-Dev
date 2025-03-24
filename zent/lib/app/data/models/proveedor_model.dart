@@ -62,13 +62,14 @@ class ProveedorModel extends BaseModel {
       tipoServicio: map['tipo_servicio'],
       condicionesPago: map['condiciones_pago'],
       idDireccion: map['id_direccion'],
-      estadoId: map['estado_id'] ?? 0,
+      estadoId: map['estado_id'] ?? 1,
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
     );
   }
 
+  // Factory constructor para crear desde Map
   factory ProveedorModel.fromJson(Map<String, dynamic> map) {
     return ProveedorModel(
       id: map['id'] ?? 0,
@@ -81,7 +82,7 @@ class ProveedorModel extends BaseModel {
       tipoServicio: map['tipo_servicio'],
       condicionesPago: map['condiciones_pago'],
       idDireccion: map['id_direccion'],
-      estadoId: map['estado_id'] ?? 0,
+      estadoId: map['estado_id'] ?? 1,
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
       enviado: map['enviado'] == 1 || map['enviado'] == true,
