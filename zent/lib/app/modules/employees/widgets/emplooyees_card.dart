@@ -37,6 +37,10 @@ class EmployeesCard extends StatelessWidget {
             icon: Icons.task_alt_outlined,
             count: taskCount.toString(),
           ),
+          // EntityCardCounter(
+          //   icon: Icons.edit,
+          //   count: '',
+          // ),
         ],
       ),
     );

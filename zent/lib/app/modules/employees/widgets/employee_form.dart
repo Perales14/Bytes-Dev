@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../controllers/employee_form_controller.dart';
 import '../../../shared/widgets/form/base_form.dart';
+import '../../../data/repositories/rol_repository.dart';
 import '../../../shared/widgets/form/widgets/dropdown_form.dart';
 import '../../../shared/widgets/form/widgets/file_upload_panel.dart';
 import '../../../shared/widgets/form/widgets/label_display.dart';
@@ -266,8 +267,9 @@ class EmployeeForm extends BaseForm {
                     label: 'Rol',
                     opciones: employeeController.roles,
                     value: _getRolName(employeeController.usuario.value.rolId),
-                    onChanged: (value) => employeeController.updateUsuario(
-                      rolId: _getRolId(value!),
+                    onChanged: (value) async =>
+                        employeeController.updateUsuario(
+                      rolId: employeeController.getRolId(value),
                     ),
                   ),
                 ),
@@ -291,21 +293,6 @@ class EmployeeForm extends BaseForm {
         return 'Recursos Humanos';
       default:
         return null;
-    }
-  }
-
-  int _getRolId(String rolName) {
-    switch (rolName) {
-      case 'Admin':
-        return 2;
-      case 'Captador de Campo':
-        return 1;
-      case 'Promotor':
-        return 3;
-      case 'Recursos Humanos':
-        return 4;
-      default:
-        return 2;
     }
   }
 

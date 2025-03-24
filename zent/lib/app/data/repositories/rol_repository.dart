@@ -18,7 +18,7 @@ class RolRepository extends BaseRepository<RolModel> {
     );
   }
 
-   // Método para obtener todos los roles
+  // Método para obtener todos los roles
   Future<List<RolModel>> getRoles() async {
     try {
       return await getAll();
