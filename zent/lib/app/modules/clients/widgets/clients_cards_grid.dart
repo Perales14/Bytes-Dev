@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/cliente_model.dart';
+import '../controllers/clients_controller.dart';
 import 'add_clients_card.dart';
 import 'client_card.dart';
 
 class ClientsCardsGrid extends StatelessWidget {
   final List<ClienteModel> clients;
   final VoidCallback onAddClient;
+  final ClientsController controller;
 
   // Constantes de dimensiones
   static const double cardWidth = 300.0;
@@ -18,6 +20,7 @@ class ClientsCardsGrid extends StatelessWidget {
     super.key,
     required this.clients,
     required this.onAddClient,
+    required this.controller,
   });
 
   @override
@@ -66,7 +69,7 @@ class ClientsCardsGrid extends StatelessWidget {
           projectCount:
               0, // Estos valores se pueden calcular según tus necesidades
           taskCount: 0,
-          onTap: () => Get.toNamed('/clients/${client.id}'),
+          onTap: () => controller.showClientDetails(client.id),
         );
       },
     );

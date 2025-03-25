@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../../../data/models/cliente_model.dart';
 import '../../../data/repositories/cliente_repository.dart';
+import '../widgets/client_details_dialog.dart';
 
 class ClientsController extends GetxController {
   // Lista reactiva de clientes
@@ -90,5 +92,45 @@ class ClientsController extends GetxController {
   // Recargar datos
   void refreshData() {
     loadClients();
+  }
+
+  // Agregar este método a ClientsController
+  void showClientDetails(int clientId) {
+    try {
+      final client = clients.firstWhere((c) => c.id == clientId);
+
+      showDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withOpacity(0.5),
+        builder: (context) {
+          return ClientDetailsDialog(
+            client: client,
+            onEditPressed: () {
+              // Primero cerramos el diálogo
+              Navigator.of(context).pop();
+              // Luego navegamos a la página de edición
+              Get.toNamed('/clients/$clientId/edit');
+            },
+          );
+        },
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo encontrar la información del cliente',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+    }
+  }
+
+  ClienteModel getClientById(int id) {
+    try {
+      return clients.firstWhere((client) => client.id == id);
+    } catch (e) {
+      throw Exception('Cliente con ID $id no encontrado');
+    }
   }
 }
