@@ -29,7 +29,8 @@ class ProviderCard extends GetWidget<ProvidersController> {
           title: provider.nombreEmpresa,
           description: provider.contactoPrincipal ?? 'Sin contacto',
           badgeText: especialidad,
-          onTap: onTap,
+          // Usamos el método showProviderDetails para mostrar el diálogo
+          onTap: () => controller.showProviderDetails(provider.id),
           counters: [
             // EntityCardCounter(
             //   icon: Icons.payments_outlined,

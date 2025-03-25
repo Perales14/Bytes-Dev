@@ -37,7 +37,7 @@ class ClientForm extends BaseForm {
             const SizedBox(height: 20),
             if (config.showObservations) _buildObservationsSection(theme),
             const SizedBox(height: 20),
-            _buildCompanyDataSection(theme),
+            //_buildCompanyDataSection(theme)
           ],
         ),
       ),
@@ -68,6 +68,21 @@ class ClientForm extends BaseForm {
             const SizedBox(width: 10),
             Expanded(child: Container()),
           ],
+          // if (clientController.clienteModel.tipo != 1){
+          //   children: [
+          //   Expanded(
+          //     child: TextFieldForm(
+          //       label: 'Nombre de la empresa',
+          //       controller: TextEditingController(
+          //           text: clientController.clienteModel.nombreEmpresa ?? ''),
+          //       onChanged: (value) =>
+          //           clientController.updateClient(nombreEmpresa: value),
+          //     ),
+          //   ),
+          //   const SizedBox(width: 10),
+          //   Expanded(child: Container()),
+          // ],
+          // }
         ),
         const SizedBox(height: 10),
 
@@ -176,21 +191,7 @@ class ClientForm extends BaseForm {
         const SizedBox(height: 20),
 
         // Nombre Empresa
-        Row(
-          children: [
-            Expanded(
-              child: TextFieldForm(
-                label: 'Nombre de la empresa',
-                controller: TextEditingController(
-                    text: clientController.clienteModel.nombreEmpresa ?? ''),
-                onChanged: (value) =>
-                    clientController.updateClient(nombreEmpresa: value),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Container()),
-          ],
-        ),
+        Row(),
         const SizedBox(height: 10),
         //calle, numero, colonia, cp
       ],

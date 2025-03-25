@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../../data/models/proveedor_model.dart';
 import '../../../data/repositories/proveedor_repository.dart';
 import '../../../data/repositories/especialidad_repository.dart';
+import '../widgets/add_provider_dialog.dart';
+import '../widgets/provider_details_dialog.dart';
 
 class ProvidersController extends GetxController {
   // Lista reactiva de proveedores
@@ -124,4 +126,63 @@ class ProvidersController extends GetxController {
 
   // Verificar si hay proveedores
   bool providersEmpty() => providers.isEmpty;
+
+  // Agregar este método a ProvidersController
+  void showProviderDetails(int providerId) {
+    try {
+      final provider = providers.firstWhere((p) => p.id == providerId);
+
+      showDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withOpacity(0.5),
+        builder: (context) {
+          return ProviderDetailsDialog(
+            provider: provider,
+            onEditPressed: () {
+              // Primero cerramos el diálogo
+              Navigator.of(context).pop();
+              // Luego navegamos a la página de edición o mostramos otro diálogo
+              // Get.toNamed('/providers/$providerId/edit');
+              // O muestra el diálogo de edición:
+              _showEditProviderDialog(context, provider);
+            },
+          );
+        },
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo encontrar la información del proveedor',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+    }
+  }
+
+  // Método auxiliar para mostrar el diálogo de edición
+  void _showEditProviderDialog(BuildContext context, ProveedorModel provider) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) {
+        return AddProviderDialog(
+          onSaveSuccess: () => refreshData(),
+          provider:
+              provider, // Asumiendo que AddProviderDialog puede recibir un provider existente
+        );
+      },
+    );
+  }
+
+  // Método auxiliar para obtener un proveedor por ID
+  ProveedorModel getProviderById(int id) {
+    try {
+      return providers.firstWhere((provider) => provider.id == id);
+    } catch (e) {
+      throw Exception('Proveedor con ID $id no encontrado');
+    }
+  }
 }

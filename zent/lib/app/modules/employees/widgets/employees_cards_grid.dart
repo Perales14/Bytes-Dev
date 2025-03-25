@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../../../data/models/usuario_model.dart';
+import '../controllers/employees_controller.dart';
 import 'add_employee_card.dart';
 import 'emplooyees_card.dart';
 
 class EmployeesCardsGrid extends StatelessWidget {
   final List<UsuarioModel> employees;
   final VoidCallback onAddEmployee;
+  final EmployeesController controller;
 
   // Constantes de dimensiones
   static const double cardWidth = 300.0;
@@ -18,6 +19,7 @@ class EmployeesCardsGrid extends StatelessWidget {
     super.key,
     required this.employees,
     required this.onAddEmployee,
+    required this.controller,
   });
 
   @override
@@ -59,21 +61,29 @@ class EmployeesCardsGrid extends StatelessWidget {
 
         return EmployeesCard(
           name: employee.nombreCompleto,
-          // position: employee.cargo ?? 'Sin cargo',
-          position: 'Admin', // Se puede cambiar por el rol del empleado
-          //aplicar metodo de Rol repository para obtener el nombre del rol
-          // position: rolId(employee.rolId),
+          position: _getRolName(employee.rolId),
           role: role,
-          projectCount:
-              2, // Valores de ejemplo, podrías agregar estos campos al modelo
-          taskCount: 4, // o calcularlos de otra fuente de datos
-          // onTap: (){
-          //   print('tap in employee${employee.nombreCompleto}');
-          // },
-          onTap: () => Get.toNamed(
-              '/employees/${employee.id}'), //Con esto se podra abrir el perfil de empleado un empleado segun un id especifico
+          projectCount: 2,
+          taskCount: 4,
+          onTap: () => controller.showEmployeeDetails(employee.id),
         );
       },
     );
+  }
+
+  // Función auxiliar para obtener el nombre del rol
+  String _getRolName(int rolId) {
+    switch (rolId) {
+      case 1:
+        return 'Captador de Campo';
+      case 2:
+        return 'Admin';
+      case 3:
+        return 'Promotor';
+      case 4:
+        return 'Recursos Humanos';
+      default:
+        return 'Puesto no definido';
+    }
   }
 }

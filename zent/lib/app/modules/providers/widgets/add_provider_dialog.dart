@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../data/models/proveedor_model.dart';
 import '../../../data/repositories/especialidad_repository.dart';
 import '../controllers/provider_form_controller.dart';
 import '../../../shared/models/form_config.dart';
@@ -12,9 +13,11 @@ import 'provider_form.dart';
 
 class AddProviderDialog extends StatefulWidget {
   final Function onSaveSuccess;
+  final ProveedorModel? provider; // Añadir este parámetro opcional
 
   const AddProviderDialog({
     required this.onSaveSuccess,
+    this.provider, // Opcional para edición
     super.key,
   });
 
@@ -47,6 +50,11 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
 
     // Inicializamos el controlador
     controller = Get.put(ProviderFormController());
+
+    // Si estamos en modo edición, cargamos los datos del proveedor
+    if (widget.provider != null) {
+      controller.loadProvider(widget.provider!);
+    }
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/usuario_model.dart';
 import '../../../data/repositories/usuario_repository.dart';
+import '../widgets/employee_details_dialog.dart';
 
 class EmployeesController extends GetxController {
   // Lista reactiva de empleados
@@ -111,6 +112,37 @@ class EmployeesController extends GetxController {
       return employees.firstWhere((user) => user.id == id);
     } catch (e) {
       throw Exception('Usuario con ID $id no encontrado');
+    }
+  }
+
+  void showEmployeeDetails(int employeeId) {
+    try {
+      final employee = getUserById(employeeId);
+
+      showDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withOpacity(0.5),
+        builder: (context) {
+          return EmployeeDetailsDialog(
+            employee: employee,
+            onEditPressed: () {
+              // Primero cerramos el diálogo
+              Navigator.of(context).pop();
+              // Luego navegamos a la página de edición
+              Get.toNamed('/employees/$employeeId/edit');
+            },
+          );
+        },
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo encontrar la información del empleado',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
     }
   }
 }

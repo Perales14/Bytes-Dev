@@ -431,6 +431,44 @@ class ProviderFormController extends BaseFormController {
     return true;
   }
 
+  // Método para cargar los datos de un proveedor existente
+  void loadProvider(ProveedorModel model) {
+    proveedor.value = model;
+
+    // Actualizar controladores de texto
+    nombreEmpresaController.text = model.nombreEmpresa;
+    contactoPrincipalController.text = model.contactoPrincipal ?? '';
+    telefonoController.text = model.telefono ?? '';
+    emailController.text = model.email ?? '';
+    rfcController.text = model.rfc ?? '';
+
+    // Si tiene dirección, cargarla
+    if (model.idDireccion != null) {
+      loadDireccion(model.idDireccion!);
+      showDireccion.value = true;
+    }
+
+    update();
+  }
+
+// Método para cargar la dirección
+  Future<void> loadDireccion(int direccionId) async {
+    try {
+      final dirModel = await _direccionRepository.getById(direccionId);
+      direccion = dirModel!;
+
+      // Actualizar controladores
+      calleController.text = direccion.calle;
+      numeroController.text = direccion.numero;
+      coloniaController.text = direccion.colonia;
+      cpController.text = direccion.cp;
+      estadoController.text = direccion.estado ?? '';
+      paisController.text = direccion.pais ?? '';
+    } catch (e) {
+      print('Error al cargar dirección: $e');
+    }
+  }
+
   @override
   void resetForm() {
     formKey.currentState?.reset();
