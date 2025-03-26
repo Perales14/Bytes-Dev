@@ -56,8 +56,8 @@ class EmployeesController extends GetxController {
         filtered.add(employee);
       }
     }
-
     return filtered;
+
   }
 
   // Obtener todos los empleados

@@ -11,7 +11,7 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return MainLayout(
       pageTitle: 'Inicio',
-      text_controler: controller.textController,
+      textController: controller.textController,
       child: SingleChildScrollView(
         child: Container(
           padding: const EdgeInsets.all(16),

@@ -13,7 +13,7 @@ class EmployeesView extends GetView<EmployeesController> {
   Widget build(BuildContext context) {
     return MainLayout(
       // Corregido el nombre del controlador de texto
-      text_controler: controller.textController,
+      textController: controller.textController,
       pageTitle: 'Empleados',
       child: Padding(
         padding: const EdgeInsets.all(16),
