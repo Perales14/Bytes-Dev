@@ -224,11 +224,11 @@ class EmployeeFormController extends BaseFormController {
   // VALIDACIONES
 
   String? validatePassword(String? value) {
-    return validate_Password(value);
+    return validatePassword(value);
   }
 
   String? validateNSS(String? value) {
-    return validate_NSS(value);
+    return validateNSS(value);
   }
 
   String? validateTipoContrato(String? value) {

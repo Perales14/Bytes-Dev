@@ -4,7 +4,7 @@ import 'package:zent/app/shared/models/base_model.dart';
 import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart' as picker;
-import '../validators/validators.dart';
+import '../validators/validators.dart' as validators;
 
 abstract class BaseFormController extends GetxController {
   // Cada controlador debe tener su propia clave única
@@ -36,7 +36,7 @@ abstract class BaseFormController extends GetxController {
   }
 
   String? validateEmail(String? value) {
-    return validate_Email(value);
+    return validators.validateEmail(value);
   }
 
   Future<void> addNewFile() async {
@@ -117,13 +117,13 @@ abstract class BaseFormController extends GetxController {
   }) {
     model_base = model_base.copyWith(
       id: id,
-      nombre: nombre,
-      apellidoPaterno: apellidoPaterno,
-      apellidoMaterno: apellidoMaterno,
-      correo: correo,
-      telefono: telefono,
-      observaciones: observaciones,
-      fechaRegistro: fechaRegistro,
+      firstName: nombre,
+      fatherLastName: apellidoPaterno,
+      motherLastName: apellidoMaterno,
+      email: correo,
+      phone: telefono,
+      notes: observaciones,
+      registrationDate: fechaRegistro,
       files: files,
     );
   }
@@ -136,13 +136,13 @@ abstract class BaseFormController extends GetxController {
   // Initialize base model
   void _initializeBaseModel() {
     model_base = BaseModel(
-      nombre: '',
-      apellidoPaterno: '',
-      apellidoMaterno: '',
-      correo: '',
-      telefono: '',
-      fechaRegistro: DateTime.now().toString().split(' ')[0],
-      observaciones: '',
+      firstName: '',
+      fatherLastName: '',
+      motherLastName: '',
+      email: '',
+      phone: '',
+      registrationDate: DateTime.now().toString().split(' ')[0],
+      notes: '',
     );
     // Sincronizamos los archivos iniciales
     files.clear();

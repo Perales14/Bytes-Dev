@@ -1,5 +1,5 @@
 /// Valida que el RFC tenga el formato correcto para personas físicas en México
-String? validate_RFC(String? value) {
+String? validateRFC(String? value) {
   if (value == null || value.isEmpty) {
     return 'El RFC es requerido';
   }

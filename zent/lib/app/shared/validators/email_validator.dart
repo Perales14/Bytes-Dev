@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
 /// Valida que el correo electrónico tenga un formato válido
-String? validate_Email(String? value) {
+String? validateEmail(String? value) {
   if (value == null || value.isEmpty) {
     return 'El correo electrónico es requerido';
   }

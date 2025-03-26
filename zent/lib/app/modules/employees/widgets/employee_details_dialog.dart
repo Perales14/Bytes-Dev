@@ -1,8 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
-import '../controllers/employee_details_controller.dart';
 import '../../../data/models/usuario_model.dart';
 
 class EmployeeDetailsDialog extends StatelessWidget {

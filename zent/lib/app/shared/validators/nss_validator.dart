@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 
 /// Valida que el Número de Seguridad Social (NSS) tenga el formato correcto
-String? validate_NSS(String? value) {
+String? validateNSS(String? value) {
   if (value == null || value.isEmpty) {
     return 'El NSS es requerido';
   }

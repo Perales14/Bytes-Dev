@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-/// Configuration model for all form types
+// configuraciones para el formulario
 class FormConfig {
   final String title;
   final bool showObservations;
   final int observationsFlex;
-  final bool showFiles; // Add this property
+  final bool showFiles;
   final String primaryButtonText;
   final String secondaryButtonText;
 
@@ -13,7 +13,7 @@ class FormConfig {
     required this.title,
     this.showObservations = true,
     this.observationsFlex = 1,
-    this.showFiles = false, // Default to false
+    this.showFiles = false,
     this.primaryButtonText = 'AGREGAR',
     this.secondaryButtonText = 'CANCELAR',
   });

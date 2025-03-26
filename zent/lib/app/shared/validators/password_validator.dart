@@ -1,5 +1,5 @@
 /// Valida que la contraseña cumpla con los requisitos mínimos de seguridad
-String? validate_Password(String? value) {
+String? validatePassword(String? value) {
   if (value == null || value.isEmpty) {
     return 'La contraseña es requerida';
   }
@@ -12,7 +12,7 @@ String? validate_Password(String? value) {
 }
 
 /// Valida que la confirmación de contraseña coincida con la contraseña original
-String? validate_PasswordConfirmation(String? value, String password) {
+String? validatePasswordConfirmation(String? value, String password) {
   if (value == null || value.isEmpty) {
     return 'La confirmación de contraseña es requerida';
   }

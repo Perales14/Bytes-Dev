@@ -4,15 +4,14 @@ class SidebarItem {
   final IconData icon;
   final String label;
   final String routeName; // La ruta a la que navega
-  final List<String>?
-      roles; // Lista de roles que pueden ver este item (opcional)
+  final List<String>? roles; // Lista de roles que pueden ver este item
   final bool isStatic; // Indica si es un elemento estático del sidebar
 
   SidebarItem({
     required this.icon,
     required this.label,
     required this.routeName,
-    this.roles, // Ahora es opcional
+    this.roles,
     this.isStatic = false, // Por defecto no es estático
   });
 
