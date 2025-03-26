@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/shared/models/base_model.dart';
+import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
 import '../../../data/models/usuario_model.dart';
+import '../../../shared/widgets/form/base_form.dart';
 import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/repositories/file_repository.dart';
 import '../../../data/repositories/rol_repository.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/list_validator.dart';
@@ -266,10 +270,30 @@ class EmployeeFormController extends BaseFormController {
     return false;
   }
 
+  // Método para guardar referencias de archivos
+  Future<void> _saveFileReferences(
+      List<Map<String, dynamic>> fileData, int employeeId) async {
+    try {
+      // Crea un repositorio para archivos si no lo tienes ya
+      final fileRepository = Get.find<FileRepository>();
+
+      for (var file in fileData) {
+        await fileRepository.saveFile({
+          ...file,
+          'entity_id': employeeId,
+          'entity_type': 'employee',
+        });
+      }
+    } catch (e) {
+      print('Error al guardar referencias de archivos: $e');
+    }
+  }
+
   Future<bool> saveEmployee() async {
     try {
       // El departamento se puede usar para guardar información temporal
       // que luego se puede mover a la tabla de observaciones
+      print('formulario valido: ${validateForm()}');
       if (observacionText.value.isNotEmpty) {
         usuario.update((val) {
           if (val != null) val.departamento = observacionText.value;
@@ -280,6 +304,19 @@ class EmployeeFormController extends BaseFormController {
       final savedUser = usuario.value.id > 0
           ? await _repository.update(usuario.value)
           : await _repository.createEmployee(usuario.value);
+
+      if (files.isNotEmpty) {
+        // upload
+
+        final uploadedFiles =
+            await uploadFilesToSupabase(files, usuario.value.id.toString());
+
+        // Guarda las referencias de los archivos en la base de datos
+        // SDA
+        if (uploadedFiles.isNotEmpty) {
+          await _saveFileReferences(uploadedFiles, usuario.value.id);
+        }
+      }
 
       if (savedUser.id > 0) {
         Get.snackbar(
@@ -333,4 +370,10 @@ class EmployeeFormController extends BaseFormController {
 
     return true;
   }
+
+  // void addFile(FileData file) {
+  //   files.add(file);
+  //   // La siguiente línea fuerza una actualización en caso necesario
+  //   files.refresh();
+  // }
 }

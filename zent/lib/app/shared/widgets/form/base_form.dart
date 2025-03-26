@@ -1,7 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/snackbar/snackbar.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:zent/app/shared/controllers/base_form_controller.dart';
 import 'package:zent/app/shared/models/form_config.dart';
 import 'package:zent/app/shared/widgets/form/widgets/button_form.dart';
+import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'package:zent/app/shared/widgets/form/widgets/observations_field.dart';
 
 abstract class BaseForm extends StatelessWidget {
@@ -140,4 +147,56 @@ abstract class BaseForm extends StatelessWidget {
 
   // Método abstracto que deben implementar las subclases
   Widget buildFormContent(BuildContext context);
+}
+
+Future<List<Map<String, dynamic>>> uploadFilesToSupabase(
+    List<FileData> filesToUpload, String entityId) async {
+  final supabase = Supabase.instance.client;
+  final List<Map<String, dynamic>> uploadedFiles = [];
+
+  for (var file in filesToUpload) {
+    if (file.path != null) {
+      try {
+        // Genera un nombre único para el archivo
+        final String fileName =
+            '${entityId}_${DateTime.now().millisecondsSinceEpoch}_${file.name}';
+
+        // Obtiene el archivo del sistema de archivos
+        final fileBytes = await File(file.path!).readAsBytes();
+
+        // Subir a Supabase Storage
+        final String storagePath =
+            await supabase.storage.from('employee-files').uploadBinary(
+                  fileName,
+                  fileBytes,
+                  fileOptions: const FileOptions(
+                    cacheControl: '3600',
+                    upsert: false,
+                  ),
+                );
+
+        // Obtiene la URL pública
+        final String publicUrl =
+            supabase.storage.from('employee-files').getPublicUrl(fileName);
+
+        uploadedFiles.add({
+          'name': file.name,
+          'type': file.type.toString(),
+          'url': publicUrl,
+          'storage_path': storagePath,
+          'upload_date': DateTime.now().toIso8601String(),
+          'entity_id': entityId,
+          'size': file.size,
+        });
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'No se pudo subir el archivo ${file.name}: $e',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    }
+  }
+
+  return uploadedFiles;
 }
