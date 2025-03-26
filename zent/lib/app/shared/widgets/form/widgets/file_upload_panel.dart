@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class FileUploadPanel extends StatelessWidget {
-  final List<FileData> files;
+  final RxList<FileData> files; // Cambiado a RxList
   final Function(FileData) onRemove;
   final VoidCallback onAdd;
 
@@ -33,7 +33,7 @@ class FileUploadPanel extends StatelessWidget {
             children: [
               // File list in a scrollable area
               Expanded(
-                child: files.isEmpty
+                child: Obx(() => files.isEmpty
                     ? Center(
                         child: Text(
                           'No hay archivos adjuntos',
@@ -52,7 +52,7 @@ class FileUploadPanel extends StatelessWidget {
                                   ))
                               .toList(),
                         ),
-                      ),
+                      )),
               ),
 
               // Upload button centered at the bottom
@@ -91,64 +91,75 @@ class FileListItem extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(4),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 2,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Row(
         children: [
-          Icon(
-            _getIconForFileType(file.type),
-            color: theme.colorScheme.primary,
-            size: 20,
-          ),
+          _getFileIcon(file.type, theme),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              file.name,
-              style: theme.textTheme.bodyMedium,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  file.name,
+                  style: theme.textTheme.bodyMedium,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (file.size != null)
+                  Text(
+                    file.formattedSize,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.hintColor,
+                    ),
+                  ),
+              ],
             ),
           ),
           IconButton(
-            icon: Icon(
-              Icons.delete_outline,
-              color: theme.colorScheme.error,
-              size: 18,
-            ),
+            icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
             onPressed: onRemove,
-            tooltip: 'Eliminar',
-            constraints: const BoxConstraints(
-              minWidth: 20,
-              minHeight: 20,
-            ),
+            tooltip: 'Eliminar archivo',
+            constraints: const BoxConstraints(),
             padding: EdgeInsets.zero,
-            splashRadius: 20,
+            iconSize: 20,
           ),
         ],
       ),
     );
   }
 
-  IconData _getIconForFileType(FileType type) {
+  Widget _getFileIcon(FileType type, ThemeData theme) {
+    IconData iconData;
+    Color color;
+
     switch (type) {
       case FileType.pdf:
-        return Icons.picture_as_pdf_outlined;
+        iconData = Icons.picture_as_pdf;
+        color = Colors.red;
+        break;
       case FileType.image:
-        return Icons.image_outlined;
-      case FileType.document:
-        return Icons.description_outlined;
+        iconData = Icons.image;
+        color = Colors.blue;
+        break;
+      case FileType.word:
+        iconData = Icons.description;
+        color = Colors.blue.shade800;
+        break;
+      case FileType.excel:
+        iconData = Icons.table_chart;
+        color = Colors.green;
+        break;
       default:
-        return Icons.insert_drive_file_outlined;
+        iconData = Icons.insert_drive_file;
+        color = Colors.grey;
     }
+
+    return Icon(iconData, size: 24, color: color);
   }
 }
 
@@ -157,18 +168,90 @@ class FileData {
   final String name;
   final FileType type;
   final DateTime uploadDate;
+  final String? path; // Ruta del archivo en el sistema
+  final int? size; // Tamaño en bytes
 
   FileData({
     required this.id,
     required this.name,
     required this.type,
     required this.uploadDate,
+    this.path,
+    this.size,
   });
+
+  // Método para obtener tamaño formateado
+  String get formattedSize {
+    if (size == null) return '';
+    if (size! < 1024) return '$size B';
+    if (size! < 1024 * 1024) return '${(size! / 1024).toStringAsFixed(1)} KB';
+    return '${(size! / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
 }
 
-enum FileType {
-  pdf,
-  image,
-  document,
-  other,
+class FileType {
+  final String name;
+  final IconData icon;
+  final Color color;
+  final List<String> extensions;
+
+  const FileType._({
+    required this.name,
+    required this.icon,
+    required this.color,
+    required this.extensions,
+  });
+
+  static const FileType pdf = FileType._(
+    name: 'PDF',
+    icon: Icons.picture_as_pdf,
+    color: Colors.red,
+    extensions: ['.pdf'],
+  );
+
+  static const FileType word = FileType._(
+    name: 'Word',
+    icon: Icons.description,
+    color: Color(0xFF2B579A), // Word blue
+    extensions: ['.doc', '.docx'],
+  );
+
+  static const FileType excel = FileType._(
+    name: 'Excel',
+    icon: Icons.table_chart,
+    color: Colors.green,
+    extensions: ['.xls', '.xlsx'],
+  );
+
+  static const FileType image = FileType._(
+    name: 'Image',
+    icon: Icons.image,
+    color: Colors.blue,
+    extensions: ['.jpg', '.jpeg', '.png', '.gif', '.bmp'],
+  );
+
+  static const FileType document = FileType._(
+    name: 'Document',
+    icon: Icons.article,
+    color: Colors.orange,
+    extensions: ['.txt', '.rtf'],
+  );
+
+  static const FileType other = FileType._(
+    name: 'Other',
+    icon: Icons.insert_drive_file,
+    color: Colors.grey,
+    extensions: [],
+  );
+
+  // Helper method to determine file type from extension
+  static FileType fromExtension(String extension) {
+    final ext = extension.toLowerCase();
+    if (pdf.extensions.contains(ext)) return pdf;
+    if (word.extensions.contains(ext)) return word;
+    if (excel.extensions.contains(ext)) return excel;
+    if (image.extensions.contains(ext)) return image;
+    if (document.extensions.contains(ext)) return document;
+    return other;
+  }
 }

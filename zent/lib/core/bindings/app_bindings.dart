@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:zent/app/data/repositories/file_repository.dart';
 import 'package:zent/app/shared/controllers/sidebar_controller.dart';
 import 'package:zent/app/shared/controllers/theme_controller.dart';
 
@@ -25,6 +26,7 @@ class AppBindings extends Bindings {
     Get.lazyPut(() => SupabaseDatabase(), fenix: true);
     Get.lazyPut(() => ConnectivityHelper(), fenix: true);
     Get.lazyPut(() => SyncService(), fenix: true);
+    Get.put(FileRepository(), permanent: true);
 
     // Repositories
     Get.lazyPut(() => UsuarioRepository());

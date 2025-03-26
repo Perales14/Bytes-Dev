@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/shared/models/base_model.dart';
 import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart' as picker;
 import '../validators/validators.dart';
 
 abstract class BaseFormController extends GetxController {
@@ -17,6 +19,7 @@ abstract class BaseFormController extends GetxController {
 
   // Files (mantenemos esta lista observable para compatibilidad)
   final files = <FileData>[].obs;
+
   late final ValueNotifier<List<FileData>> filesNotifier;
 
   // Toggle password visibility
@@ -36,11 +39,62 @@ abstract class BaseFormController extends GetxController {
     return validate_Email(value);
   }
 
+  Future<void> addNewFile() async {
+    try {
+      picker.FilePickerResult? result =
+          await picker.FilePicker.platform.pickFiles(
+        type: picker.FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result != null) {
+        // Obtener información del archivo seleccionado
+        picker.PlatformFile platformFile = result.files.first;
+
+        // Determinar el tipo de archivo basado en la extensión
+        FileType fileType =
+            _getFileTypeFromExtension(platformFile.extension ?? '');
+
+        // Crear y agregar el nuevo FileData
+        files.add(FileData(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: platformFile.name,
+          type: fileType,
+          uploadDate: DateTime.now(),
+          path: platformFile.path, // Guarda la ruta del archivo
+          size: platformFile.size, // Tamaño en bytes
+        ));
+
+        // Actualizar el modelo base
+        updateBaseModel(files: files);
+        files.refresh();
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo cargar el archivo: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  // Método auxiliar para determinar el tipo de archivo
+  FileType _getFileTypeFromExtension(String extension) {
+    extension = extension.toLowerCase();
+    if (extension == 'pdf') return FileType.pdf;
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].contains(extension))
+      return FileType.image;
+    if (['doc', 'docx'].contains(extension)) return FileType.word;
+    if (['xls', 'xlsx'].contains(extension)) return FileType.excel;
+    return FileType.other;
+  }
+
   // File handling methods
   void addFile(FileData file) {
     files.add(file);
     // También actualizamos el modelo base
     updateBaseModel(files: files);
+    files.refresh();
   }
 
   void removeFile(FileData file) {

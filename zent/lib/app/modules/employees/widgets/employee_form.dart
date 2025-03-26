@@ -293,11 +293,10 @@ class EmployeeForm extends BaseForm {
           child: FileUploadPanel(
             files: employeeController.files,
             onRemove: employeeController.removeFile,
-            onAdd: () => employeeController.addFile(FileData(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                name: 'Nuevo documento.pdf',
-                type: FileType.pdf,
-                uploadDate: DateTime.now())),
+            onAdd: () {
+              // Es mejor mover esta lógica al controlador
+              employeeController.addNewFile();
+            },
           ),
         ),
       ],
