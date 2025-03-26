@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -43,15 +44,19 @@ class ClientsController extends GetxController {
 
   List<ClientModel> filteredClients() {
     if (clients.isEmpty) {
-      print('No hay clientes');
-      return <ClientModel>[].obs;
+      return <ClientModel>[];
+    }
+
+    if (filter.value.isEmpty) {
+      return clients;
     }
 
     final filteredList = <ClientModel>[];
-    String name = '';
+    final searchTerm = filter.value.toLowerCase();
+
     for (var client in clients) {
-      name = client.fullName;
-      if (name.toLowerCase().contains(filter.value.toLowerCase())) {
+      if (client.fullName.toLowerCase().contains(searchTerm) ||
+          (client.companyName?.toLowerCase().contains(searchTerm) ?? false)) {
         filteredList.add(client);
       }
     }
@@ -62,19 +67,26 @@ class ClientsController extends GetxController {
   // Cargar clientes desde el servicio
   void loadClients() async {
     try {
-      print('Cargando clientes...');
       isLoading(true);
       hasError(false);
       final result = await _clientService.getAllClients();
-      print('Clientes cargados: ${result.length}');
-      for (var client in result) {
-        print(client.name);
-      }
       clients.assignAll(result);
+
+      if (clients.isEmpty) {
+        if (kDebugMode) {
+          print('No se encontraron clientes en la base de datos');
+        }
+      } else {
+        if (kDebugMode) {
+          print('Clientes cargados correctamente: ${clients.length}');
+        }
+      }
     } catch (e) {
-      print('Error al cargar clientes: $e');
       hasError(true);
       errorMessage('Error al cargar clientes: $e');
+      if (kDebugMode) {
+        print('Error al cargar clientes: $e');
+      }
     } finally {
       isLoading(false);
     }

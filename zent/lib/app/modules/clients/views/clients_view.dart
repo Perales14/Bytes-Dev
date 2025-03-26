@@ -28,13 +28,13 @@ class ClientsView extends GetView<ClientsController> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // if (controller.hasError.value) {
-                //   return _buildErrorState();
-                // }
+                if (controller.hasError.value) {
+                  return _buildErrorState();
+                }
 
-                // if (controller.clients.isEmpty) {
-                //   return _buildEmptyState();
-                // }
+                if (controller.clients.isEmpty) {
+                  return _buildEmptyState();
+                }
 
                 return ClientsCardsGrid(
                   clients: controller.filteredClients(),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/client_model.dart';
@@ -161,7 +162,9 @@ class ClientFormController extends BaseFormController {
           await _observationService.createObservation(observation);
       return savedObservation.id > 0;
     } catch (e) {
-      print('Error al guardar observación: $e');
+      if (kDebugMode) {
+        print('Error al guardar observación: $e');
+      }
       return false;
     }
   }
@@ -224,7 +227,9 @@ class ClientFormController extends BaseFormController {
         updatedAt: DateTime.now(),
       );
     } catch (e) {
-      print("Error al actualizar cliente: $e");
+      if (kDebugMode) {
+        print("Error al actualizar cliente: $e");
+      }
     }
   }
 

@@ -61,13 +61,10 @@ class ClientsCardsGrid extends StatelessWidget {
         String clientType = client.clientType ?? 'Regular';
 
         return ClientsCard(
-          name:
-              "${client.name} ${client.fatherLastName} ${client.motherLastName ?? ''}"
-                  .trim(),
+          name: client.fullName, // Usar el getter del modelo
           position: client.companyName ?? 'Sin empresa',
           role: clientType,
-          projectCount:
-              0, // Estos valores se pueden calcular según tus necesidades
+          projectCount: 0,
           taskCount: 0,
           onTap: () => controller.showClientDetails(client.id),
         );
