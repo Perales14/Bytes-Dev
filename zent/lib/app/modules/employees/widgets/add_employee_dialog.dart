@@ -4,7 +4,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../shared/models/form_config.dart';
-import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/services/user_service.dart';
+import '../../../data/services/role_service.dart';
+import '../../../data/services/file_service.dart';
 import '../controllers/employee_form_controller.dart';
 import 'employee_form.dart';
 
@@ -26,13 +28,6 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
   @override
   void initState() {
     super.initState();
-    // Asegurar que el repositorio esté registrado
-    if (!Get.isRegistered<UsuarioRepository>()) {
-      Get.lazyPut<UsuarioRepository>(() => UsuarioRepository());
-    }
-
-    // Inicializamos el controlador utilizando GetX para gestión de dependencias
-    controller = Get.put(EmployeeFormController());
   }
 
   @override
@@ -82,7 +77,6 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
     final size = MediaQuery.of(context).size;
 
     return RawKeyboardListener(
-      // Escuchamos eventos de teclado para cerrar con Escape
       focusNode: FocusNode()..requestFocus(),
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent &&
@@ -92,12 +86,10 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
           Navigator.of(context).pop();
         }
       },
-      // Añadimos un efecto de desenfoque al fondo
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Dialog(
           backgroundColor: Colors.transparent,
-          // Eliminamos el padding interno del Dialog por defecto
           insetPadding: EdgeInsets.symmetric(
             horizontal: size.width * 0.05,
             vertical: size.height * 0.05,
@@ -114,7 +106,6 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
             child: EmployeeForm(
               controller: controller,
               config: FormConfig.employee,
-              // Pasamos correctamente las funciones de cancelar y enviar
               onCancel: _handleCancel,
               onSubmit: _handleSubmit,
             ),

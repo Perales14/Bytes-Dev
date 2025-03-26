@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/cliente_model.dart';
+import '../../../data/models/client_model.dart';
 import '../controllers/clients_controller.dart';
 import 'add_clients_card.dart';
 import 'client_card.dart';
 
 class ClientsCardsGrid extends StatelessWidget {
-  final List<ClienteModel> clients;
+  final List<ClientModel> clients;
   final VoidCallback onAddClient;
   final ClientsController controller;
 
@@ -58,13 +58,13 @@ class ClientsCardsGrid extends StatelessWidget {
         final client = clients[index - 1];
 
         // Determinamos el tipo de cliente
-        String clientType = client.tipo ?? 'Regular';
+        String clientType = client.clientType ?? 'Regular';
 
         return ClientsCard(
           name:
-              "${client.nombre} ${client.apellidoPaterno} ${client.apellidoMaterno ?? ''}"
+              "${client.name} ${client.fatherLastName} ${client.motherLastName ?? ''}"
                   .trim(),
-          position: client.nombreEmpresa ?? 'Sin empresa',
+          position: client.companyName ?? 'Sin empresa',
           role: clientType,
           projectCount:
               0, // Estos valores se pueden calcular según tus necesidades

@@ -2,12 +2,12 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/modules/clients/controllers/client_form_controller.dart';
-import 'package:zent/app/shared/models/form_config.dart';
-import 'package:zent/app/modules/clients/widgets/client_form.dart';
+import '../controllers/client_form_controller.dart';
+import '../../../shared/models/form_config.dart';
+import 'client_form.dart';
 
-import '../../../data/repositories/cliente_repository.dart';
-import '../../../data/repositories/observacion_repository.dart';
+import '../../../data/services/client_service.dart';
+import '../../../data/services/observation_service.dart';
 
 class AddClientsDialog extends StatefulWidget {
   final Function onSaveSuccess;
@@ -27,13 +27,13 @@ class _AddClientsDialogState extends State<AddClientsDialog> {
   @override
   void initState() {
     super.initState();
-    // Utilizamos lazyPut para permitir la inyección de dependencias
-    if (!Get.isRegistered<ObservacionRepository>()) {
-      Get.lazyPut(() => ObservacionRepository());
+    // Verificamos y registramos servicios si es necesario
+    if (!Get.isRegistered<ObservationService>()) {
+      Get.lazyPut(() => ObservationService());
     }
 
-    if (!Get.isRegistered<ClienteRepository>()) {
-      Get.lazyPut(() => ClienteRepository());
+    if (!Get.isRegistered<ClientService>()) {
+      Get.lazyPut(() => ClientService());
     }
 
     // Inicializamos el controlador

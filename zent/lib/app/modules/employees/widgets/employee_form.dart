@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 
 import '../controllers/employee_form_controller.dart';
 import '../../../shared/widgets/form/base_form.dart';
-import '../../../data/repositories/rol_repository.dart';
+import '../../../data/services/role_service.dart';
 import '../../../shared/widgets/form/widgets/dropdown_form.dart';
 import '../../../shared/widgets/form/widgets/file_upload_panel.dart';
 import '../../../shared/widgets/form/widgets/label_display.dart';
@@ -59,29 +59,29 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Nombre',
-                controller: employeeController.nombreController,
+                controller: employeeController.nameController,
                 validator: employeeController.validateRequired,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(nombre: value),
+                    employeeController.updateUser(name: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Apellido Paterno',
-                controller: employeeController.apellidoPaternoController,
+                controller: employeeController.fatherLastNameController,
                 validator: employeeController.validateRequired,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(apellidoPaterno: value),
+                    employeeController.updateUser(fatherLastName: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'Apellido Materno',
-                controller: employeeController.apellidoMaternoController,
+                controller: employeeController.motherLastNameController,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(apellidoMaterno: value),
+                    employeeController.updateUser(motherLastName: value),
               ),
             ),
           ],
@@ -97,7 +97,7 @@ class EmployeeForm extends BaseForm {
                 controller: employeeController.emailController,
                 validator: employeeController.validateEmail,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(email: value),
+                    employeeController.updateUser(email: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -105,9 +105,9 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Teléfono',
-                controller: employeeController.telefonoController,
+                controller: employeeController.phoneNumberController,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(telefono: value),
+                    employeeController.updateUser(phoneNumber: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -115,10 +115,10 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'NSS',
-                controller: employeeController.nssController,
-                validator: employeeController.validateNSS,
+                controller: employeeController.socialSecurityNumberController,
+                validator: employeeController.validateSocialSecurityNumber,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(nss: value),
+                    employeeController.updateUser(socialSecurityNumber: value),
               ),
             ),
           ],
@@ -138,12 +138,12 @@ class EmployeeForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Contraseña',
                 obscureText: !employeeController.showPassword.value,
-                controller: employeeController.contrasenaController,
-                validator: employeeController.usuario.value.id > 0
+                controller: employeeController.passwordController,
+                validator: employeeController.user.value.id > 0
                     ? null
                     : employeeController.validatePassword,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(contrasenaHash: value),
+                    employeeController.updateUser(passwordHash: value),
                 suffixIcon: IconButton(
                   icon: Icon(
                     employeeController.showPassword.value
@@ -162,7 +162,7 @@ class EmployeeForm extends BaseForm {
                 label: 'Confirmar Contraseña',
                 obscureText: !employeeController.showPassword.value,
                 controller: employeeController.confirmPasswordController,
-                validator: employeeController.usuario.value.id > 0
+                validator: employeeController.user.value.id > 0
                     ? null
                     : employeeController.validateConfirmPassword,
                 onChanged: employeeController.updateConfirmPassword,
@@ -192,8 +192,8 @@ class EmployeeForm extends BaseForm {
         SizedBox(
           height: 150,
           child: ObservationsField(
-            initialValue: employeeController.observacionText.value,
-            onChanged: (value) => employeeController.updateObservacion(value),
+            initialValue: employeeController.observationText.value,
+            onChanged: (value) => employeeController.updateObservation(value),
           ),
         ),
       ],
@@ -213,7 +213,7 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: Obx(() => LabelDisplay(
                     label: 'Fecha de Ingreso',
-                    value: employeeController.usuario.value.fechaIngreso
+                    value: employeeController.user.value.entryDate
                         .toString()
                         .split(' ')[0],
                   )),
@@ -222,11 +222,11 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: DropdownForm(
                 label: 'Tipo de Contrato',
-                opciones: employeeController.tiposContrato,
-                value: employeeController.usuario.value.tipoContrato,
+                opciones: employeeController.contractTypes,
+                value: employeeController.user.value.contractType,
                 onChanged: (value) =>
-                    employeeController.updateUsuario(tipoContrato: value),
-                validator: employeeController.validateTipoContrato,
+                    employeeController.updateUser(contractType: value),
+                validator: employeeController.validateContractType,
               ),
             ),
           ],
@@ -239,12 +239,12 @@ class EmployeeForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Salario',
-                controller: employeeController.salarioController,
+                controller: employeeController.salaryController,
                 keyboardType: TextInputType.number,
-                onChanged: (value) => employeeController.updateUsuario(
-                  salario: value.isEmpty ? null : double.tryParse(value),
+                onChanged: (value) => employeeController.updateUser(
+                  salary: value.isEmpty ? null : double.tryParse(value),
                 ),
-                validator: employeeController.validateSalario,
+                validator: employeeController.validateSalary,
               ),
             ),
             const SizedBox(width: 10),
@@ -252,10 +252,9 @@ class EmployeeForm extends BaseForm {
               child: Obx(() => DropdownForm(
                     label: 'Rol',
                     opciones: employeeController.roles,
-                    value: _getRolName(employeeController.usuario.value.rolId),
-                    onChanged: (value) async =>
-                        employeeController.updateUsuario(
-                      rolId: employeeController.getRolId(value),
+                    value: _getRoleName(employeeController.user.value.roleId),
+                    onChanged: (value) async => employeeController.updateUser(
+                      roleId: employeeController.getRoleId(value),
                     ),
                   )),
             ),
@@ -267,8 +266,8 @@ class EmployeeForm extends BaseForm {
     );
   }
 
-  String? _getRolName(int rolId) {
-    switch (rolId) {
+  String? _getRoleName(int roleId) {
+    switch (roleId) {
       case 1:
         return 'Captador de Campo';
       case 2:
@@ -293,10 +292,7 @@ class EmployeeForm extends BaseForm {
           child: FileUploadPanel(
             files: employeeController.files,
             onRemove: employeeController.removeFile,
-            onAdd: () {
-              // Es mejor mover esta lógica al controlador
-              employeeController.addNewFile();
-            },
+            onAdd: () => employeeController.addNewFile(),
           ),
         ),
       ],

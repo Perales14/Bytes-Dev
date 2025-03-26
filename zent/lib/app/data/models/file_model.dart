@@ -1,18 +1,18 @@
-// app/data/models/file_model.dart
 import 'base_model.dart';
 
 class FileModel extends BaseModel {
-  final String name;
-  final String type;
-  final String url;
-  final String storagePath;
-  final DateTime uploadDate;
-  final int entityId;
-  final String entityType;
-  final int? size;
+  String name;
+  String type;
+  String url;
+  String storagePath;
+  DateTime uploadDate;
+  int entityId;
+  String entityType;
+  int? size;
+  bool sent;
 
   FileModel({
-    super.id,
+    super.id = 0,
     required this.name,
     required this.type,
     required this.url,
@@ -21,13 +21,10 @@ class FileModel extends BaseModel {
     required this.entityId,
     required this.entityType,
     this.size,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    super.enviado,
-  }) : super(
-          createdAt: createdAt ?? DateTime.now(),
-          updatedAt: updatedAt ?? DateTime.now(),
-        );
+    this.sent = false,
+    super.createdAt,
+    super.updatedAt,
+  });
 
   @override
   Map<String, dynamic> toMap() {
@@ -37,38 +34,104 @@ class FileModel extends BaseModel {
       'type': type,
       'url': url,
       'storage_path': storagePath,
-      'upload_date': uploadDate.toIso8601String(),
+      'upload_date': BaseModel.formatDateTime(uploadDate),
       'entity_id': entityId,
       'entity_type': entityType,
       'size': size,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-      'enviado': enviado ? 1 : 0,
+      'created_at': BaseModel.formatDateTime(createdAt),
+      'updated_at': BaseModel.formatDateTime(updatedAt),
+      'sent': sent ? 1 : 0,
     };
   }
 
-  //hacer el meotodo fromMap
   @override
-  BaseModel fromMap(Map<String, dynamic> map) {
+  FileModel fromMap(Map<String, dynamic> map) {
     return FileModel(
       id: map['id'] ?? 0,
       name: map['name'] ?? '',
       type: map['type'] ?? '',
       url: map['url'] ?? '',
       storagePath: map['storage_path'] ?? '',
-      uploadDate: DateTime.parse(map['upload_date']),
-      entityId: map['entity_id'],
+      uploadDate: BaseModel.parseDateTime(map['upload_date']) ?? DateTime.now(),
+      entityId: map['entity_id'] ?? 0,
       entityType: map['entity_type'] ?? '',
       size: map['size'],
-      createdAt: DateTime.parse(map['created_at']),
-      updatedAt: DateTime.parse(map['updated_at']),
-      enviado: map['enviado'] == 1,
+      sent: map['sent'] == 1,
+      createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
+      updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
     );
   }
 
-  // @override
-  // BaseModel fromMap(Map<String, dynamic> map) {
-  //   // TODO: implement fromMap
-  //   throw UnimplementedError();
-  // }
+  factory FileModel.fromJson(Map<String, dynamic> map) {
+    return FileModel(
+      id: map['id'] ?? 0,
+      name: map['name'] ?? '',
+      type: map['type'] ?? '',
+      url: map['url'] ?? '',
+      storagePath: map['storage_path'] ?? '',
+      uploadDate: BaseModel.parseDateTime(map['upload_date']) ?? DateTime.now(),
+      entityId: map['entity_id'] ?? 0,
+      entityType: map['entity_type'] ?? '',
+      size: map['size'],
+      sent: map['sent'] == 1,
+      createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
+      updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
+    );
+  }
+
+  FileModel copyWith({
+    int? id,
+    String? name,
+    String? type,
+    String? url,
+    String? storagePath,
+    DateTime? uploadDate,
+    int? entityId,
+    String? entityType,
+    int? size,
+    bool? sent,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return FileModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      url: url ?? this.url,
+      storagePath: storagePath ?? this.storagePath,
+      uploadDate: uploadDate ?? this.uploadDate,
+      entityId: entityId ?? this.entityId,
+      entityType: entityType ?? this.entityType,
+      size: size ?? this.size,
+      sent: sent ?? this.sent,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  // Helper methods
+  String get extension {
+    final parts = name.split('.');
+    return parts.length > 1 ? parts.last.toLowerCase() : '';
+  }
+
+  String get fileSize {
+    if (size == null) return 'Unknown';
+    if (size! < 1024) return '$size B';
+    if (size! < 1024 * 1024) return '${(size! / 1024).toStringAsFixed(2)} KB';
+    return '${(size! / (1024 * 1024)).toStringAsFixed(2)} MB';
+  }
+
+  bool get isImage {
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(extension);
+  }
+
+  bool get isPdf {
+    return extension == 'pdf';
+  }
+
+  bool get isDocument {
+    return ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'pdf']
+        .contains(extension);
+  }
 }

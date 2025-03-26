@@ -1,12 +1,11 @@
 import 'package:get/get.dart';
-import '../../../data/models/usuario_model.dart';
-import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/models/user_model.dart';
+import '../../../data/services/user_service.dart';
 import 'employee_form_controller.dart';
-import 'package:zent/app/modules/employees/controllers/employees_controller.dart';
+import 'employees_controller.dart';
 
 class EmployeeDetailsController extends GetxController {
   final employeeId = Get.parameters['id'];
-  // final usuarioRepository = Get.find<UsuarioRepository>();
   final controller = Get.find<EmployeesController>();
   final isLoading = true.obs;
   late EmployeeFormController formController;
@@ -29,9 +28,6 @@ class EmployeeDetailsController extends GetxController {
 
       try {
         final employee = controller.getUserById(int.parse(employeeId!));
-            // await usuarioRepository.getById(int.parse(employeeId!));
-            // controller.getUserById(int.parse(employeeId!)); //await employeeRepository.getById(int.parse(employeeId!));
-
 
         if (employee == null) {
           Get.snackbar('Error', 'No se encontró el empleado');
@@ -39,7 +35,7 @@ class EmployeeDetailsController extends GetxController {
         }
 
         // Cargar los datos en el formulario
-        formController.loadUsuario(employee);
+        formController.loadUser(employee);
       } catch (e) {
         Get.snackbar('Error',
             'Error al obtener datos: ${e.toString().substring(0, 100)}');

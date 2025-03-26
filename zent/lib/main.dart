@@ -9,12 +9,8 @@ import 'app/shared/controllers/theme_controller.dart';
 import 'core/bindings/app_bindings.dart';
 import 'core/theme/app_theme.dart';
 import 'routes/app_pages.dart';
-import 'app/data/providers/sqlite/sqlite_helper.dart';
 
 void main() async {
-
-  
-  
   // Asegúrate que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -29,10 +25,6 @@ void main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
     debug: true, // Establecer a false en producción
   );
-
-  // Inicializa la base de datos SQLite
-  final sqliteHelper = SQLiteHelper();
-  await sqliteHelper.initializeDatabaseFactory();
 
   // Inicializar otras dependencias
   await initializeDependencies();

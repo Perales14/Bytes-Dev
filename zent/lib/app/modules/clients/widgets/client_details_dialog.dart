@@ -3,12 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../data/models/cliente_model.dart';
-import '../../../data/models/observacion_model.dart';
-import '../../../data/repositories/observacion_repository.dart';
+import '../../../data/models/client_model.dart';
+import '../../../data/models/observation_model.dart';
+import '../../../data/services/observation_service.dart';
 
 class ClientDetailsDialog extends StatefulWidget {
-  final ClienteModel client;
+  final ClientModel client;
   final VoidCallback? onEditPressed;
 
   const ClientDetailsDialog({
@@ -22,23 +22,22 @@ class ClientDetailsDialog extends StatefulWidget {
 }
 
 class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
-  final ObservacionRepository _observacionRepository =
-      Get.find<ObservacionRepository>();
-  final RxList<ObservacionModel> observaciones = <ObservacionModel>[].obs;
+  final ObservationService _observationService = Get.find<ObservationService>();
+  final RxList<ObservationModel> observations = <ObservationModel>[].obs;
   final RxBool isLoading = true.obs;
 
   @override
   void initState() {
     super.initState();
-    _cargarObservaciones();
+    _loadObservations();
   }
 
-  Future<void> _cargarObservaciones() async {
+  Future<void> _loadObservations() async {
     try {
       isLoading.value = true;
-      final result = await _observacionRepository.getByOrigen(
-          'clientes', widget.client.id);
-      observaciones.assignAll(result);
+      final result = await _observationService.getObservationsBySource(
+          'clients', widget.client.id);
+      observations.assignAll(result);
     } catch (e) {
       if (kDebugMode) {
         print('Error al cargar observaciones: $e');
@@ -117,21 +116,19 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
 
                     // Nombre completo
                     _buildInfoRow(
-                        theme,
-                        'Nombre completo:',
-                        '${widget.client.nombre} ${widget.client.apellidoPaterno} ${widget.client.apellidoMaterno ?? ""}'
-                            .trim()),
+                        theme, 'Nombre completo:', widget.client.fullName),
 
                     // Nombre de empresa (movido desde Datos Empresariales)
-                    if (widget.client.nombreEmpresa != null &&
-                        widget.client.nombreEmpresa!.isNotEmpty)
+                    if (widget.client.companyName != null &&
+                        widget.client.companyName!.isNotEmpty)
                       _buildInfoRow(
-                          theme, 'Empresa:', widget.client.nombreEmpresa!),
+                          theme, 'Empresa:', widget.client.companyName!),
 
                     // RFC (movido desde Datos Empresariales)
-                    if (widget.client.rfc != null &&
-                        widget.client.rfc!.isNotEmpty)
-                      _buildInfoRow(theme, 'RFC:', widget.client.rfc!),
+                    if (widget.client.taxIdentificationNumber != null &&
+                        widget.client.taxIdentificationNumber!.isNotEmpty)
+                      _buildInfoRow(theme, 'RFC:',
+                          widget.client.taxIdentificationNumber!),
 
                     // Correo electrónico
                     _buildInfoRow(theme, 'Correo electrónico:',
@@ -139,14 +136,15 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
 
                     // Teléfono
                     _buildInfoRow(theme, 'Teléfono:',
-                        widget.client.telefono ?? 'No disponible'),
+                        widget.client.phoneNumber ?? 'No disponible'),
 
                     // Tipo de cliente
                     _buildInfoRow(theme, 'Tipo de cliente:',
-                        _formatClientType(widget.client.tipo)),
-                    if (widget.client.tipo == 'empresa')
+                        _formatClientType(widget.client.clientType)),
+
+                    if (widget.client.clientType == 'Empresa')
                       _buildInfoRow(theme, 'Empresa:',
-                          widget.client.nombreEmpresa ?? 'No disponible'),
+                          widget.client.companyName ?? 'No disponible'),
                     const SizedBox(height: 24),
 
                     // Sección: Observaciones
@@ -164,7 +162,7 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
                         );
                       }
 
-                      if (observaciones.isEmpty) {
+                      if (observations.isEmpty) {
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -192,14 +190,14 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: observaciones.map((obs) {
+                          children: observations.map((obs) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    obs.observacion,
+                                    obs.observation,
                                     style: theme.textTheme.bodyLarge,
                                   ),
                                   Text(
@@ -209,7 +207,7 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
                                       color: theme.colorScheme.outline,
                                     ),
                                   ),
-                                  if (observaciones.last != obs)
+                                  if (observations.last != obs)
                                     Divider(
                                       color: theme.colorScheme.outline
                                           .withOpacity(0.2),

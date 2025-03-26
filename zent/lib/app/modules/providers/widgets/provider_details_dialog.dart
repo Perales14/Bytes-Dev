@@ -3,15 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../data/models/proveedor_model.dart';
-import '../../../data/models/observacion_model.dart';
-import '../../../data/repositories/observacion_repository.dart';
-import '../../../data/repositories/direccion_repository.dart';
-import '../../../data/models/direccion_model.dart';
+import '../../../data/models/provider_model.dart';
+import '../../../data/models/observation_model.dart';
+import '../../../data/services/observation_service.dart';
+import '../../../data/services/address_service.dart';
+import '../../../data/models/address_model.dart';
 import '../controllers/providers_controller.dart';
 
 class ProviderDetailsDialog extends StatefulWidget {
-  final ProveedorModel provider;
+  final ProviderModel provider;
   final VoidCallback? onEditPressed;
 
   const ProviderDetailsDialog({
@@ -25,12 +25,12 @@ class ProviderDetailsDialog extends StatefulWidget {
 }
 
 class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
-  late final ObservacionRepository _observacionRepository;
-  late final DireccionRepository _direccionRepository;
+  late final ObservationService _observationService;
+  late final AddressService _addressService;
   late final ProvidersController _providersController;
 
-  final RxList<ObservacionModel> observaciones = <ObservacionModel>[].obs;
-  final Rx<DireccionModel?> direccion = Rx<DireccionModel?>(null);
+  final RxList<ObservationModel> observations = <ObservationModel>[].obs;
+  final Rx<AddressModel?> address = Rx<AddressModel?>(null);
   final RxBool isLoadingObs = true.obs;
   final RxBool isLoadingDir = true.obs;
 
@@ -42,38 +42,38 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
     _ensureDependencies();
 
     // Obtenemos las instancias
-    _observacionRepository = Get.find<ObservacionRepository>();
-    _direccionRepository = Get.find<DireccionRepository>();
+    _observationService = Get.find<ObservationService>();
+    _addressService = Get.find<AddressService>();
     _providersController = Get.find<ProvidersController>();
 
     // Cargamos los datos
-    _cargarObservaciones();
-    if (widget.provider.idDireccion != null) {
-      _cargarDireccion();
+    _loadObservations();
+    if (widget.provider.addressId != null) {
+      _loadAddress();
     } else {
       isLoadingDir.value = false;
     }
   }
 
   void _ensureDependencies() {
-    if (!Get.isRegistered<ObservacionRepository>()) {
-      Get.put(ObservacionRepository());
+    if (!Get.isRegistered<ObservationService>()) {
+      Get.put(ObservationService());
     }
 
-    if (!Get.isRegistered<DireccionRepository>()) {
-      Get.put(DireccionRepository());
+    if (!Get.isRegistered<AddressService>()) {
+      Get.put(AddressService());
     }
 
     // Asumimos que el ProvidersController ya está registrado
     // ya que debería estar registrado en la página principal de proveedores
   }
 
-  Future<void> _cargarObservaciones() async {
+  Future<void> _loadObservations() async {
     try {
       isLoadingObs.value = true;
-      final result = await _observacionRepository.getByOrigen(
-          'proveedores', widget.provider.id);
-      observaciones.assignAll(result);
+      final result = await _observationService.getObservationsBySource(
+          'providers', widget.provider.id);
+      observations.assignAll(result);
     } catch (e) {
       if (kDebugMode) {
         print('Error al cargar observaciones: $e');
@@ -83,13 +83,13 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
     }
   }
 
-  Future<void> _cargarDireccion() async {
+  Future<void> _loadAddress() async {
     try {
       isLoadingDir.value = true;
-      if (widget.provider.idDireccion != null) {
+      if (widget.provider.addressId != null) {
         final result =
-            await _direccionRepository.getById(widget.provider.idDireccion!);
-        direccion.value = result;
+            await _addressService.getAddressById(widget.provider.addressId!);
+        address.value = result;
       }
     } catch (e) {
       if (kDebugMode) {
@@ -169,22 +169,22 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
 
                     // Nombre de empresa
                     _buildInfoRow(
-                        theme, 'Empresa:', widget.provider.nombreEmpresa),
+                        theme, 'Empresa:', widget.provider.companyName),
 
                     // Especialidad
                     Obx(() => _buildInfoRow(
                         theme,
                         'Especialidad:',
-                        _providersController.getEspecialidadNombre(
-                            widget.provider.especialidadId))),
+                        _providersController
+                            .getSpecialtyName(widget.provider.specialtyId))),
 
                     // Tipo de servicio
                     _buildInfoRow(theme, 'Tipo de servicio:',
-                        widget.provider.tipoServicio ?? 'No especificado'),
+                        widget.provider.serviceType ?? 'No especificado'),
 
                     // Condiciones de pago
                     _buildInfoRow(theme, 'Condiciones de pago:',
-                        widget.provider.condicionesPago ?? 'No especificado'),
+                        widget.provider.paymentTerms ?? 'No especificado'),
 
                     const SizedBox(height: 24),
 
@@ -194,19 +194,22 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
 
                     // Contacto principal
                     _buildInfoRow(theme, 'Contacto principal:',
-                        widget.provider.contactoPrincipal ?? 'No especificado'),
+                        widget.provider.mainContactName ?? 'No especificado'),
 
                     // Teléfono
                     _buildInfoRow(theme, 'Teléfono:',
-                        widget.provider.telefono ?? 'No especificado'),
+                        widget.provider.phoneNumber ?? 'No especificado'),
 
                     // Email
                     _buildInfoRow(theme, 'Correo electrónico:',
                         widget.provider.email ?? 'No especificado'),
 
                     // RFC
-                    _buildInfoRow(theme, 'RFC:',
-                        widget.provider.rfc ?? 'No especificado'),
+                    _buildInfoRow(
+                        theme,
+                        'RFC:',
+                        widget.provider.taxIdentificationNumber ??
+                            'No especificado'),
 
                     // Sección: Dirección (si existe)
                     Obx(() {
@@ -226,7 +229,7 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
                         );
                       }
 
-                      if (direccion.value != null) {
+                      if (address.value != null) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -236,27 +239,27 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
 
                             // Calle y número
                             _buildInfoRow(theme, 'Calle y número:',
-                                '${direccion.value!.calle} ${direccion.value!.numero}'),
+                                '${address.value!.street} ${address.value!.streetNumber}'),
 
                             // Colonia
                             _buildInfoRow(
-                                theme, 'Colonia:', direccion.value!.colonia),
+                                theme, 'Colonia:', address.value!.neighborhood),
 
                             // CP
-                            _buildInfoRow(
-                                theme, 'Código postal:', direccion.value!.cp),
+                            _buildInfoRow(theme, 'Código postal:',
+                                address.value!.postalCode),
 
                             // Estado
-                            if (direccion.value!.estado != null &&
-                                direccion.value!.estado!.isNotEmpty)
+                            if (address.value!.state != null &&
+                                address.value!.state!.isNotEmpty)
                               _buildInfoRow(
-                                  theme, 'Estado:', direccion.value!.estado!),
+                                  theme, 'Estado:', address.value!.state!),
 
                             // País
-                            if (direccion.value!.pais != null &&
-                                direccion.value!.pais!.isNotEmpty)
+                            if (address.value!.country != null &&
+                                address.value!.country!.isNotEmpty)
                               _buildInfoRow(
-                                  theme, 'País:', direccion.value!.pais!),
+                                  theme, 'País:', address.value!.country!),
                           ],
                         );
                       }
@@ -280,7 +283,7 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
                         );
                       }
 
-                      if (observaciones.isEmpty) {
+                      if (observations.isEmpty) {
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -308,14 +311,14 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: observaciones.map((obs) {
+                          children: observations.map((obs) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    obs.observacion,
+                                    obs.observation,
                                     style: theme.textTheme.bodyLarge,
                                   ),
                                   Text(
@@ -325,7 +328,7 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
                                       color: theme.colorScheme.outline,
                                     ),
                                   ),
-                                  if (observaciones.last != obs)
+                                  if (observations.last != obs)
                                     Divider(
                                       color: theme.colorScheme.outline
                                           .withOpacity(0.2),

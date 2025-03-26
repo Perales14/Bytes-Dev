@@ -1,36 +1,36 @@
 import 'package:get/get.dart';
-import '../../../data/repositories/proveedor_repository.dart';
-import '../../../data/repositories/observacion_repository.dart';
-import '../../../data/repositories/direccion_repository.dart';
-import '../../../data/repositories/especialidad_repository.dart';
-import '../../../data/repositories/estado_repository.dart';
+import '../../../data/services/provider_service.dart';
+import '../../../data/services/observation_service.dart';
+import '../../../data/services/address_service.dart';
+import '../../../data/services/specialty_service.dart';
+import '../../../data/services/state_service.dart';
 import '../controllers/providers_controller.dart';
 
 class ProvidersBinding extends Bindings {
   @override
   void dependencies() {
-    // Repositorios necesarios
-    if (!Get.isRegistered<ProveedorRepository>()) {
-      Get.lazyPut<ProveedorRepository>(() => ProveedorRepository());
+    // Register services
+    if (!Get.isRegistered<ProviderService>()) {
+      Get.lazyPut<ProviderService>(() => ProviderService());
     }
 
-    if (!Get.isRegistered<ObservacionRepository>()) {
-      Get.lazyPut<ObservacionRepository>(() => ObservacionRepository());
+    if (!Get.isRegistered<ObservationService>()) {
+      Get.lazyPut<ObservationService>(() => ObservationService());
     }
 
-    if (!Get.isRegistered<DireccionRepository>()) {
-      Get.lazyPut<DireccionRepository>(() => DireccionRepository());
+    if (!Get.isRegistered<AddressService>()) {
+      Get.lazyPut<AddressService>(() => AddressService());
     }
 
-    if (!Get.isRegistered<EspecialidadRepository>()) {
-      Get.lazyPut<EspecialidadRepository>(() => EspecialidadRepository());
+    if (!Get.isRegistered<SpecialtyService>()) {
+      Get.lazyPut<SpecialtyService>(() => SpecialtyService());
     }
 
-    if (!Get.isRegistered<EstadoRepository>()) {
-      Get.lazyPut<EstadoRepository>(() => EstadoRepository());
+    if (!Get.isRegistered<StateService>()) {
+      Get.lazyPut<StateService>(() => StateService());
     }
 
-    // Controlador
+    // Register controller
     Get.lazyPut<ProvidersController>(() => ProvidersController());
   }
 }

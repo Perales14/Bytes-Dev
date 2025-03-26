@@ -39,7 +39,7 @@ class EmployeesView extends GetView<EmployeesController> {
 
                 // Usamos directamente los employees filtrados del controlador
                 return EmployeesCardsGrid(
-                  employees: controller.empleadosFiltrados(),
+                  employees: controller.filteredEmployees(),
                   controller: controller,
                   onAddEmployee: () => _showAddEmployeeDialog(context),
                 );
