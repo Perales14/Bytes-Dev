@@ -6,28 +6,32 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart' as picker;
 import '../validators/validators.dart' as validators;
 
+/// Controlador base para formularios que implementa funcionalidad común.
 abstract class BaseFormController extends GetxController {
-  // Cada controlador debe tener su propia clave única
+  /// Clave del formulario para validación
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  // Password visibility (esto se mantiene observable porque afecta la UI directamente)
-  final showPassword = false.obs;
-  final showConfirmPassword = false.obs;
+  /// Control de visibilidad de contraseñas
+  final RxBool showPassword = false.obs;
+  final RxBool showConfirmPassword = false.obs;
 
-  // Modelo central que almacena todos los datos comunes
-  late BaseModel model_base;
+  /// Modelo base que almacena los datos comunes
+  late BaseModel modelBase; // Antes: model_base
 
-  // Files (mantenemos esta lista observable para compatibilidad)
-  final files = <FileData>[].obs;
+  /// Lista observable de archivos
+  final RxList<FileData> files = <FileData>[].obs;
 
+  /// Notificador de valor para archivos (soporte adicional)
   late final ValueNotifier<List<FileData>> filesNotifier;
 
-  // Toggle password visibility
+  /// Alterna la visibilidad de la contraseña
   void togglePasswordVisibility() => showPassword.value = !showPassword.value;
+
+  /// Alterna la visibilidad de la confirmación de contraseña
   void toggleConfirmPasswordVisibility() =>
       showConfirmPassword.value = !showConfirmPassword.value;
 
-  // Validation methods
+  /// Valida que un campo no esté vacío
   String? validateRequired(String? value) {
     if (value == null || value.isEmpty) {
       return 'Este campo es requerido';
@@ -35,10 +39,12 @@ abstract class BaseFormController extends GetxController {
     return null;
   }
 
+  /// Valida que un email tenga formato correcto
   String? validateEmail(String? value) {
     return validators.validateEmail(value);
   }
 
+  /// Agrega un nuevo archivo desde el selector de archivos del sistema
   Future<void> addNewFile() async {
     try {
       picker.FilePickerResult? result =
@@ -61,8 +67,8 @@ abstract class BaseFormController extends GetxController {
           name: platformFile.name,
           type: fileType,
           uploadDate: DateTime.now(),
-          path: platformFile.path, // Guarda la ruta del archivo
-          size: platformFile.size, // Tamaño en bytes
+          path: platformFile.path,
+          size: platformFile.size,
         ));
 
         // Actualizar el modelo base
@@ -78,18 +84,19 @@ abstract class BaseFormController extends GetxController {
     }
   }
 
-  // Método auxiliar para determinar el tipo de archivo
+  /// Determina el tipo de archivo basado en su extensión
   FileType _getFileTypeFromExtension(String extension) {
     extension = extension.toLowerCase();
     if (extension == 'pdf') return FileType.pdf;
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].contains(extension))
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].contains(extension)) {
       return FileType.image;
+    }
     if (['doc', 'docx'].contains(extension)) return FileType.word;
     if (['xls', 'xlsx'].contains(extension)) return FileType.excel;
     return FileType.other;
   }
 
-  // File handling methods
+  /// Agrega un archivo a la lista
   void addFile(FileData file) {
     files.add(file);
     // También actualizamos el modelo base
@@ -97,13 +104,14 @@ abstract class BaseFormController extends GetxController {
     files.refresh();
   }
 
+  /// Elimina un archivo de la lista
   void removeFile(FileData file) {
     files.removeWhere((f) => f.id == file.id);
     // También actualizamos el modelo base
     updateBaseModel(files: files);
   }
 
-  // Actualiza el modelo base con nuevos valores
+  /// Actualiza el modelo base con nuevos valores
   void updateBaseModel({
     String? id,
     String? nombre,
@@ -115,7 +123,7 @@ abstract class BaseFormController extends GetxController {
     String? fechaRegistro,
     List<FileData>? files,
   }) {
-    model_base = model_base.copyWith(
+    modelBase = modelBase.copyWith(
       id: id,
       firstName: nombre,
       fatherLastName: apellidoPaterno,
@@ -128,14 +136,15 @@ abstract class BaseFormController extends GetxController {
     );
   }
 
-  // Abstract methods that must be implemented by subclasses
-  bool
-      submitForm(); // Cambiar tipo de retorno a bool para indicar éxito/fracaso
+  /// Procesa el envío del formulario
+  bool submitForm();
+
+  /// Reinicia el formulario a sus valores por defecto
   void resetForm();
 
-  // Initialize base model
+  /// Inicializa el modelo base con valores por defecto
   void _initializeBaseModel() {
-    model_base = BaseModel(
+    modelBase = BaseModel(
       firstName: '',
       fatherLastName: '',
       motherLastName: '',
@@ -146,8 +155,8 @@ abstract class BaseFormController extends GetxController {
     );
     // Sincronizamos los archivos iniciales
     files.clear();
-    if (model_base.files.isNotEmpty) {
-      files.addAll(model_base.files);
+    if (modelBase.files.isNotEmpty) {
+      files.addAll(modelBase.files);
     }
   }
 
