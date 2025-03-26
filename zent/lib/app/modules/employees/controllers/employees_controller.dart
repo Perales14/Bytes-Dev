@@ -56,7 +56,6 @@ class EmployeesController extends GetxController {
         empleados.add(valor);
       }
     }
-    print('Empleados filtrados: ${empleados.length}');
     return empleados;
   }
 

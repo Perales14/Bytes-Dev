@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Tarjeta para agregar nuevas entidades con un botón de acción.
+///
+/// Este widget presenta una tarjeta con un icono central que actúa como
+/// botón para agregar nuevos elementos a la aplicación.
 class AddEntityCard extends StatelessWidget {
   /// Texto que se mostrará en la tarjeta
   final String labelText;
@@ -17,6 +21,20 @@ class AddEntityCard extends StatelessWidget {
   /// Color del texto e icono (opcional)
   final Color? foregroundColor;
 
+  /// Si se debe mostrar el texto debajo del icono
+  final bool showText;
+
+  /// Radio del borde de la tarjeta
+  static const double borderRadius = 16.0;
+
+  /// Dimensiones de la tarjeta
+  static const double cardWidth = 280.0;
+  static const double cardHeight = 120.0;
+
+  /// Crea una nueva tarjeta para agregar entidades.
+  ///
+  /// Requiere [labelText] y [onTap]. El [icon], [backgroundColor],
+  /// [foregroundColor] y [showText] son opcionales.
   const AddEntityCard({
     super.key,
     required this.labelText,
@@ -24,6 +42,7 @@ class AddEntityCard extends StatelessWidget {
     required this.onTap,
     this.backgroundColor,
     this.foregroundColor,
+    this.showText = false,
   });
 
   @override
@@ -34,13 +53,13 @@ class AddEntityCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(borderRadius),
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: 280,
-          maxWidth: 280,
-          minHeight: 120,
-          maxHeight: 120,
+        constraints: const BoxConstraints(
+          minWidth: cardWidth,
+          maxWidth: cardWidth,
+          minHeight: cardHeight,
+          maxHeight: cardHeight,
         ),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -51,7 +70,7 @@ class AddEntityCard extends StatelessWidget {
                 width: 1,
                 color: theme.dividerColor.withOpacity(0.2),
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
           ),
           child: Column(
@@ -63,14 +82,16 @@ class AddEntityCard extends StatelessWidget {
                 size: 64,
                 color: textIconColor,
               ),
-              //const SizedBox(height: 8),
-              //Text(
-              //labelText,
-              //style: theme.textTheme.titleMedium?.copyWith(
-              //color: textIconColor,
-              //),
-              //textAlign: TextAlign.center,
-              //),
+              if (showText) ...[
+                const SizedBox(height: 8),
+                Text(
+                  labelText,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: textIconColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),

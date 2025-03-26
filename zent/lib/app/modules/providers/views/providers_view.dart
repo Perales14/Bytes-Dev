@@ -12,7 +12,7 @@ class ProvidersView extends GetView<ProvidersController> {
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      text_controler: controller.textController,
+      textController: controller.textController,
       pageTitle: 'Proveedores',
       child: Padding(
         padding: const EdgeInsets.all(16),
