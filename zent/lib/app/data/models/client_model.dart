@@ -34,8 +34,7 @@ class ClientModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'name': name,
       'father_last_name': fatherLastName,
       'mother_last_name': motherLastName,
@@ -49,6 +48,11 @@ class ClientModel extends BaseModel {
       'created_at': BaseModel.formatDateTime(createdAt),
       'updated_at': BaseModel.formatDateTime(updatedAt),
     };
+    if (id > 0) {
+      map['id'] = id;
+    }
+
+    return map;
   }
 
   @override
