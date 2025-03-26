@@ -38,7 +38,7 @@ class ProviderForm extends BaseForm {
             const SizedBox(height: 20),
             _buildAddressToggleSection(theme),
             Obx(() {
-              if (providerController.showDireccion.value) {
+              if (providerController.showAddress.value) {
                 return Column(
                   children: [
                     const SizedBox(height: 20),
@@ -68,22 +68,21 @@ class ProviderForm extends BaseForm {
                 Expanded(
                   child: DropdownForm(
                     label: 'Especialidad',
-                    opciones: providerController.especialidades
-                        .map((esp) => esp.nombre)
+                    opciones: providerController.specialties
+                        .map((esp) => esp.name)
                         .toList(),
-                    value:
-                        providerController.getCurrentEspecialidad()?.nombre ??
-                            (providerController.especialidades.isNotEmpty
-                                ? providerController.especialidades.first.nombre
-                                : 'Cargando...'),
+                    value: providerController.getCurrentSpecialty()?.name ??
+                        (providerController.specialties.isNotEmpty
+                            ? providerController.specialties.first.name
+                            : 'Cargando...'),
                     onChanged: (value) {
-                      final especialidad =
-                          providerController.especialidades.firstWhere(
-                        (esp) => esp.nombre == value,
-                        orElse: () => providerController.especialidades.first,
+                      final specialty =
+                          providerController.specialties.firstWhere(
+                        (esp) => esp.name == value,
+                        orElse: () => providerController.specialties.first,
                       );
-                      providerController.updateProveedor(
-                          especialidadId: especialidad.id);
+                      providerController.updateProvider(
+                          specialtyId: specialty.id);
                     },
                     validator: providerController.validateRequired,
                   ),
@@ -93,10 +92,10 @@ class ProviderForm extends BaseForm {
                   flex: 2,
                   child: TextFieldForm(
                     label: 'Nombre de la Empresa',
-                    controller: providerController.nombreEmpresaController,
+                    controller: providerController.companyNameController,
                     validator: providerController.validateRequired,
-                    onChanged: (value) => providerController.updateProveedor(
-                        nombreEmpresa: value),
+                    onChanged: (value) =>
+                        providerController.updateProvider(companyName: value),
                   ),
                 ),
               ],
@@ -109,22 +108,22 @@ class ProviderForm extends BaseForm {
                 Expanded(
                   child: DropdownForm(
                     label: 'Tipo de Servicio',
-                    opciones: providerController.tiposServicio,
-                    value: providerController.proveedor.value.tipoServicio,
-                    validator: providerController.validateTipoServicio,
+                    opciones: providerController.serviceTypes,
+                    value: providerController.provider.value.serviceType,
+                    validator: providerController.validateServiceType,
                     onChanged: (value) =>
-                        providerController.updateProveedor(tipoServicio: value),
+                        providerController.updateProvider(serviceType: value),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: DropdownForm(
                     label: 'Condiciones de Pago',
-                    opciones: providerController.condicionesPago,
-                    value: providerController.proveedor.value.condicionesPago,
-                    validator: providerController.validateCondicionesPago,
-                    onChanged: (value) => providerController.updateProveedor(
-                        condicionesPago: value),
+                    opciones: providerController.paymentTerms,
+                    value: providerController.provider.value.paymentTerms,
+                    validator: providerController.validatePaymentTerms,
+                    onChanged: (value) =>
+                        providerController.updateProvider(paymentTerms: value),
                   ),
                 ),
               ],
@@ -143,9 +142,9 @@ class ProviderForm extends BaseForm {
         // Contacto principal
         TextFieldForm(
           label: 'Contacto Principal',
-          controller: providerController.contactoPrincipalController,
+          controller: providerController.mainContactController,
           onChanged: (value) =>
-              providerController.updateProveedor(contactoPrincipal: value),
+              providerController.updateProvider(mainContactName: value),
         ),
         const SizedBox(height: 10),
 
@@ -155,9 +154,9 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Teléfono',
-                controller: providerController.telefonoController,
+                controller: providerController.phoneController,
                 onChanged: (value) =>
-                    providerController.updateProveedor(telefono: value),
+                    providerController.updateProvider(phoneNumber: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -168,7 +167,7 @@ class ProviderForm extends BaseForm {
                 controller: providerController.emailController,
                 validator: providerController.validateEmail,
                 onChanged: (value) =>
-                    providerController.updateProveedor(email: value),
+                    providerController.updateProvider(email: value),
                 keyboardType: TextInputType.emailAddress,
               ),
             ),
@@ -176,10 +175,10 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'RFC',
-                controller: providerController.rfcController,
-                validator: providerController.validateRFC,
+                controller: providerController.taxIdController,
+                validator: providerController.validateTaxId,
                 onChanged: (value) =>
-                    providerController.updateProveedor(rfc: value),
+                    providerController.updateProvider(taxId: value),
               ),
             ),
           ],
@@ -197,9 +196,9 @@ class ProviderForm extends BaseForm {
         SizedBox(
           height: 150,
           child: Obx(() => ObservationsField(
-                initialValue: providerController.observacionText.value,
+                initialValue: providerController.observationText.value,
                 onChanged: (value) =>
-                    providerController.updateObservacion(value),
+                    providerController.updateObservation(value),
               )),
         ),
       ],
@@ -209,10 +208,10 @@ class ProviderForm extends BaseForm {
   Widget _buildAddressToggleSection(ThemeData theme) {
     return Obx(() => CheckboxListTile(
           title: Text('Agregar dirección', style: theme.textTheme.titleMedium),
-          value: providerController.showDireccion.value,
+          value: providerController.showAddress.value,
           onChanged: (value) {
             if (value != null) {
-              providerController.showDireccion.value = value;
+              providerController.showAddress.value = value;
             }
           },
           controlAffinity: ListTileControlAffinity.leading,
@@ -233,12 +232,12 @@ class ProviderForm extends BaseForm {
               flex: 3,
               child: TextFieldForm(
                 label: 'Calle',
-                controller: providerController.calleController,
-                validator: (value) => providerController.showDireccion.value
+                controller: providerController.streetController,
+                validator: (value) => providerController.showAddress.value
                     ? providerController.validateRequired(value)
                     : null,
                 onChanged: (value) =>
-                    providerController.updateDireccion(calle: value),
+                    providerController.updateAddress(street: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -246,12 +245,12 @@ class ProviderForm extends BaseForm {
               flex: 1,
               child: TextFieldForm(
                 label: 'Número',
-                controller: providerController.numeroController,
-                validator: (value) => providerController.showDireccion.value
+                controller: providerController.streetNumberController,
+                validator: (value) => providerController.showAddress.value
                     ? providerController.validateRequired(value)
                     : null,
                 onChanged: (value) =>
-                    providerController.updateDireccion(numero: value),
+                    providerController.updateAddress(streetNumber: value),
               ),
             ),
           ],
@@ -265,12 +264,12 @@ class ProviderForm extends BaseForm {
               flex: 3,
               child: TextFieldForm(
                 label: 'Colonia',
-                controller: providerController.coloniaController,
-                validator: (value) => providerController.showDireccion.value
+                controller: providerController.neighborhoodController,
+                validator: (value) => providerController.showAddress.value
                     ? providerController.validateRequired(value)
                     : null,
                 onChanged: (value) =>
-                    providerController.updateDireccion(colonia: value),
+                    providerController.updateAddress(neighborhood: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -278,10 +277,10 @@ class ProviderForm extends BaseForm {
               flex: 1,
               child: TextFieldForm(
                 label: 'Código Postal',
-                controller: providerController.cpController,
-                validator: providerController.validateCP,
+                controller: providerController.postalCodeController,
+                validator: providerController.validatePostalCode,
                 onChanged: (value) =>
-                    providerController.updateDireccion(cp: value),
+                    providerController.updateAddress(postalCode: value),
                 keyboardType: TextInputType.number,
               ),
             ),
@@ -295,18 +294,18 @@ class ProviderForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Estado',
-                controller: providerController.estadoController,
+                controller: providerController.stateController,
                 onChanged: (value) =>
-                    providerController.updateDireccion(estado: value),
+                    providerController.updateAddress(state: value),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
                 label: 'País',
-                controller: providerController.paisController,
+                controller: providerController.countryController,
                 onChanged: (value) =>
-                    providerController.updateDireccion(pais: value),
+                    providerController.updateAddress(country: value),
               ),
             ),
           ],

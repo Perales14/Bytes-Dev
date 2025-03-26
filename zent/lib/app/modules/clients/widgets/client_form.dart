@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/client_form_controller.dart';
-import '../../../shared/models/form_config.dart';
 import '../../../shared/widgets/form/base_form.dart';
 import '../../../shared/widgets/form/widgets/observations_field.dart';
 import '../../../shared/widgets/form/widgets/text_field_form.dart';
 import '../../../shared/widgets/form/widgets/dropdown_form.dart';
-import '../../../shared/widgets/form/widgets/label_display.dart';
 
 class ClientForm extends BaseForm {
   // Constructor sin redeclaraciones problemáticas
@@ -57,10 +55,10 @@ class ClientForm extends BaseForm {
             Expanded(
               child: DropdownForm(
                 label: 'Tipo de Cliente',
-                opciones: clientController.tiposCliente,
-                value: clientController.clienteModel.tipo,
+                opciones: clientController.clientTypes,
+                value: clientController.client.clientType,
                 onChanged: (value) =>
-                    clientController.updateClient(tipo: value),
+                    clientController.updateClient(clientType: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -92,11 +90,11 @@ class ClientForm extends BaseForm {
             Expanded(
               child: TextFieldForm(
                 label: 'Nombre',
-                controller: TextEditingController(
-                    text: clientController.clienteModel.nombre),
+                controller:
+                    TextEditingController(text: clientController.client.name),
                 validator: clientController.validateRequired,
                 onChanged: (value) =>
-                    clientController.updateClient(nombre: value),
+                    clientController.updateClient(name: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -104,10 +102,10 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Paterno',
                 controller: TextEditingController(
-                    text: clientController.clienteModel.apellidoPaterno),
+                    text: clientController.client.fatherLastName),
                 validator: clientController.validateRequired,
                 onChanged: (value) =>
-                    clientController.updateClient(apellidoPaterno: value),
+                    clientController.updateClient(fatherLastName: value),
               ),
             ),
             const SizedBox(width: 10),
@@ -115,9 +113,9 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Apellido Materno',
                 controller: TextEditingController(
-                    text: clientController.clienteModel.apellidoMaterno ?? ''),
+                    text: clientController.client.motherLastName ?? ''),
                 onChanged: (value) =>
-                    clientController.updateClient(apellidoMaterno: value),
+                    clientController.updateClient(motherLastName: value),
               ),
             ),
           ],
@@ -131,7 +129,7 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Correo Electrónico',
                 controller: TextEditingController(
-                    text: clientController.clienteModel.email ?? ''),
+                    text: clientController.client.email ?? ''),
                 validator: clientController.validateEmail,
                 onChanged: (value) =>
                     clientController.updateClient(email: value),
@@ -143,10 +141,10 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'Teléfono',
                 controller: TextEditingController(
-                    text: clientController.clienteModel.telefono ?? ''),
+                    text: clientController.client.phoneNumber ?? ''),
                 validator: clientController.validateRequired,
                 onChanged: (value) =>
-                    clientController.updateClient(telefono: value),
+                    clientController.updateClient(phoneNumber: value),
                 keyboardType: TextInputType.phone,
               ),
             ),
@@ -155,9 +153,11 @@ class ClientForm extends BaseForm {
               child: TextFieldForm(
                 label: 'RFC',
                 controller: TextEditingController(
-                    text: clientController.clienteModel.rfc ?? ''),
-                validator: clientController.validateRFC,
-                onChanged: (value) => clientController.updateClient(rfc: value),
+                    text:
+                        clientController.client.taxIdentificationNumber ?? ''),
+                validator: clientController.validateTaxId,
+                onChanged: (value) => clientController.updateClient(
+                    taxIdentificationNumber: value),
               ),
             ),
           ],
@@ -175,25 +175,10 @@ class ClientForm extends BaseForm {
         SizedBox(
           height: 150,
           child: Obx(() => ObservationsField(
-                initialValue: clientController.observacionText.value,
-                onChanged: (value) => clientController.updateObservacion(value),
+                initialValue: clientController.observationText.value,
+                onChanged: (value) => clientController.updateObservation(value),
               )),
         ),
-      ],
-    );
-  }
-
-  Widget _buildCompanyDataSection(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        buildSectionTitle(theme, 'Otros Datos'),
-        const SizedBox(height: 20),
-
-        // Nombre Empresa
-        Row(),
-        const SizedBox(height: 10),
-        //calle, numero, colonia, cp
       ],
     );
   }

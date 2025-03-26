@@ -17,7 +17,7 @@ class ConnectivityHelper extends GetxService {
       final results = await _connectivity.checkConnectivity();
       _updateConnectionStatus(results);
     } catch (e) {
-      print('Error al inicializar conectividad: $e');
+      print('Error initializing connectivity: $e');
     }
   }
 
@@ -27,7 +27,7 @@ class ConnectivityHelper extends GetxService {
   }
 
   void _updateConnectionStatus(List<ConnectivityResult> results) {
-    // Si hay al menos un tipo de conexión que no sea "none", estamos conectados
+    // If there's at least one connection type that's not "none", we're connected
     isConnectedStatus.value =
         results.any((result) => result != ConnectivityResult.none);
   }

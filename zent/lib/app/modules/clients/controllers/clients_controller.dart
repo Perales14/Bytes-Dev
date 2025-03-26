@@ -2,82 +2,73 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '../../../data/models/cliente_model.dart';
-import '../../../data/repositories/cliente_repository.dart';
+import '../../../data/models/client_model.dart';
+import '../../../data/services/client_service.dart';
 import '../widgets/client_details_dialog.dart';
 
 class ClientsController extends GetxController {
   // Lista reactiva de clientes
-  final clients = <ClienteModel>[].obs;
-  final filtro = ''.obs;
+  final clients = <ClientModel>[].obs;
+  final filter = ''.obs;
   final TextEditingController textController = TextEditingController();
 
   // Estado de carga
-  var isLoading = true.obs;
+  final isLoading = true.obs;
 
   // Estado de error
-  var hasError = false.obs;
-  var errorMessage = ''.obs;
+  final hasError = false.obs;
+  final errorMessage = ''.obs;
 
-  // Repositorio
-  final ClienteRepository _repository;
+  // Servicio
+  final ClientService _clientService;
 
   // Inyección de dependencia mediante constructor
-  ClientsController({ClienteRepository? repository})
-      : _repository = repository ?? Get.find<ClienteRepository>();
+  ClientsController({ClientService? clientService})
+      : _clientService = clientService ?? Get.find<ClientService>();
 
   @override
   void onInit() {
     super.onInit();
     loadClients();
     textController.addListener(() {
-      filtro.value = textController.text;
+      filter.value = textController.text;
     });
   }
 
-  List<ClienteModel> empleadosFiltrados() {
+  @override
+  void onClose() {
+    textController.dispose();
+    super.onClose();
+  }
+
+  List<ClientModel> filteredClients() {
     if (clients.isEmpty) {
-      print('No hay empleados');
-      return <ClienteModel>[].obs;
+      print('No hay clientes');
+      return <ClientModel>[].obs;
     }
 
-    final clientes = <ClienteModel>[];
-    String nombre = '';
-    for (var valor in clients) {
-      nombre =
-          '${valor.nombre} ${valor.apellidoPaterno} ${valor.apellidoMaterno == null ? '' : valor.apellidoMaterno!}';
-      if (nombre.toLowerCase().contains(filtro.value.toLowerCase())) {
-        clientes.add(valor);
+    final filteredList = <ClientModel>[];
+    String name = '';
+    for (var client in clients) {
+      name = client.fullName;
+      if (name.toLowerCase().contains(filter.value.toLowerCase())) {
+        filteredList.add(client);
       }
     }
 
-    return clientes;
+    return filteredList;
   }
 
-  // Future<List<ClienteModel>> filtrarClientes() async {
-  //   if (filtro.value.isEmpty) {
-  //     return [];
-  //   }
-  //   return clients.where((cliente) {
-  //     return cliente.nombre
-  //             .toLowerCase()
-  //             .contains(filtro.value.toLowerCase()) ||
-  //         cliente.apellidoPaterno
-  //             .toLowerCase()
-  //             .contains(filtro.value.toLowerCase());
-  //   }).toList();
-  // }
-
-  // Cargar clientes desde el repositorio
+  // Cargar clientes desde el servicio
   void loadClients() async {
     try {
       print('Cargando clientes...');
       isLoading(true);
       hasError(false);
-      final result = await _repository.getAll();
+      final result = await _clientService.getAllClients();
       print('Clientes cargados: ${result.length}');
-      for (var cliente in result) {
-        print(cliente.nombre);
+      for (var client in result) {
+        print(client.name);
       }
       clients.assignAll(result);
     } catch (e) {
@@ -94,7 +85,7 @@ class ClientsController extends GetxController {
     loadClients();
   }
 
-  // Agregar este método a ClientsController
+  // Mostrar detalles del cliente
   void showClientDetails(int clientId) {
     try {
       final client = clients.firstWhere((c) => c.id == clientId);
@@ -126,7 +117,7 @@ class ClientsController extends GetxController {
     }
   }
 
-  ClienteModel getClientById(int id) {
+  ClientModel getClientById(int id) {
     try {
       return clients.firstWhere((client) => client.id == id);
     } catch (e) {

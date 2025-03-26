@@ -1,52 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:zent/app/shared/models/base_model.dart';
-import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
-import '../../../data/models/usuario_model.dart';
+import '../../../data/models/user_model.dart';
 import '../../../shared/widgets/form/base_form.dart';
-import '../../../data/repositories/usuario_repository.dart';
-import '../../../data/repositories/file_repository.dart';
-import '../../../data/repositories/rol_repository.dart';
+import '../../../data/services/user_service.dart';
+import '../../../data/services/file_service.dart';
+import '../../../data/services/role_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/list_validator.dart';
 import '../../../shared/validators/nss_validator.dart';
 import '../../../shared/validators/password_validator.dart';
-import '../../../shared/validators/salary_validator.dart';
 
 class EmployeeFormController extends BaseFormController {
   // Modelo del usuario que estamos editando
-  final Rx<UsuarioModel> usuario = UsuarioModel(
-    rolId: 2, // Por defecto es empleado
-    nombre: '',
-    apellidoPaterno: '',
-    apellidoMaterno: '',
+  final Rx<UserModel> user = UserModel(
+    roleId: 2, // Por defecto es empleado
+    name: '',
+    fatherLastName: '',
+    motherLastName: '',
     email: '',
-    nss: '',
-    contrasenaHash: '',
-    fechaIngreso: DateTime.now(),
-    estadoId: 1, // Activo por defecto
+    socialSecurityNumber: '',
+    passwordHash: '',
+    entryDate: DateTime.now(),
+    stateId: 1, // Activo por defecto
   ).obs;
 
-  // Repository para operaciones de base de datos
-  final UsuarioRepository _repository = Get.find<UsuarioRepository>();
+  // Services para operaciones de base de datos
+  final UserService _userService = Get.find<UserService>();
+  final FileService _fileService = Get.find<FileService>();
+  final RoleService _roleService = Get.find<RoleService>();
 
   // Controladores de texto persistentes
-  final nombreController = TextEditingController();
-  final apellidoPaternoController = TextEditingController();
-  final apellidoMaternoController = TextEditingController();
+  final nameController = TextEditingController();
+  final fatherLastNameController = TextEditingController();
+  final motherLastNameController = TextEditingController();
   final emailController = TextEditingController();
-  final telefonoController = TextEditingController();
-  final nssController = TextEditingController();
-  final contrasenaController = TextEditingController();
+  final phoneNumberController = TextEditingController();
+  final socialSecurityNumberController = TextEditingController();
+  final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final salarioController = TextEditingController();
-  final departamentoController = TextEditingController();
+  final salaryController = TextEditingController();
+  final departmentController = TextEditingController();
 
   // Contraseña de confirmación
   final RxString confirmPassword = ''.obs;
 
   // Observaciones (manejadas por separado ya que es una tabla polimorfa)
-  final observacionText = ''.obs;
+  final observationText = ''.obs;
 
   // Variables para controlar UI
   @override
@@ -54,101 +53,111 @@ class EmployeeFormController extends BaseFormController {
 
   // Catálogos
   late List<String> roles = ['Administrador'];
-  final List<String> tiposContrato = ['Temporal', 'Indefinido', 'Por Obra'];
+  final List<String> contractTypes = ['Temporal', 'Indefinido', 'Por Obra'];
 
   @override
   Future<void> onInit() async {
     super.onInit();
-    roles = await RolRepository().getRolesNames();
-    print('Roles: $roles');
+
+    try {
+      // Obtener roles del servicio
+      final rolesList = await _roleService.getAllRoles();
+      roles = rolesList.map((role) => role.name).toList();
+      print('Roles: $roles');
+    } catch (e) {
+      print('Error al cargar roles: $e');
+    }
+
     resetForm();
   }
 
   @override
   void onClose() {
     // Liberar recursos de los controladores
-    nombreController.dispose();
-    apellidoPaternoController.dispose();
-    apellidoMaternoController.dispose();
+    nameController.dispose();
+    fatherLastNameController.dispose();
+    motherLastNameController.dispose();
     emailController.dispose();
-    telefonoController.dispose();
-    nssController.dispose();
-    contrasenaController.dispose();
+    phoneNumberController.dispose();
+    socialSecurityNumberController.dispose();
+    passwordController.dispose();
     confirmPasswordController.dispose();
-    salarioController.dispose();
-    departamentoController.dispose();
+    salaryController.dispose();
+    departmentController.dispose();
     super.onClose();
   }
 
   // Inicializar o resetear formulario
   @override
   void resetForm() {
-    usuario.value = UsuarioModel(
-      rolId: 2, // Por defecto es empleado
-      nombre: '',
-      apellidoPaterno: '',
-      apellidoMaterno: '',
+    user.value = UserModel(
+      roleId: 2, // Por defecto es empleado
+      name: '',
+      fatherLastName: '',
+      motherLastName: '',
       email: '',
-      nss: '',
-      contrasenaHash: '',
-      fechaIngreso: DateTime.now(),
-      estadoId: 1, // Activo por defecto
+      socialSecurityNumber: '',
+      passwordHash: '',
+      entryDate: DateTime.now(),
+      stateId: 1, // Activo por defecto
     );
 
     confirmPassword.value = '';
-    observacionText.value = '';
+    observationText.value = '';
     showPassword.value = false;
 
     // Inicializar los controladores con los valores iniciales
-    nombreController.text = usuario.value.nombre;
-    apellidoPaternoController.text = usuario.value.apellidoPaterno;
-    apellidoMaternoController.text = usuario.value.apellidoMaterno ?? '';
-    emailController.text = usuario.value.email;
-    telefonoController.text = usuario.value.telefono ?? '';
-    nssController.text = usuario.value.nss;
-    contrasenaController.text = usuario.value.contrasenaHash;
+    nameController.text = user.value.name;
+    fatherLastNameController.text = user.value.fatherLastName;
+    motherLastNameController.text = user.value.motherLastName ?? '';
+    emailController.text = user.value.email;
+    phoneNumberController.text = user.value.phoneNumber ?? '';
+    socialSecurityNumberController.text = user.value.socialSecurityNumber;
+    passwordController.text = user.value.passwordHash;
     confirmPasswordController.text = confirmPassword.value;
-    salarioController.text = usuario.value.salario?.toString() ?? '';
-    departamentoController.text = usuario.value.departamento ?? '';
+    salaryController.text = user.value.salary?.toString() ?? '';
+    departmentController.text = user.value.department ?? '';
 
     formKey.currentState?.reset();
   }
 
   // Actualizar campos del modelo de usuario
-  void updateUsuario({
-    String? nombre,
-    String? apellidoPaterno,
-    String? apellidoMaterno,
+  void updateUser({
+    String? name,
+    String? fatherLastName,
+    String? motherLastName,
     String? email,
-    String? telefono,
-    String? nss,
-    String? contrasenaHash,
-    double? salario,
-    String? tipoContrato,
-    String? departamento,
-    int? rolId,
-    DateTime? fechaIngreso,
+    String? phoneNumber,
+    String? socialSecurityNumber,
+    String? passwordHash,
+    double? salary,
+    String? contractType,
+    String? department,
+    int? roleId,
+    DateTime? entryDate,
   }) {
-    usuario.update((val) {
+    user.update((val) {
       if (val != null) {
-        if (nombre != null) val.nombre = nombre;
-        if (apellidoPaterno != null) val.apellidoPaterno = apellidoPaterno;
-        if (apellidoMaterno != null) val.apellidoMaterno = apellidoMaterno;
+        if (name != null) val.name = name;
+        if (fatherLastName != null) val.fatherLastName = fatherLastName;
+        if (motherLastName != null) val.motherLastName = motherLastName;
         if (email != null) val.email = email;
-        if (telefono != null) val.telefono = telefono;
-        if (nss != null) val.nss = nss;
-        if (contrasenaHash != null) val.contrasenaHash = contrasenaHash;
-        if (salario != null) val.salario = salario;
-        if (tipoContrato != null) val.tipoContrato = tipoContrato;
-        if (departamento != null) val.departamento = departamento;
-        if (rolId != null) val.rolId = rolId;
-        if (fechaIngreso != null) val.fechaIngreso = fechaIngreso;
+        if (phoneNumber != null) val.phoneNumber = phoneNumber;
+        if (socialSecurityNumber != null) {
+          val.socialSecurityNumber = socialSecurityNumber;
+        }
+        if (passwordHash != null) val.passwordHash = passwordHash;
+        if (salary != null) val.salary = salary;
+        if (contractType != null) val.contractType = contractType;
+        if (department != null) val.department = department;
+        if (roleId != null) val.roleId = roleId;
+        if (entryDate != null) val.entryDate = entryDate;
       }
     });
 
     // Trigger UI update and log values for debugging
     update();
-    print('Usuario actualizado: ${usuario.value.toJson()}');
+    print('Usuario actualizado: ${user.value.toJson()}');
   }
 
   // Actualiza la confirmación de contraseña
@@ -157,41 +166,40 @@ class EmployeeFormController extends BaseFormController {
   }
 
   // Actualizar texto de observación
-  void updateObservacion(String value) {
-    observacionText.value = value;
+  void updateObservation(String value) {
+    observationText.value = value;
   }
 
-  int getRolId(String? rolName) {
-    if (rolName == null) return 0;
-    print('Rol Name: $rolName');
-    int rolId = 0;
-    // RolRepository().findByNombre(rolName).then((value) => rolId = value!.id);
-    rolId = roles.indexOf(rolName) + 1;
-    // await RolRepository().findByNombre(rolName).then((value) => value!.id);
-    print('Rol ID: $rolId');
-    return rolId;
+  int getRoleId(String? roleName) {
+    if (roleName == null) return 0;
+    print('Rol Name: $roleName');
+    int roleId = 0;
+    roleId = roles.indexOf(roleName) + 1;
+    print('Rol ID: $roleId');
+    return roleId;
   }
 
   // Preparar el modelo para guardarlo
   void prepareModelForSave() {
-    usuario.update((val) {
+    user.update((val) {
       if (val != null) {
-        val.nombre = nombreController.text;
-        val.apellidoPaterno = apellidoPaternoController.text;
-        val.apellidoMaterno = apellidoMaternoController.text.isEmpty
+        val.name = nameController.text;
+        val.fatherLastName = fatherLastNameController.text;
+        val.motherLastName = motherLastNameController.text.isEmpty
             ? null
-            : apellidoMaternoController.text;
+            : motherLastNameController.text;
         val.email = emailController.text;
-        val.telefono =
-            telefonoController.text.isEmpty ? null : telefonoController.text;
-        val.nss = nssController.text;
-        val.contrasenaHash = contrasenaController.text;
-        val.departamento = departamentoController.text.isEmpty
+        val.phoneNumber = phoneNumberController.text.isEmpty
             ? null
-            : departamentoController.text;
-        val.salario = salarioController.text.isEmpty
+            : phoneNumberController.text;
+        val.socialSecurityNumber = socialSecurityNumberController.text;
+        val.passwordHash = passwordController.text;
+        val.department = departmentController.text.isEmpty
             ? null
-            : double.tryParse(salarioController.text);
+            : departmentController.text;
+        val.salary = salaryController.text.isEmpty
+            ? null
+            : double.tryParse(salaryController.text);
       }
     });
   }
@@ -203,20 +211,20 @@ class EmployeeFormController extends BaseFormController {
   }
 
   // Carga los datos de un usuario existente
-  void loadUsuario(UsuarioModel model) {
-    usuario.value = model;
-    observacionText.value = model.departamento ?? '';
+  void loadUser(UserModel model) {
+    user.value = model;
+    observationText.value = model.department ?? '';
 
     // Actualizar también los controladores
-    nombreController.text = model.nombre;
-    apellidoPaternoController.text = model.apellidoPaterno;
-    apellidoMaternoController.text = model.apellidoMaterno ?? '';
+    nameController.text = model.name;
+    fatherLastNameController.text = model.fatherLastName;
+    motherLastNameController.text = model.motherLastName ?? '';
     emailController.text = model.email;
-    telefonoController.text = model.telefono ?? '';
-    nssController.text = model.nss;
-    contrasenaController.text = model.contrasenaHash;
-    salarioController.text = model.salario?.toString() ?? '';
-    departamentoController.text = model.departamento ?? '';
+    phoneNumberController.text = model.phoneNumber ?? '';
+    socialSecurityNumberController.text = model.socialSecurityNumber;
+    passwordController.text = model.passwordHash;
+    salaryController.text = model.salary?.toString() ?? '';
+    departmentController.text = model.department ?? '';
 
     update();
   }
@@ -227,15 +235,15 @@ class EmployeeFormController extends BaseFormController {
     return validatePassword(value);
   }
 
-  String? validateNSS(String? value) {
+  String? validateSocialSecurityNumber(String? value) {
     return validateNSS(value);
   }
 
-  String? validateTipoContrato(String? value) {
-    return validateInList(value, tiposContrato, fieldName: 'tipo de contrato');
+  String? validateContractType(String? value) {
+    return validateInList(value, contractTypes, fieldName: 'tipo de contrato');
   }
 
-  String? validateSalario(String? value) {
+  String? validateSalary(String? value) {
     return validateSalary(value);
   }
 
@@ -243,7 +251,7 @@ class EmployeeFormController extends BaseFormController {
     if (value == null || value.isEmpty) {
       return 'Este campo es requerido';
     }
-    if (value != usuario.value.contrasenaHash) {
+    if (value != user.value.passwordHash) {
       return 'Las contraseñas no coinciden';
     }
     return null;
@@ -273,20 +281,13 @@ class EmployeeFormController extends BaseFormController {
   // Método para guardar referencias de archivos
   Future<void> _saveFileReferences(
       List<Map<String, dynamic>> fileData, int employeeId) async {
-    try {
-      // Crea un repositorio para archivos si no lo tienes ya
-      final fileRepository = Get.find<FileRepository>();
-
-      for (var file in fileData) {
-        await fileRepository.saveFile({
-          ...file,
-          'entity_id': employeeId,
-          'entity_type': 'employee',
-        });
-      }
-    } catch (e) {
-      print('Error al guardar referencias de archivos: $e');
-    }
+    // try {
+    //   for (var file in fileData) {
+    //     await _fileService.createFile(file);
+    //   }
+    // } catch (e) {
+    //   print('Error al guardar referencias de archivos: $e');
+    // }
   }
 
   Future<bool> saveEmployee() async {
@@ -294,27 +295,25 @@ class EmployeeFormController extends BaseFormController {
       // El departamento se puede usar para guardar información temporal
       // que luego se puede mover a la tabla de observaciones
       print('formulario valido: ${validateForm()}');
-      if (observacionText.value.isNotEmpty) {
-        usuario.update((val) {
-          if (val != null) val.departamento = observacionText.value;
+      if (observationText.value.isNotEmpty) {
+        user.update((val) {
+          if (val != null) val.department = observationText.value;
         });
       }
 
-      // Guardar o actualizar el usuario
-      final savedUser = usuario.value.id > 0
-          ? await _repository.update(usuario.value)
-          : await _repository.createEmployee(usuario.value);
+      // Guardar o actualizar el usuario usando el servicio
+      final savedUser = user.value.id > 0
+          ? await _userService.updateUser(user.value)
+          : await _userService.createEmployee(user.value);
 
       if (files.isNotEmpty) {
         // upload
-
         final uploadedFiles =
-            await uploadFilesToSupabase(files, usuario.value.id.toString());
+            await uploadFilesToSupabase(files, user.value.id.toString());
 
         // Guarda las referencias de los archivos en la base de datos
-        // SDA
         if (uploadedFiles.isNotEmpty) {
-          await _saveFileReferences(uploadedFiles, usuario.value.id);
+          await _saveFileReferences(uploadedFiles, user.value.id);
         }
       }
 
@@ -347,8 +346,7 @@ class EmployeeFormController extends BaseFormController {
     }
 
     // Validar tipo contrato
-    if (usuario.value.tipoContrato == null ||
-        usuario.value.tipoContrato!.isEmpty) {
+    if (user.value.contractType == null || user.value.contractType!.isEmpty) {
       Get.snackbar(
         'Error',
         'Debe seleccionar un tipo de contrato',
@@ -358,8 +356,8 @@ class EmployeeFormController extends BaseFormController {
     }
 
     // Validar contraseña y confirmación
-    if (usuario.value.id == 0 && // Solo para nuevos usuarios
-        usuario.value.contrasenaHash != confirmPassword.value) {
+    if (user.value.id == 0 && // Solo para nuevos usuarios
+        user.value.passwordHash != confirmPassword.value) {
       Get.snackbar(
         'Error',
         'Las contraseñas no coinciden',
@@ -370,10 +368,4 @@ class EmployeeFormController extends BaseFormController {
 
     return true;
   }
-
-  // void addFile(FileData file) {
-  //   files.add(file);
-  //   // La siguiente línea fuerza una actualización en caso necesario
-  //   files.refresh();
-  // }
 }

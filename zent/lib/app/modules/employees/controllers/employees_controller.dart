@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/usuario_model.dart';
-import '../../../data/repositories/usuario_repository.dart';
+import '../../../data/models/user_model.dart';
+import '../../../data/services/user_service.dart';
 import '../widgets/employee_details_dialog.dart';
 
 class EmployeesController extends GetxController {
   // Lista reactiva de empleados
-  final employees = <UsuarioModel>[].obs;
-  final filtro = ''.obs;
+  final employees = <UserModel>[].obs;
+  final filter = ''.obs;
   final textController = TextEditingController();
 
   // Estado de carga
@@ -16,12 +16,12 @@ class EmployeesController extends GetxController {
   final hasError = false.obs;
   final errorMessage = ''.obs;
 
-  // Repositorio
-  final UsuarioRepository _repository;
+  // Servicio
+  final UserService _userService;
 
   // Inyección de dependencia mediante constructor
-  EmployeesController({UsuarioRepository? repository})
-      : _repository = repository ?? Get.find<UsuarioRepository>();
+  EmployeesController({UserService? userService})
+      : _userService = userService ?? Get.find<UserService>();
 
   @override
   void onInit() {
@@ -31,7 +31,7 @@ class EmployeesController extends GetxController {
 
     // Configurar listener para el filtro de texto
     textController.addListener(() {
-      filtro.value = textController.text;
+      filter.value = textController.text;
     });
   }
 
@@ -41,22 +41,23 @@ class EmployeesController extends GetxController {
     super.onClose();
   }
 
-  List<UsuarioModel> empleadosFiltrados() {
+  List<UserModel> filteredEmployees() {
     if (employees.isEmpty) {
       print('No hay empleados');
-      return <UsuarioModel>[].obs;
+      return <UserModel>[].obs;
     }
 
-    final empleados = <UsuarioModel>[];
+    final filtered = <UserModel>[];
 
-    for (var valor in employees) {
-      if (valor.nombreCompleto
+    for (var employee in employees) {
+      if (employee.fullName
           .toLowerCase()
-          .contains(filtro.value.toLowerCase())) {
-        empleados.add(valor);
+          .contains(filter.value.toLowerCase())) {
+        filtered.add(employee);
       }
     }
-    return empleados;
+    return filtered;
+
   }
 
   // Obtener todos los empleados
@@ -64,7 +65,7 @@ class EmployeesController extends GetxController {
     try {
       isLoading(true);
       hasError(false);
-      final result = await _repository.getEmployees();
+      final result = await _userService.getEmployees();
       employees.assignAll(result);
     } catch (e) {
       hasError(true);
@@ -74,31 +75,6 @@ class EmployeesController extends GetxController {
     }
   }
 
-  // Filtrar empleados por texto
-  // void filterEmployees() {
-  //   if (filtro.isEmpty) {
-  //     loadEmployees();
-  //     return;
-  //   }
-
-  //   try {
-  //     final searchText = filtro.value.toLowerCase();
-  //     print('Filtrando empleados por: $searchText');
-  //     final filteredEmployees = employees.where((employee) {
-  //       return employee.nombreCompleto.toLowerCase().contains(searchText) ||
-  //           employee.email.toLowerCase().contains(searchText) ||
-  //           (employee.departamento?.toLowerCase().contains(searchText) ??
-  //               false);
-  //     }).toList();
-
-  //     employees.assignAll(filteredEmployees);
-  //   } catch (e) {
-  //     if (kDebugMode) {
-  //       print('Error al filtrar: $e');
-  //     }
-  //   }
-  // }
-
   // Recargar datos
   void refreshData() {
     loadEmployees();
@@ -106,7 +82,7 @@ class EmployeesController extends GetxController {
 
   bool employeesEmpty() => employees.isEmpty;
 
-  UsuarioModel getUserById(int id) {
+  UserModel getUserById(int id) {
     try {
       return employees.firstWhere((user) => user.id == id);
     } catch (e) {

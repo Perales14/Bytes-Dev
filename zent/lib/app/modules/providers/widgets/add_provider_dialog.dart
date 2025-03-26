@@ -2,22 +2,18 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../data/models/proveedor_model.dart';
-import '../../../data/repositories/especialidad_repository.dart';
+import '../../../data/models/provider_model.dart';
 import '../controllers/provider_form_controller.dart';
 import '../../../shared/models/form_config.dart';
-import '../../../data/repositories/direccion_repository.dart';
-import '../../../data/repositories/estado_repository.dart';
-import '../../../data/repositories/proveedor_repository.dart';
 import 'provider_form.dart';
 
 class AddProviderDialog extends StatefulWidget {
   final Function onSaveSuccess;
-  final ProveedorModel? provider; // Añadir este parámetro opcional
+  final ProviderModel? provider;
 
   const AddProviderDialog({
     required this.onSaveSuccess,
-    this.provider, // Opcional para edición
+    this.provider,
     super.key,
   });
 
@@ -31,22 +27,6 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
   @override
   void initState() {
     super.initState();
-    // Asegurar que todos los repositorios estén registrados (sin duplicados)
-    if (!Get.isRegistered<ProveedorRepository>()) {
-      Get.lazyPut(() => ProveedorRepository());
-    }
-
-    if (!Get.isRegistered<DireccionRepository>()) {
-      Get.lazyPut(() => DireccionRepository());
-    }
-
-    if (!Get.isRegistered<EstadoRepository>()) {
-      Get.lazyPut(() => EstadoRepository());
-    }
-
-    if (!Get.isRegistered<EspecialidadRepository>()) {
-      Get.lazyPut(() => EspecialidadRepository());
-    }
 
     // Inicializamos el controlador
     controller = Get.put(ProviderFormController());

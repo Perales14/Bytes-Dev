@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/usuario_model.dart';
+import 'package:get/get.dart';
+import '../../../data/models/user_model.dart';
 import '../controllers/employees_controller.dart';
 import 'add_employee_card.dart';
 import 'emplooyees_card.dart';
 
 class EmployeesCardsGrid extends StatelessWidget {
-  final List<UsuarioModel> employees;
+  final List<UserModel> employees;
   final VoidCallback onAddEmployee;
   final EmployeesController controller;
 
@@ -56,12 +57,12 @@ class EmployeesCardsGrid extends StatelessWidget {
         // Para el resto, obtenemos el empleado de la lista
         final employee = employees[index - 1];
 
-        // Determinamos el rol basado en el rolId
-        String role = employee.rolId == 1 ? 'Líder' : 'Empleado';
+        // Determinamos el rol basado en el roleId
+        String role = employee.roleId == 1 ? 'Líder' : 'Empleado';
 
         return EmployeesCard(
-          name: employee.nombreCompleto,
-          position: _getRolName(employee.rolId),
+          name: employee.fullName,
+          position: _getRoleName(employee.roleId),
           role: role,
           projectCount: 2,
           taskCount: 4,
@@ -72,8 +73,8 @@ class EmployeesCardsGrid extends StatelessWidget {
   }
 
   // Función auxiliar para obtener el nombre del rol
-  String _getRolName(int rolId) {
-    switch (rolId) {
+  String _getRoleName(int roleId) {
+    switch (roleId) {
       case 1:
         return 'Captador de Campo';
       case 2:

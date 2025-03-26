@@ -1,45 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/proveedor_model.dart';
-import '../../../data/repositories/proveedor_repository.dart';
-import '../../../data/repositories/especialidad_repository.dart';
+import '../../../data/models/provider_model.dart';
+import '../../../data/services/provider_service.dart';
+import '../../../data/services/specialty_service.dart';
 import '../widgets/add_provider_dialog.dart';
 import '../widgets/provider_details_dialog.dart';
 
 class ProvidersController extends GetxController {
-  // Lista reactiva de proveedores
-  final providers = <ProveedorModel>[].obs;
-  final filtro = ''.obs;
+  // Reactive provider list
+  final providers = <ProviderModel>[].obs;
+  final filter = ''.obs;
   final TextEditingController textController = TextEditingController();
 
-  // Estado de carga
+  // Loading states
   final isLoading = true.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
 
-  // Caché para nombres de especialidades
-  final especialidadesCache = <int, String>{}.obs;
+  // Cache for specialty names
+  final specialtiesCache = <int, String>{}.obs;
 
-  // Repositorios
-  final ProveedorRepository _repository;
-  final EspecialidadRepository _especialidadRepository;
+  // Services
+  final ProviderService _providerService;
+  final SpecialtyService _specialtyService;
 
-  // Inyección de dependencia mediante constructor
+  // Dependency injection through constructor
   ProvidersController({
-    ProveedorRepository? repository,
-    EspecialidadRepository? especialidadRepository,
-  })  : _repository = repository ?? Get.find<ProveedorRepository>(),
-        _especialidadRepository =
-            especialidadRepository ?? Get.find<EspecialidadRepository>();
+    ProviderService? providerService,
+    SpecialtyService? specialtyService,
+  })  : _providerService = providerService ?? Get.find<ProviderService>(),
+        _specialtyService = specialtyService ?? Get.find<SpecialtyService>();
 
   @override
   void onInit() {
     super.onInit();
     loadProviders();
 
-    // Configurar listener para el filtro de texto
+    // Setup listener for text filter
     textController.addListener(() {
-      filtro.value = textController.text;
+      filter.value = textController.text;
       filterProviders();
     });
   }
@@ -50,84 +49,87 @@ class ProvidersController extends GetxController {
     super.onClose();
   }
 
-  // Método para cargar el nombre de especialidad si no está en caché
-  void loadEspecialidadIfNeeded(int especialidadId) async {
-    if (!especialidadesCache.containsKey(especialidadId)) {
-      especialidadesCache[especialidadId] = 'Cargando...';
+  // Load specialty name if not in cache
+  void loadSpecialtyIfNeeded(int specialtyId) async {
+    if (!specialtiesCache.containsKey(specialtyId)) {
+      specialtiesCache[specialtyId] = 'Loading...';
 
       try {
-        final especialidad =
-            await _especialidadRepository.getById(especialidadId);
-        especialidadesCache[especialidadId] = especialidad.nombre;
+        final specialty = await _specialtyService.getSpecialtyById(specialtyId);
+        if (specialty != null) {
+          specialtiesCache[specialtyId] = specialty.name;
+        } else {
+          specialtiesCache[specialtyId] = 'Specialty $specialtyId';
+        }
       } catch (e) {
-        print('Error al cargar especialidad $especialidadId: $e');
-        especialidadesCache[especialidadId] = 'Especialidad $especialidadId';
+        print('Error loading specialty $specialtyId: $e');
+        specialtiesCache[specialtyId] = 'Specialty $specialtyId';
       }
     }
   }
 
-  // Método para obtener el nombre de la especialidad (desde caché)
-  String getEspecialidadNombre(int especialidadId) {
-    return especialidadesCache[especialidadId] ?? 'Cargando...';
+  // Get specialty name from cache
+  String getSpecialtyName(int specialtyId) {
+    return specialtiesCache[specialtyId] ?? 'Loading...';
   }
 
-  // Filtrar proveedores según texto ingresado
+  // Filter providers based on search text
   void filterProviders() {
-    if (filtro.isEmpty) {
+    if (filter.isEmpty) {
       loadProviders();
       return;
     }
 
     try {
-      final searchText = filtro.value.toLowerCase();
-      final filteredProviders = providers.where((proveedor) {
-        return proveedor.nombreEmpresa.toLowerCase().contains(searchText) ||
-            (proveedor.contactoPrincipal?.toLowerCase().contains(searchText) ??
+      final searchText = filter.value.toLowerCase();
+      final filteredProviders = providers.where((provider) {
+        return provider.companyName.toLowerCase().contains(searchText) ||
+            (provider.mainContactName?.toLowerCase().contains(searchText) ??
                 false) ||
-            (proveedor.tipoServicio?.toLowerCase().contains(searchText) ??
+            (provider.serviceType?.toLowerCase().contains(searchText) ??
                 false) ||
-            (proveedor.email?.toLowerCase().contains(searchText) ?? false);
+            (provider.email?.toLowerCase().contains(searchText) ?? false);
       }).toList();
 
       providers.assignAll(filteredProviders);
     } catch (e) {
-      print('Error al filtrar proveedores: $e');
+      print('Error filtering providers: $e');
     }
   }
 
-  // Cargar proveedores desde el repositorio
+  // Load providers from service
   void loadProviders() async {
     try {
       isLoading(true);
       hasError(false);
 
-      // Usamos getAllActive() para asegurar que solo obtenemos proveedores activos
-      final result = await _repository.getAllActive();
-      print('Proveedores cargados: ${result.length}');
+      // Use getActiveProviders to ensure we only get active providers
+      final result = await _providerService.getActiveProviders();
+      print('Providers loaded: ${result.length}');
       providers.assignAll(result);
 
-      // Precargamos los nombres de especialidades
+      // Preload specialty names
       for (var provider in result) {
-        loadEspecialidadIfNeeded(provider.especialidadId);
+        loadSpecialtyIfNeeded(provider.specialtyId);
       }
     } catch (e) {
       hasError(true);
-      errorMessage('Error al cargar proveedores: $e');
-      print('Error cargando proveedores: $e');
+      errorMessage('Error loading providers: $e');
+      print('Error loading providers: $e');
     } finally {
       isLoading(false);
     }
   }
 
-  // Recargar datos
+  // Reload data
   void refreshData() {
     loadProviders();
   }
 
-  // Verificar si hay proveedores
+  // Check if there are no providers
   bool providersEmpty() => providers.isEmpty;
 
-  // Agregar este método a ProvidersController
+  // Show provider details dialog
   void showProviderDetails(int providerId) {
     try {
       final provider = providers.firstWhere((p) => p.id == providerId);
@@ -140,11 +142,9 @@ class ProvidersController extends GetxController {
           return ProviderDetailsDialog(
             provider: provider,
             onEditPressed: () {
-              // Primero cerramos el diálogo
+              // First close the dialog
               Navigator.of(context).pop();
-              // Luego navegamos a la página de edición o mostramos otro diálogo
-              // Get.toNamed('/providers/$providerId/edit');
-              // O muestra el diálogo de edición:
+              // Then navigate to edit page or show another dialog
               _showEditProviderDialog(context, provider);
             },
           );
@@ -153,7 +153,7 @@ class ProvidersController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'No se pudo encontrar la información del proveedor',
+        'Could not find provider information',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
@@ -161,8 +161,8 @@ class ProvidersController extends GetxController {
     }
   }
 
-  // Método auxiliar para mostrar el diálogo de edición
-  void _showEditProviderDialog(BuildContext context, ProveedorModel provider) {
+  // Helper method to show edit dialog
+  void _showEditProviderDialog(BuildContext context, ProviderModel provider) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -170,19 +170,18 @@ class ProvidersController extends GetxController {
       builder: (context) {
         return AddProviderDialog(
           onSaveSuccess: () => refreshData(),
-          provider:
-              provider, // Asumiendo que AddProviderDialog puede recibir un provider existente
+          provider: provider,
         );
       },
     );
   }
 
-  // Método auxiliar para obtener un proveedor por ID
-  ProveedorModel getProviderById(int id) {
+  // Helper method to get provider by ID
+  ProviderModel getProviderById(int id) {
     try {
       return providers.firstWhere((provider) => provider.id == id);
     } catch (e) {
-      throw Exception('Proveedor con ID $id no encontrado');
+      throw Exception('Provider with ID $id not found');
     }
   }
 }

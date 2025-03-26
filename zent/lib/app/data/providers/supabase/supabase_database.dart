@@ -1,110 +1,82 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../interfaces/database_interface.dart';
+import 'supabase_client.dart';
 
-class SupabaseDatabase implements DatabaseInterface {
+class SupabaseDatabase {
   late final SupabaseClient _client;
   bool _initialized = false;
 
-  @override
   Future<void> init() async {
     if (!_initialized) {
-      initialize();
+      await initialize();
     }
   }
 
-  void initialize() {
+  Future<void> initialize() async {
     if (!_initialized) {
-      _client = Supabase.instance.client;
+      final manager = await SupabaseClientManager.instance;
+      _client = manager.client;
       _initialized = true;
     }
   }
 
-  @override
+  // Insert data
   Future<Map<String, dynamic>> insert(
       String table, Map<String, dynamic> data) async {
-    initialize();
+    await initialize();
     final response = await _client.from(table).insert(data).select().single();
-    // final a = await Supabase.instance.client.from(table).insert(data).select().single();
-
     return response;
   }
 
-  @override
+  // Get all records
   Future<List<Map<String, dynamic>>> getAll(String table) async {
-    initialize();
-    print('Supabase - Consultando todos los registros de $table');
+    await initialize();
     final response = await _client.from(table).select();
-    for (var item in response) {
-      print(item);
-    }
-    print('query response: $response');
     return List<Map<String, dynamic>>.from(response);
   }
 
-  @override
+  // Get by ID
   Future<Map<String, dynamic>?> getById(String table, dynamic id) async {
     try {
-      // Asegurar inicialización
-      initialize();
-
-      print('Supabase - Consultando $table con ID: $id');
-
+      await initialize();
       final response =
           await _client.from(table).select().eq('id', id).maybeSingle();
-
-      print('Supabase - Respuesta recibida: $response');
-
       return response;
     } catch (e) {
-      print('Supabase - Error en getById: $e');
-      return null; // Devolver null en lugar de propagar el error
+      print('Error fetching $table with ID $id: $e');
+      return null;
     }
   }
 
-  @override
+  // Update
   Future<int> update(String table, Map<String, dynamic> data, String where,
       List<dynamic> whereArgs) async {
-    initialize();
+    await initialize();
     final fieldName = where.split(' ')[0];
     final value = whereArgs[0];
     await _client.from(table).update(data).eq(fieldName, value);
-    return 1; // Supabase no devuelve el conteo exacto de filas afectadas
+    return 1;
   }
 
-  @override
+  // Delete
   Future<int> delete(
       String table, String where, List<dynamic> whereArgs) async {
-    initialize();
+    await initialize();
     final fieldName = where.split(' ')[0];
     final value = whereArgs[0];
     await _client.from(table).delete().eq(fieldName, value);
-    return 1; // Supabase no devuelve el conteo exacto de filas afectadas
+    return 1;
   }
 
-  @override
-  Future<List<Map<String, dynamic>>> rawQuery(String sql,
-      [List<dynamic>? arguments]) async {
-    initialize();
-    // Supabase no soporta consultas SQL directas a través del cliente
-    // Se podrían usar funciones PostgreSQL o llamadas RPC para consultas complejas
-    throw UnimplementedError(
-        'Raw queries not supported directly in Supabase client');
-  }
-
-  @override
+  // Custom query
   Future<List<Map<String, dynamic>>> query(
       String table, String where, List<dynamic> whereArgs) async {
     try {
-      // Inicializamos la consulta
-      initialize();
-      print('Querying table $table with WHERE $where and args $whereArgs');
+      await initialize();
       var query = _client.from(table).select();
-      // Procesamos las condiciones WHERE
+
       if (where.isNotEmpty && whereArgs.isNotEmpty) {
-        // Dividimos la condición WHERE por "AND"
         final conditions = where.split(' AND ');
 
-        // Aplicamos cada condición
         for (int i = 0; i < conditions.length; i++) {
           final condition = conditions[i].trim();
           final parts = condition.split(' ');
@@ -112,7 +84,6 @@ class SupabaseDatabase implements DatabaseInterface {
           if (parts.length >= 3) {
             final field = parts[0];
             final operator = parts[1];
-            // El valor vendrá de whereArgs
             final value = whereArgs[i];
 
             switch (operator) {
@@ -138,22 +109,16 @@ class SupabaseDatabase implements DatabaseInterface {
                 query = query.like(field, '%$value%');
                 break;
               default:
-                throw Exception('Operador no soportado: $operator');
+                throw Exception('Unsupported operator: $operator');
             }
           }
         }
       }
 
-      // Ejecutamos la consulta
       final response = await query;
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Error en consulta Supabase: $e');
+      throw Exception('Query error: $e');
     }
-  }
-
-  @override
-  Future<void> close() async {
-    // No se necesita cerrar explícitamente el cliente de Supabase
   }
 }

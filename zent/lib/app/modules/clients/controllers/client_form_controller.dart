@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/cliente_model.dart';
-import '../../../data/models/observacion_model.dart';
-import '../../../data/repositories/cliente_repository.dart';
-import '../../../data/repositories/observacion_repository.dart';
+import '../../../data/models/client_model.dart';
+import '../../../data/models/observation_model.dart';
+import '../../../data/services/client_service.dart';
+import '../../../data/services/observation_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart';
 
 /// Controller for the client registration form
 class ClientFormController extends BaseFormController {
-  // Repositorios necesarios
-  final ClienteRepository _clienteRepository = Get.find<ClienteRepository>();
-  final ObservacionRepository _observacionRepository =
-      Get.find<ObservacionRepository>();
+  // Servicios necesarios
+  final ClientService _clientService = Get.find<ClientService>();
+  final ObservationService _observationService = Get.find<ObservationService>();
 
   // Modelo central que almacena todos los datos del cliente
-  late ClienteModel clienteModel;
+  late ClientModel client;
 
-  // Observaciones
-  final observacionText = ''.obs;
+  final observationText = ''.obs;
 
-  // ID del usuario actual (deberías obtenerlo de tu sistema de autenticación)
+  // ID del usuario actual (se obtendra del modulo de autenticación)
   final int currentUserId = 1; // Ejemplo: ID del usuario logueado
 
   // Client types
-  final List<String> tiposCliente = ['Particular', 'Empresa', 'Gobierno'];
+  final List<String> clientTypes = ['Particular', 'Empresa', 'Gobierno'];
 
   @override
   void onInit() {
@@ -34,41 +32,39 @@ class ClientFormController extends BaseFormController {
 
   // Inicializa el modelo de cliente con valores por defecto
   void _initializeClient() {
-    clienteModel = ClienteModel(
-      nombre: '',
-      apellidoPaterno: '',
-      apellidoMaterno: '',
+    client = ClientModel(
+      name: '',
+      fatherLastName: '',
+      motherLastName: '',
       email: '',
-      telefono: '',
-      nombreEmpresa: '',
-      rfc: '',
-      tipo: null,
-      estadoId: 1, // Valor por defecto
+      phoneNumber: '',
+      companyName: '',
+      taxIdentificationNumber: '',
+      clientType: null,
+      stateId: 1, // Valor por defecto
     );
 
     // Inicializar texto de observación
-    observacionText.value = '';
+    observationText.value = '';
   }
 
   // Validation methods
-  String? validateRFC(String? value) {
-    print('Validating RFC: $value');
+  String? validateTaxId(String? value) {
     if (value == null || value.isEmpty) {
-      return 'null'; // RFC es opcional
+      return null; // RFC es opcional
     }
 
     // Regex para validar RFC
     final rfcRegExp = RegExp(
         r'^([A-ZÑ&]{3,4})(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))([A-Z\d]{2})([A\d])$');
     if (!rfcRegExp.hasMatch(value)) {
-      // print('RFC inválido');
       return 'RFC inválido';
     }
     return null;
   }
 
-  String? validateTipo(String? value) {
-    return validateInList(value, tiposCliente, fieldName: 'tipo de cliente');
+  String? validateType(String? value) {
+    return validateInList(value, clientTypes, fieldName: 'tipo de cliente');
   }
 
   @override
@@ -80,8 +76,8 @@ class ClientFormController extends BaseFormController {
   }
 
   // Actualizar texto de observación
-  void updateObservacion(String value) {
-    observacionText.value = value;
+  void updateObservation(String value) {
+    observationText.value = value;
   }
 
   @override
@@ -89,8 +85,8 @@ class ClientFormController extends BaseFormController {
     // Validamos el formulario completo primero
     if (_validateClientForm()) {
       try {
-        // Implementamos la llamada real al repositorio
-        saveClientWithObservacion();
+        // Implementamos la llamada real al servicio
+        saveClientWithObservation();
         return true;
       } catch (e) {
         Get.snackbar(
@@ -107,20 +103,20 @@ class ClientFormController extends BaseFormController {
   }
 
   // Método para guardar cliente y observación
-  Future<bool> saveClientWithObservacion() async {
+  Future<bool> saveClientWithObservation() async {
     try {
       // Validar tipo
-      if (clienteModel.tipo == '') {
-        clienteModel.tipo = null;
+      if (client.clientType == '') {
+        client = client.copyWith(clientType: null);
       }
 
       // 1. Guardar el cliente primero
-      final savedClient = await _clienteRepository.create(clienteModel);
+      final savedClient = await _clientService.createClient(client);
 
       if (savedClient.id > 0) {
         // 2. Si hay observación, guardarla
-        if (observacionText.value.trim().isNotEmpty) {
-          await _saveObservacion(savedClient.id);
+        if (observationText.value.trim().isNotEmpty) {
+          await _saveObservation(savedClient.id);
         }
 
         Get.snackbar(
@@ -150,19 +146,20 @@ class ClientFormController extends BaseFormController {
   }
 
   // Método para guardar observación
-  Future<bool> _saveObservacion(int clienteId) async {
+  Future<bool> _saveObservation(int clientId) async {
     try {
       // Crear modelo de observación
-      final observacion = ObservacionModel(
-        tablaOrigen: 'clientes', // Nombre de la tabla en la base de datos
-        idOrigen: clienteId,
-        observacion: observacionText.value.trim(),
-        usuarioId: currentUserId,
+      final observation = ObservationModel(
+        sourceTable: 'clients', // Nombre de la tabla en la base de datos
+        sourceId: clientId,
+        observation: observationText.value.trim(),
+        userId: currentUserId,
       );
 
       // Guardar observación en la base de datos
-      final savedObservacion = await _observacionRepository.create(observacion);
-      return savedObservacion.id > 0;
+      final savedObservation =
+          await _observationService.createObservation(observation);
+      return savedObservation.id > 0;
     } catch (e) {
       print('Error al guardar observación: $e');
       return false;
@@ -177,7 +174,7 @@ class ClientFormController extends BaseFormController {
     }
 
     // Validación específica para el tipo de cliente
-    if (clienteModel.tipo == null || clienteModel.tipo!.isEmpty) {
+    if (client.clientType == null || client.clientType!.isEmpty) {
       Get.snackbar(
         'Error de validación',
         'Debe seleccionar un tipo de cliente',
@@ -193,36 +190,37 @@ class ClientFormController extends BaseFormController {
 
   // Actualiza el modelo del cliente con nuevos valores
   void updateClient({
-    String? nombre,
-    String? apellidoPaterno,
-    String? apellidoMaterno,
+    String? name,
+    String? fatherLastName,
+    String? motherLastName,
     String? email,
-    String? telefono,
-    String? nombreEmpresa,
-    String? rfc,
-    String? tipo,
-    int? estadoId,
+    String? phoneNumber,
+    String? companyName,
+    String? taxIdentificationNumber,
+    String? clientType,
+    int? stateId,
   }) {
     // Validación para asegurar que tipo sea null o un valor válido
-    String? validTipo = tipo;
-    if (validTipo != null && validTipo.isEmpty) {
-      validTipo = null;
+    String? validType = clientType;
+    if (validType != null && validType.isEmpty) {
+      validType = null;
     }
 
     try {
-      clienteModel = ClienteModel(
-        id: clienteModel.id,
-        nombre: nombre ?? clienteModel.nombre,
-        apellidoPaterno: apellidoPaterno ?? clienteModel.apellidoPaterno,
-        apellidoMaterno: apellidoMaterno ?? clienteModel.apellidoMaterno,
-        email: email ?? clienteModel.email,
-        telefono: telefono ?? clienteModel.telefono,
-        nombreEmpresa: nombreEmpresa ?? clienteModel.nombreEmpresa,
-        rfc: rfc ?? clienteModel.rfc,
-        tipo: validTipo, // Usar el valor validado
-        estadoId: estadoId ?? clienteModel.estadoId,
-        idDireccion: clienteModel.idDireccion,
-        createdAt: clienteModel.createdAt,
+      client = ClientModel(
+        id: client.id,
+        name: name ?? client.name,
+        fatherLastName: fatherLastName ?? client.fatherLastName,
+        motherLastName: motherLastName ?? client.motherLastName,
+        email: email ?? client.email,
+        phoneNumber: phoneNumber ?? client.phoneNumber,
+        companyName: companyName ?? client.companyName,
+        taxIdentificationNumber:
+            taxIdentificationNumber ?? client.taxIdentificationNumber,
+        clientType: validType, // Usar el valor validado
+        stateId: stateId ?? client.stateId,
+        addressId: client.addressId,
+        createdAt: client.createdAt,
         updatedAt: DateTime.now(),
       );
     } catch (e) {
@@ -231,7 +229,7 @@ class ClientFormController extends BaseFormController {
   }
 
   // Obtener el modelo actual para guardarlo o enviarlo
-  ClienteModel getClientModel() {
-    return clienteModel;
+  ClientModel getClientModel() {
+    return client;
   }
 }

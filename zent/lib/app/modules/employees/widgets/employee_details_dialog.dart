@@ -1,10 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../data/models/usuario_model.dart';
+import 'package:get/get.dart';
+import '../controllers/employee_details_controller.dart';
+import '../../../data/models/user_model.dart';
 
 class EmployeeDetailsDialog extends StatelessWidget {
-  final UsuarioModel employee;
+  final UserModel employee;
   final VoidCallback? onEditPressed;
 
   const EmployeeDetailsDialog({
@@ -19,7 +21,6 @@ class EmployeeDetailsDialog extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return RawKeyboardListener(
-      // Escuchamos eventos de teclado para cerrar con Escape
       focusNode: FocusNode()..requestFocus(),
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent &&
@@ -28,12 +29,10 @@ class EmployeeDetailsDialog extends StatelessWidget {
           Navigator.of(context).pop();
         }
       },
-      // Añadimos un efecto de desenfoque al fondo
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
         child: Dialog(
           backgroundColor: Colors.transparent,
-          // Eliminamos el padding interno del Dialog por defecto
           insetPadding: EdgeInsets.symmetric(
             horizontal: size.width * 0.05,
             vertical: size.height * 0.05,
@@ -61,7 +60,6 @@ class EmployeeDetailsDialog extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Título con botón de cerrar en la esquina
                     Row(
                       children: [
                         const Spacer(),
@@ -78,53 +76,30 @@ class EmployeeDetailsDialog extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 36),
-
-                    // Sección: Datos Personales
                     _buildSectionTitle(theme, 'Datos Personales'),
                     const SizedBox(height: 16),
-
-                    // Nombre completo
                     _buildInfoRow(theme, 'Nombre completo:',
-                        '${employee.nombre} ${employee.apellidoPaterno} ${employee.apellidoMaterno ?? ""}'),
-
-                    // Correo electrónico
+                        '${employee.name} ${employee.fatherLastName} ${employee.motherLastName ?? ""}'),
                     _buildInfoRow(theme, 'Correo electrónico:', employee.email),
-
-                    // Teléfono
                     _buildInfoRow(theme, 'Teléfono:',
-                        employee.telefono ?? 'No disponible'),
-
-                    // NSS
-                    _buildInfoRow(theme, 'NSS:', employee.nss),
-
+                        employee.phoneNumber ?? 'No disponible'),
+                    _buildInfoRow(theme, 'NSS:', employee.socialSecurityNumber),
                     const SizedBox(height: 24),
-
-                    // Sección: Datos Laborales
                     _buildSectionTitle(theme, 'Datos Laborales'),
                     const SizedBox(height: 16),
-
-                    // Fecha de ingreso
                     _buildInfoRow(theme, 'Fecha de ingreso:',
-                        employee.fechaIngreso.toString().split(' ')[0]),
-
-                    // Rol
-                    _buildInfoRow(theme, 'Rol:', _getRolName(employee.rolId)),
-
-                    // Tipo de contrato
+                        employee.entryDate.toString().split(' ')[0]),
+                    _buildInfoRow(theme, 'Rol:', _getRoleName(employee.roleId)),
                     _buildInfoRow(theme, 'Tipo de contrato:',
-                        employee.tipoContrato ?? 'No especificado'),
-
-                    // Salario
+                        employee.contractType ?? 'No especificado'),
                     _buildInfoRow(
                         theme,
                         'Salario:',
-                        employee.salario != null
-                            ? '\$${employee.salario}'
+                        employee.salary != null
+                            ? '\$${employee.salary}'
                             : 'No especificado'),
-
-                    // Observaciones (ahora en departamento)
-                    if (employee.departamento != null &&
-                        employee.departamento!.isNotEmpty) ...[
+                    if (employee.department != null &&
+                        employee.department!.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       _buildSectionTitle(theme, 'Observaciones'),
                       const SizedBox(height: 16),
@@ -138,15 +113,12 @@ class EmployeeDetailsDialog extends StatelessWidget {
                                   theme.colorScheme.outline.withOpacity(0.3)),
                         ),
                         child: Text(
-                          employee.departamento!,
+                          employee.department!,
                           style: theme.textTheme.bodyLarge,
                         ),
                       ),
                     ],
-
                     const SizedBox(height: 36),
-
-                    // Botón para editar
                     Center(
                       child: ElevatedButton.icon(
                         onPressed: onEditPressed,
@@ -186,7 +158,6 @@ class EmployeeDetailsDialog extends StatelessWidget {
   }
 
   Widget _buildInfoRow(ThemeData theme, String label, String value) {
-    // Si el valor es vacío, mostrar un texto predeterminado
     final displayValue = value.isEmpty ? 'No disponible' : value;
 
     return Padding(
@@ -214,9 +185,8 @@ class EmployeeDetailsDialog extends StatelessWidget {
     );
   }
 
-  // Actualizado para usar integers en lugar de strings
-  String _getRolName(int rolId) {
-    switch (rolId) {
+  String _getRoleName(int roleId) {
+    switch (roleId) {
       case 2:
         return 'Admin';
       case 1:

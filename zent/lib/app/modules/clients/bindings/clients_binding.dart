@@ -1,16 +1,21 @@
 import 'package:get/get.dart';
-import '../../../data/repositories/cliente_repository.dart';
-import '../../../data/repositories/observacion_repository.dart';
+import '../../../data/services/client_service.dart';
+import '../../../data/services/observation_service.dart';
 import '../controllers/clients_controller.dart';
 
 class ClientsBinding extends Bindings {
   @override
   void dependencies() {
-    // Registramos los repositorios
-    Get.lazyPut<ClienteRepository>(() => ClienteRepository());
-    Get.lazyPut<ObservacionRepository>(() => ObservacionRepository());
+    // Registrar servicios
+    if (!Get.isRegistered<ClientService>()) {
+      Get.lazyPut<ClientService>(() => ClientService());
+    }
 
-    // Luego el controlador que depende del repositorio
+    if (!Get.isRegistered<ObservationService>()) {
+      Get.lazyPut<ObservationService>(() => ObservationService());
+    }
+
+    // Registrar controlador
     Get.lazyPut<ClientsController>(() => ClientsController());
   }
 }

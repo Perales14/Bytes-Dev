@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../data/models/proveedor_model.dart';
+import '../../../data/models/provider_model.dart';
 import '../../../shared/widgets/entity_card.dart';
 import '../controllers/providers_controller.dart';
 
 class ProviderCard extends GetWidget<ProvidersController> {
-  final ProveedorModel provider;
+  final ProviderModel provider;
   final VoidCallback onTap;
 
   const ProviderCard({
@@ -17,28 +17,27 @@ class ProviderCard extends GetWidget<ProvidersController> {
   @override
   Widget build(BuildContext context) {
     // Asegurar que la especialidad está cargada
-    controller.loadEspecialidadIfNeeded(provider.especialidadId);
+    controller.loadSpecialtyIfNeeded(provider.specialtyId);
 
     // Usar Obx para reactividad
     return Obx(() {
-      final especialidad =
-          controller.getEspecialidadNombre(provider.especialidadId);
+      final specialty = controller.getSpecialtyName(provider.specialtyId);
 
       return EntityCard(
         data: EntityCardData(
-          title: provider.nombreEmpresa,
-          description: provider.contactoPrincipal ?? 'Sin contacto',
-          badgeText: especialidad,
+          title: provider.companyName,
+          description: provider.mainContactName ?? 'Sin contacto',
+          badgeText: specialty,
           // Usamos el método showProviderDetails para mostrar el diálogo
           onTap: () => controller.showProviderDetails(provider.id),
           counters: [
             // EntityCardCounter(
             //   icon: Icons.payments_outlined,
-            //   count: provider.condicionesPago ?? '-',
+            //   count: provider.paymentTerms ?? '-',
             // ),
             EntityCardCounter(
               icon: Icons.category_outlined,
-              count: provider.tipoServicio ?? '-',
+              count: provider.serviceType ?? '-',
             ),
           ],
         ),
