@@ -8,14 +8,14 @@ class ClientsBinding extends Bindings {
   void dependencies() {
     // Registrar servicios
     if (!Get.isRegistered<ClientService>()) {
-      Get.lazyPut<ClientService>(() => ClientService());
+      Get.lazyPut<ClientService>(() => ClientService(), fenix: true);
     }
 
     if (!Get.isRegistered<ObservationService>()) {
-      Get.lazyPut<ObservationService>(() => ObservationService());
+      Get.lazyPut<ObservationService>(() => ObservationService(), fenix: true);
     }
 
     // Registrar controlador
-    Get.lazyPut<ClientsController>(() => ClientsController());
+    Get.lazyPut<ClientsController>(() => ClientsController(), fenix: true);
   }
 }

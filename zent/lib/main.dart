@@ -14,30 +14,11 @@ void main() async {
   // Asegúrate que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
 
-  await windowManager.setTitle("Nuevo Nombre"); // Cambia el nombre aquí
-
-  // Cargar variables de entorno
-  await dotenv.load(fileName: ".env");
-
-  // Inicializar Supabase
-  await Supabase.initialize(
-    url: dotenv.env['SUPABASE_URL'] ?? '',
-    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
-    debug: true, // Establecer a false en producción
-  );
-
-  // Inicializar otras dependencias
-  await initializeDependencies();
+  await windowManager.setTitle("Home");
 
   await GetStorage.init();
 
   runApp(MyApp());
-}
-
-Future<void> initializeDependencies() async {
-  // Inyectar dependencias con GetX
-  Get.put(ThemeController());
-  // Otras dependencias...
 }
 
 class MyApp extends StatelessWidget {

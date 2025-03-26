@@ -110,10 +110,8 @@ class ClientsController extends GetxController {
           return ClientDetailsDialog(
             client: client,
             onEditPressed: () {
-              // Primero cerramos el diálogo
               Navigator.of(context).pop();
-              // Luego navegamos a la página de edición
-              Get.toNamed('/clients/$clientId/edit');
+              //Get.toNamed('/clients/$clientId/edit');
             },
           );
         },
