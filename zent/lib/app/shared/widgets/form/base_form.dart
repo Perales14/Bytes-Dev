@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/src/snackbar/snackbar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:zent/app/shared/controllers/base_form_controller.dart';
 import 'package:zent/app/shared/models/form_config.dart';
@@ -11,12 +9,24 @@ import 'package:zent/app/shared/widgets/form/widgets/button_form.dart';
 import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'package:zent/app/shared/widgets/form/widgets/observations_field.dart';
 
+/// Clase base abstracta para formularios de la aplicación.
+///
+/// Proporciona una estructura común para todos los formularios,
+/// incluyendo decoración, título, botones de acción y secciones estándar.
 abstract class BaseForm extends StatelessWidget {
+  /// Controlador para manejar la lógica del formulario
   final BaseFormController controller;
+
+  /// Configuración del formulario (título, textos de botones)
   final FormConfig config;
+
+  /// Función a ejecutar cuando se cancela el formulario
   final Function onCancel;
+
+  /// Función a ejecutar cuando se envía el formulario correctamente
   final Function onSubmit;
 
+  /// Constructor para el formulario base
   const BaseForm({
     required this.controller,
     required this.config,
@@ -62,6 +72,7 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
+  /// Construye la decoración del contenedor principal del formulario
   BoxDecoration buildContainerDecoration(ThemeData theme) {
     return BoxDecoration(
       color: theme.colorScheme.surface,
@@ -80,6 +91,7 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
+  /// Construye el título del formulario centrado en la parte superior
   Widget buildFormTitle(ThemeData theme) {
     return Center(
       child: Text(
@@ -89,6 +101,10 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
+  /// Construye el título de una sección del formulario
+  ///
+  /// [theme] Tema actual de la aplicación
+  /// [title] Texto del título de la sección
   Widget buildSectionTitle(ThemeData theme, String title) {
     return Text(
       title,
@@ -99,6 +115,11 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
+  /// Construye la sección de observaciones del formulario
+  ///
+  /// [theme] Tema actual de la aplicación
+  /// [observations] Texto inicial de las observaciones
+  /// [onChanged] Callback que se ejecuta cuando cambia el texto
   Widget buildObservationsSection(
       ThemeData theme, String observations, Function(String) onChanged) {
     return Column(
@@ -117,7 +138,7 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
-  // Implementación de los botones de acción con los callbacks correctos
+  /// Construye los botones de acción del formulario (cancelar y guardar)
   Widget buildActionButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -145,10 +166,16 @@ abstract class BaseForm extends StatelessWidget {
     );
   }
 
-  // Método abstracto que deben implementar las subclases
+  /// Método abstracto que deben implementar las subclases
+  /// para proporcionar el contenido específico del formulario
   Widget buildFormContent(BuildContext context);
 }
 
+/// Sube archivos a Supabase Storage y devuelve información sobre los archivos subidos
+///
+/// [filesToUpload] Lista de archivos para subir
+/// [entityId] Identificador de la entidad asociada a los archivos
+/// Retorna una lista de mapas con la información de los archivos subidos
 Future<List<Map<String, dynamic>>> uploadFilesToSupabase(
     List<FileData> filesToUpload, String entityId) async {
   final supabase = Supabase.instance.client;
