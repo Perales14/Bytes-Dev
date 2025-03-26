@@ -143,8 +143,9 @@ class EmployeeFormController extends BaseFormController {
         if (motherLastName != null) val.motherLastName = motherLastName;
         if (email != null) val.email = email;
         if (phoneNumber != null) val.phoneNumber = phoneNumber;
-        if (socialSecurityNumber != null)
+        if (socialSecurityNumber != null) {
           val.socialSecurityNumber = socialSecurityNumber;
+        }
         if (passwordHash != null) val.passwordHash = passwordHash;
         if (salary != null) val.salary = salary;
         if (contractType != null) val.contractType = contractType;
@@ -235,7 +236,7 @@ class EmployeeFormController extends BaseFormController {
   }
 
   String? validateSocialSecurityNumber(String? value) {
-    return validate_NSS(value);
+    return validateNSS(value);
   }
 
   String? validateContractType(String? value) {

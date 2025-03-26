@@ -45,7 +45,7 @@ class UserModel extends BaseModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      // 'id': id,
       'role_id': roleId,
       'specialty_id': specialtyId,
       'name': name,
