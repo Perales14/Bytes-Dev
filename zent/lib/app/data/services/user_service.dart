@@ -9,13 +9,11 @@ class UserService extends GetxService {
   Future<List<UserModel>> getAllUsers() => _provider.getAll();
   Future<UserModel?> getUserById(int id) => _provider.getById(id);
   Future<UserModel> createUser(UserModel user) => _provider.create(user);
-  Future<UserModel> updateUser(UserModel user) => _provider.update(user);
   Future<void> deleteUser(int id) => _provider.delete(id);
 
   // Employee operations
   Future<List<UserModel>> getEmployees() => _provider.getEmployees();
-  Future<List<UserModel>> getAllEmployees() =>
-      _provider.getAllEmployees(); // Nuevo método agregado
+  Future<List<UserModel>> getAllEmployees() => _provider.getAllEmployees();
   Future<List<UserModel>> getActiveEmployees() =>
       _provider.getActiveEmployees();
   Future<UserModel> createEmployee(UserModel employee) =>
