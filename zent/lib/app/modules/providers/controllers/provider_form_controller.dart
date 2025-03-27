@@ -316,7 +316,7 @@ class ProviderFormController extends BaseFormController {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error al cargar esoecialidad especifica: $e');
+        print('Error al cargar especialidad especifica: $e');
       }
     }
   }
