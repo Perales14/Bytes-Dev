@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -6,7 +7,6 @@ import '../../../data/models/specialty_model.dart';
 import '../../../data/models/provider_model.dart';
 import '../../../data/services/provider_service.dart';
 import '../../../data/services/address_service.dart';
-import '../../../data/services/state_service.dart';
 import '../../../data/services/specialty_service.dart';
 import '../../../data/services/observation_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
@@ -16,7 +16,6 @@ class ProviderFormController extends BaseFormController {
   // Services
   final ProviderService _providerService = Get.find<ProviderService>();
   final AddressService _addressService = Get.find<AddressService>();
-  final StateService _stateService = Get.find<StateService>();
   final SpecialtyService _specialtyService = Get.find<SpecialtyService>();
   final ObservationService _observationService = Get.find<ObservationService>();
 
@@ -50,9 +49,12 @@ class ProviderFormController extends BaseFormController {
 
   // Dropdown lists
   final RxList<SpecialtyModel> specialties = <SpecialtyModel>[].obs;
-  final serviceTypes =
-      ['Consulting', 'Supplies', 'Maintenance', 'Software'].obs;
-  final paymentTerms = ['Cash', '15 days', '30 days', '45 days', '60 days'].obs;
+  final serviceTypes = [
+    'Suministros',
+    'Mantenimiento',
+  ].obs;
+  final paymentTerms =
+      ['Contado', '1 Mes', '3 Meses', '6 Meses', '12 Meses'].obs;
 
   // Loading states
   final isLoadingSpecialties = true.obs;
@@ -80,45 +82,6 @@ class ProviderFormController extends BaseFormController {
     stateController.dispose();
     countryController.dispose();
     super.onClose();
-  }
-
-  // Load specialties from database
-  Future<void> _loadSpecialties() async {
-    try {
-      isLoadingSpecialties(true);
-      hasErrorSpecialties(false);
-
-      final result = await _specialtyService.getAllSpecialties();
-      print('Specialties loaded: ${result.length}');
-
-      // Add default specialty if none exist
-      if (result.isEmpty) {
-        specialties.add(SpecialtyModel(
-          id: 1,
-          name: 'General',
-          description: 'Default specialty',
-        ));
-      } else {
-        specialties.assignAll(result);
-      }
-
-      // Update model if needed
-      if (provider.value.id == 0 && specialties.isNotEmpty) {
-        updateProvider(specialtyId: specialties.first.id);
-      }
-    } catch (e) {
-      hasErrorSpecialties(true);
-      print('Error loading specialties: $e');
-
-      // Add default specialty as fallback
-      specialties.add(SpecialtyModel(
-        id: 1,
-        name: 'General',
-        description: 'Default specialty',
-      ));
-    } finally {
-      isLoadingSpecialties(false);
-    }
   }
 
   // Initialize models with default values
@@ -149,7 +112,7 @@ class ProviderFormController extends BaseFormController {
       neighborhood: '',
       postalCode: '',
       state: '',
-      country: 'Mexico', // Default
+      country: 'México',
     );
 
     // Initialize address controllers
@@ -158,9 +121,51 @@ class ProviderFormController extends BaseFormController {
     neighborhoodController.text = address.neighborhood;
     postalCodeController.text = address.postalCode;
     stateController.text = address.state ?? '';
-    countryController.text = address.country ?? 'Mexico';
+    countryController.text = address.country ?? 'México';
 
     observationText.value = '';
+  }
+
+  Future<void> _loadSpecialties() async {
+    try {
+      isLoadingSpecialties(true);
+      hasErrorSpecialties(false);
+
+      final result = await _specialtyService.getAllSpecialties();
+      if (kDebugMode) {
+        print('Especialidades cargadas: ${result.length}');
+      }
+
+      // Add default specialty if none exist
+      if (result.isEmpty) {
+        specialties.add(SpecialtyModel(
+          id: 1,
+          name: 'General',
+          description: 'Especialidad predeterminada',
+        ));
+      } else {
+        specialties.assignAll(result);
+      }
+
+      // Update model if needed
+      if (provider.value.id == 0 && specialties.isNotEmpty) {
+        updateProvider(specialtyId: specialties.first.id);
+      }
+    } catch (e) {
+      hasErrorSpecialties(true);
+      if (kDebugMode) {
+        print('Error al cargar especialidades: $e');
+      }
+
+      // Add default specialty as fallback
+      specialties.add(SpecialtyModel(
+        id: 1,
+        name: 'General',
+        description: 'Especialidad predeterminada',
+      ));
+    } finally {
+      isLoadingSpecialties(false);
+    }
   }
 
   // Get current specialty by ID
@@ -226,7 +231,9 @@ class ProviderFormController extends BaseFormController {
         updatedAt: DateTime.now(),
       );
     } catch (e) {
-      print("Error updating address: $e");
+      if (kDebugMode) {
+        print("Error al actualizar dirección: $e");
+      }
     }
   }
 
@@ -238,239 +245,6 @@ class ProviderFormController extends BaseFormController {
   // Update observation text
   void updateObservation(String value) {
     observationText.value = value;
-  }
-
-  // VALIDATIONS
-
-  // Validate tax ID
-  String? validateTaxId(String? value) {
-    if (value == null || value.isEmpty) {
-      return null; // Tax ID is optional
-    }
-
-    // RegEx to validate tax ID
-    final taxIdRegExp = RegExp(
-        r'^([A-ZÑ&]{3,4})(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))([A-Z\d]{2})([A\d])$');
-    if (!taxIdRegExp.hasMatch(value)) {
-      return 'Invalid tax ID';
-    }
-    return null;
-  }
-
-  // Validate postal code
-  String? validatePostalCode(String? value) {
-    if (showAddress.value && (value == null || value.isEmpty)) {
-      return 'Postal code is required';
-    }
-
-    if (showAddress.value && value != null && value.isNotEmpty) {
-      // Validate postal code format (5 digits in Mexico)
-      if (!RegExp(r'^\d{5}$').hasMatch(value)) {
-        return 'Invalid postal code format (5 digits)';
-      }
-    }
-    return null;
-  }
-
-  // Validate service type
-  String? validateServiceType(String? value) {
-    return validateInList(value, serviceTypes, fieldName: 'service type');
-  }
-
-  // Validate payment terms
-  String? validatePaymentTerms(String? value) {
-    return validateInList(value, paymentTerms, fieldName: 'payment terms');
-  }
-
-  // SAVE PROVIDER
-
-  @override
-  bool submitForm() {
-    if (_validateForm()) {
-      try {
-        prepareModelForSave(); // Prepare model before saving
-        saveProviderWithData();
-        return true;
-      } catch (e) {
-        Get.snackbar(
-          'Error',
-          'Error saving provider: $e',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-    }
-    return false;
-  }
-
-  Future<bool> saveProviderWithData() async {
-    try {
-      int? addressId;
-
-      // 1. If address is active, save it first
-      if (showAddress.value) {
-        if (_validateAddress()) {
-          final savedAddress = await _addressService.createAddress(address);
-          if (savedAddress.id > 0) {
-            addressId = savedAddress.id;
-          } else {
-            Get.snackbar(
-              'Error',
-              'Could not save address',
-              snackPosition: SnackPosition.BOTTOM,
-            );
-            return false;
-          }
-        } else {
-          return false;
-        }
-      }
-
-      // 2. Update provider with address ID if exists
-      if (addressId != null) {
-        provider.update((val) {
-          if (val != null) val.addressId = addressId;
-        });
-      }
-
-      // 3. Save the provider
-      final savedProvider =
-          await _providerService.createProvider(provider.value);
-
-      if (savedProvider.id <= 0) {
-        Get.snackbar(
-          'Error',
-          'Could not save provider',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-
-      // 4. If there's an observation, save it
-      if (observationText.value.trim().isNotEmpty) {
-        await _observationService.addQuickObservation(
-          sourceTable: 'providers',
-          sourceId: savedProvider.id,
-          text: observationText.value.trim(),
-          userId: 1, // Default user ID, should be updated to current user
-        );
-      }
-
-      Get.snackbar(
-        'Success',
-        'Provider saved successfully',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return true;
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Error saving: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-      return false;
-    }
-  }
-
-  // Validate address
-  bool _validateAddress() {
-    if (!showAddress.value) return true;
-
-    if (address.street.isEmpty) {
-      Get.snackbar('Error', 'Street is required');
-      return false;
-    }
-
-    if (address.streetNumber.isEmpty) {
-      Get.snackbar('Error', 'Street number is required');
-      return false;
-    }
-
-    if (address.neighborhood.isEmpty) {
-      Get.snackbar('Error', 'Neighborhood is required');
-      return false;
-    }
-
-    if (address.postalCode.isEmpty) {
-      Get.snackbar('Error', 'Postal code is required');
-      return false;
-    }
-
-    // Validate postal code format
-    if (!RegExp(r'^\d{5}$').hasMatch(address.postalCode)) {
-      Get.snackbar('Error', 'Invalid postal code format (5 digits)');
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _validateForm() {
-    // Validate all form fields
-    if (!formKey.currentState!.validate()) {
-      return false;
-    }
-
-    // Specific validations
-    if (provider.value.companyName.isEmpty) {
-      Get.snackbar(
-        'Validation error',
-        'Company name is required',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  // Method to load an existing provider
-  void loadProvider(ProviderModel model) {
-    provider.value = model;
-
-    // Update text controllers
-    companyNameController.text = model.companyName;
-    mainContactController.text = model.mainContactName ?? '';
-    phoneController.text = model.phoneNumber ?? '';
-    emailController.text = model.email ?? '';
-    taxIdController.text = model.taxIdentificationNumber ?? '';
-
-    // If it has an address, load it
-    if (model.addressId != null) {
-      loadAddress(model.addressId!);
-      showAddress.value = true;
-    }
-
-    update();
-  }
-
-  // Method to load address
-  Future<void> loadAddress(int addressId) async {
-    try {
-      final addressModel = await _addressService.getAddressById(addressId);
-      if (addressModel != null) {
-        address = addressModel;
-
-        // Update controllers
-        streetController.text = address.street;
-        streetNumberController.text = address.streetNumber;
-        neighborhoodController.text = address.neighborhood;
-        postalCodeController.text = address.postalCode;
-        stateController.text = address.state ?? '';
-        countryController.text = address.country ?? '';
-      }
-    } catch (e) {
-      print('Error loading address: $e');
-    }
-  }
-
-  @override
-  void resetForm() {
-    formKey.currentState?.reset();
-    _initializeProvider();
-    showAddress.value = false;
   }
 
   // Prepare model for saving
@@ -500,5 +274,256 @@ class ProviderFormController extends BaseFormController {
       createdAt: address.createdAt,
       updatedAt: DateTime.now(),
     );
+  }
+
+  void loadProvider(ProviderModel model) {
+    provider.value = model;
+
+    companyNameController.text = model.companyName;
+    mainContactController.text = model.mainContactName ?? '';
+    phoneController.text = model.phoneNumber ?? '';
+    emailController.text = model.email ?? '';
+    taxIdController.text = model.taxIdentificationNumber ?? '';
+
+    if (model.serviceType != null &&
+        !serviceTypes.contains(model.serviceType)) {
+      serviceTypes.add(model.serviceType!);
+    }
+
+    if (model.paymentTerms != null &&
+        !paymentTerms.contains(model.paymentTerms)) {
+      paymentTerms.add(model.paymentTerms!);
+    }
+
+    if (model.specialtyId > 0 &&
+        specialties.every((s) => s.id != model.specialtyId)) {
+      _loadSpecificSpecialty(model.specialtyId);
+    }
+
+    if (model.addressId != null) {
+      loadAddress(model.addressId!);
+      showAddress.value = true;
+    }
+
+    update();
+  }
+
+  Future<void> _loadSpecificSpecialty(int specialtyId) async {
+    try {
+      final specialty = await _specialtyService.getSpecialtyById(specialtyId);
+      if (specialty != null && !specialties.any((s) => s.id == specialty.id)) {
+        specialties.add(specialty);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al cargar esoecialidad especifica: $e');
+      }
+    }
+  }
+
+  Future<void> loadAddress(int addressId) async {
+    try {
+      final addressModel = await _addressService.getAddressById(addressId);
+      if (addressModel != null) {
+        address = addressModel;
+
+        streetController.text = address.street;
+        streetNumberController.text = address.streetNumber;
+        neighborhoodController.text = address.neighborhood;
+        postalCodeController.text = address.postalCode;
+        stateController.text = address.state ?? '';
+        countryController.text = address.country ?? '';
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error al cargar dirección: $e');
+      }
+    }
+  }
+
+  // Validate tax ID
+  String? validateTaxId(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Tax ID is optional
+    }
+
+    // RegEx to validate tax ID
+    final taxIdRegExp = RegExp(
+        r'^([A-ZÑ&]{3,4})(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))([A-Z\d]{2})([A\d])$');
+    if (!taxIdRegExp.hasMatch(value)) {
+      return 'RFC Inválido';
+    }
+    return null;
+  }
+
+  // Validate postal code
+  String? validatePostalCode(String? value) {
+    if (showAddress.value && (value == null || value.isEmpty)) {
+      return 'Código Postal Requerido';
+    }
+
+    if (showAddress.value && value != null && value.isNotEmpty) {
+      // Validate postal code format (5 digits in Mexico)
+      if (!RegExp(r'^\d{5}$').hasMatch(value)) {
+        return 'Código Postal Inválido';
+      }
+    }
+    return null;
+  }
+
+  String? validateServiceType(String? value) {
+    return validateInList(value, serviceTypes, fieldName: 'tipo de servicio');
+  }
+
+  String? validatePaymentTerms(String? value) {
+    return validateInList(value, paymentTerms, fieldName: 'términos de pago');
+  }
+
+  bool _validateForm() {
+    // Validate all form fields
+    if (!formKey.currentState!.validate()) {
+      return false;
+    }
+
+    if (provider.value.companyName.isEmpty) {
+      Get.snackbar(
+        'Error de validación',
+        'El nombre de la empresa es requerido',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  // Validate address
+  bool _validateAddress() {
+    if (!showAddress.value) return true;
+
+    if (address.street.isEmpty) {
+      Get.snackbar('Error', 'La calle es requerida');
+      return false;
+    }
+
+    if (address.streetNumber.isEmpty) {
+      Get.snackbar('Error', 'El número es requerido');
+      return false;
+    }
+
+    if (address.neighborhood.isEmpty) {
+      Get.snackbar('Error', 'La colonia es requerida');
+      return false;
+    }
+
+    if (address.postalCode.isEmpty) {
+      Get.snackbar('Error', 'El código postal es requerido');
+      return false;
+    }
+
+    // Validate postal code format
+    if (!RegExp(r'^\d{5}$').hasMatch(address.postalCode)) {
+      Get.snackbar('Error', 'Formato de código postal inválido (5 dígitos)');
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  bool submitForm() {
+    if (_validateForm()) {
+      try {
+        prepareModelForSave(); // Prepare model before saving
+        saveProviderWithData();
+        return true;
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Error al guardar proveedor: $e',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+    }
+    return false;
+  }
+
+  @override
+  void resetForm() {
+    formKey.currentState?.reset();
+    _initializeProvider();
+    showAddress.value = false;
+  }
+
+  Future<bool> saveProviderWithData() async {
+    try {
+      int? addressId;
+
+      // 1. If address is active, save it first
+      if (showAddress.value) {
+        if (_validateAddress()) {
+          final savedAddress = await _addressService.createAddress(address);
+          if (savedAddress.id > 0) {
+            addressId = savedAddress.id;
+          } else {
+            Get.snackbar(
+              'Error',
+              'No se pudo guardar la dirección',
+              snackPosition: SnackPosition.BOTTOM,
+            );
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+
+      // 2. Update provider with address ID if exists
+      if (addressId != null) {
+        provider.update((val) {
+          if (val != null) val.addressId = addressId;
+        });
+      }
+
+      // 3. Save the provider
+      final savedProvider =
+          await _providerService.createProvider(provider.value);
+
+      if (savedProvider.id <= 0) {
+        Get.snackbar(
+          'Error',
+          'No se pudo guardar el proveedor',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
+
+      // 4. If there's an observation, save it
+      if (observationText.value.trim().isNotEmpty) {
+        await _observationService.addQuickObservation(
+          sourceTable: 'providers',
+          sourceId: savedProvider.id,
+          text: observationText.value.trim(),
+          userId: 1, // Default user ID, should be updated to current user
+        );
+      }
+
+      Get.snackbar(
+        'Éxito',
+        'Proveedor guardado correctamente',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return true;
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al guardar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+      return false;
+    }
   }
 }

@@ -30,8 +30,7 @@ class ProviderModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'specialty_id': specialtyId,
       'company_name': companyName,
       'main_contact_name': mainContactName,
@@ -45,6 +44,11 @@ class ProviderModel extends BaseModel {
       'created_at': BaseModel.formatDateTime(createdAt),
       'updated_at': BaseModel.formatDateTime(updatedAt),
     };
+
+    if (id > 0) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   @override
