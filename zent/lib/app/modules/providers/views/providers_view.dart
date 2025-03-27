@@ -32,9 +32,9 @@ class ProvidersView extends GetView<ProvidersController> {
                   return _buildErrorState();
                 }
 
-                if (controller.providersEmpty()) {
-                  return _buildEmptyState();
-                }
+                // if (controller.providersEmpty()) {
+                //   return _buildEmptyState();
+                // }
 
                 return ProvidersCardsGrid(
                   providers: controller.providers,

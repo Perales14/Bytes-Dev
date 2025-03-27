@@ -22,8 +22,7 @@ class AddressModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'street': street,
       'street_number': streetNumber,
       'neighborhood': neighborhood,
@@ -33,6 +32,11 @@ class AddressModel extends BaseModel {
       'created_at': BaseModel.formatDateTime(createdAt),
       'updated_at': BaseModel.formatDateTime(updatedAt),
     };
+
+    if (id > 0) {
+      map['id'] = id as String?;
+    }
+    return map;
   }
 
   @override

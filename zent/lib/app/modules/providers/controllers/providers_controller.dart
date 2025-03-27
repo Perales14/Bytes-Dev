@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/provider_model.dart';
@@ -49,28 +50,37 @@ class ProvidersController extends GetxController {
     super.onClose();
   }
 
-  // Load specialty name if not in cache
-  void loadSpecialtyIfNeeded(int specialtyId) async {
-    if (!specialtiesCache.containsKey(specialtyId)) {
-      specialtiesCache[specialtyId] = 'Loading...';
+  // Load providers from service
+  void loadProviders() async {
+    try {
+      isLoading(true);
+      hasError(false);
 
-      try {
-        final specialty = await _specialtyService.getSpecialtyById(specialtyId);
-        if (specialty != null) {
-          specialtiesCache[specialtyId] = specialty.name;
-        } else {
-          specialtiesCache[specialtyId] = 'Specialty $specialtyId';
-        }
-      } catch (e) {
-        print('Error loading specialty $specialtyId: $e');
-        specialtiesCache[specialtyId] = 'Specialty $specialtyId';
+      // Use getActiveProviders to ensure we only get active providers
+      final result = await _providerService.getActiveProviders();
+      if (kDebugMode) {
+        print('Proveedores cargados: ${result.length}');
       }
+      providers.assignAll(result);
+
+      // Preload specialty names
+      for (var provider in result) {
+        loadSpecialtyIfNeeded(provider.specialtyId);
+      }
+    } catch (e) {
+      hasError(true);
+      errorMessage('Error al cargar proveedores: $e');
+      if (kDebugMode) {
+        print('Error al cargar proveedores: $e');
+      }
+    } finally {
+      isLoading(false);
     }
   }
 
-  // Get specialty name from cache
-  String getSpecialtyName(int specialtyId) {
-    return specialtiesCache[specialtyId] ?? 'Loading...';
+  // Reload data
+  void refreshData() {
+    loadProviders();
   }
 
   // Filter providers based on search text
@@ -93,41 +103,49 @@ class ProvidersController extends GetxController {
 
       providers.assignAll(filteredProviders);
     } catch (e) {
-      print('Error filtering providers: $e');
-    }
-  }
-
-  // Load providers from service
-  void loadProviders() async {
-    try {
-      isLoading(true);
-      hasError(false);
-
-      // Use getActiveProviders to ensure we only get active providers
-      final result = await _providerService.getActiveProviders();
-      print('Providers loaded: ${result.length}');
-      providers.assignAll(result);
-
-      // Preload specialty names
-      for (var provider in result) {
-        loadSpecialtyIfNeeded(provider.specialtyId);
+      if (kDebugMode) {
+        print('Error al filtrar proveedores: $e');
       }
-    } catch (e) {
-      hasError(true);
-      errorMessage('Error loading providers: $e');
-      print('Error loading providers: $e');
-    } finally {
-      isLoading(false);
     }
-  }
-
-  // Reload data
-  void refreshData() {
-    loadProviders();
   }
 
   // Check if there are no providers
   bool providersEmpty() => providers.isEmpty;
+
+  // Load specialty name if not in cache
+  void loadSpecialtyIfNeeded(int specialtyId) async {
+    if (!specialtiesCache.containsKey(specialtyId)) {
+      specialtiesCache[specialtyId] = 'Cargando...';
+
+      try {
+        final specialty = await _specialtyService.getSpecialtyById(specialtyId);
+        if (specialty != null) {
+          specialtiesCache[specialtyId] = specialty.name;
+        } else {
+          specialtiesCache[specialtyId] = 'Especialidad $specialtyId';
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('Error loading specialty $specialtyId: $e');
+        }
+        specialtiesCache[specialtyId] = 'Especialidad $specialtyId';
+      }
+    }
+  }
+
+  // Get specialty name from cache
+  String getSpecialtyName(int specialtyId) {
+    return specialtiesCache[specialtyId] ?? 'Cargando...';
+  }
+
+  // Helper method to get provider by ID
+  ProviderModel getProviderById(int id) {
+    try {
+      return providers.firstWhere((provider) => provider.id == id);
+    } catch (e) {
+      throw Exception('Provider with ID $id not found');
+    }
+  }
 
   // Show provider details dialog
   void showProviderDetails(int providerId) {
@@ -153,7 +171,7 @@ class ProvidersController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Could not find provider information',
+        'No se ha encontrado información sobre el proveedor',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
@@ -174,14 +192,5 @@ class ProvidersController extends GetxController {
         );
       },
     );
-  }
-
-  // Helper method to get provider by ID
-  ProviderModel getProviderById(int id) {
-    try {
-      return providers.firstWhere((provider) => provider.id == id);
-    } catch (e) {
-      throw Exception('Provider with ID $id not found');
-    }
   }
 }
