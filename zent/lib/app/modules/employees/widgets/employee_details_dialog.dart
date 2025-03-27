@@ -242,7 +242,7 @@ class EmployeeDetailsDialog extends StatelessWidget {
                       flex: 3,
                       child: Text(
                         'Nombre del archivo',
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -251,7 +251,7 @@ class EmployeeDetailsDialog extends StatelessWidget {
                       flex: 1,
                       child: Text(
                         'Tamaño',
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -260,7 +260,7 @@ class EmployeeDetailsDialog extends StatelessWidget {
                       flex: 1,
                       child: Text(
                         'Fecha',
-                        style: theme.textTheme.titleSmall?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -299,7 +299,7 @@ class EmployeeDetailsDialog extends StatelessWidget {
                   Expanded(
                     child: Text(
                       file.name,
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodySmall,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -310,14 +310,14 @@ class EmployeeDetailsDialog extends StatelessWidget {
               flex: 1,
               child: Text(
                 file.formattedSize,
-                style: theme.textTheme.bodyMedium,
+                style: theme.textTheme.bodySmall,
               ),
             ),
             Expanded(
               flex: 1,
               child: Text(
                 _formatDate(file.uploadDate),
-                style: theme.textTheme.bodyMedium,
+                style: theme.textTheme.bodySmall,
               ),
             ),
             SizedBox(
