@@ -2,14 +2,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import '../../../data/models/file_model.dart';
 import '../controllers/employee_details_controller.dart';
 import '../../../data/models/user_model.dart';
+import '../controllers/employees_controller.dart';
 
 class EmployeeDetailsDialog extends StatelessWidget {
   final UserModel employee;
   final VoidCallback? onEditPressed;
 
-  const EmployeeDetailsDialog({
+  // Obtener el controlador una sola vez
+  final EmployeesController employeesController =
+      Get.find<EmployeesController>();
+
+  EmployeeDetailsDialog({
     super.key,
     required this.employee,
     this.onEditPressed,
@@ -89,7 +95,8 @@ class EmployeeDetailsDialog extends StatelessWidget {
                     const SizedBox(height: 16),
                     _buildInfoRow(theme, 'Fecha de ingreso:',
                         employee.entryDate.toString().split(' ')[0]),
-                    _buildInfoRow(theme, 'Rol:', _getRoleName(employee.roleId)),
+                    _buildInfoRow(theme, 'Rol:',
+                        employeesController.getRoleName(employee.roleId)),
                     _buildInfoRow(theme, 'Tipo de contrato:',
                         employee.contractType ?? 'No especificado'),
                     _buildInfoRow(
@@ -118,6 +125,10 @@ class EmployeeDetailsDialog extends StatelessWidget {
                         ),
                       ),
                     ],
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(theme, 'Archivos del Empleado'),
+                    const SizedBox(height: 16),
+                    _buildFilesTable(theme),
                     const SizedBox(height: 36),
                     Center(
                       child: ElevatedButton.icon(
@@ -185,18 +196,173 @@ class EmployeeDetailsDialog extends StatelessWidget {
     );
   }
 
-  String _getRoleName(int roleId) {
-    switch (roleId) {
-      case 2:
-        return 'Admin';
-      case 1:
-        return 'Captador de Campo';
-      case 3:
-        return 'Promotor';
-      case 4:
-        return 'Recursos Humanos';
-      default:
-        return 'Desconocido';
+  Widget _buildFilesTable(ThemeData theme) {
+    return GetBuilder<EmployeeDetailsController>(
+      init: EmployeeDetailsController(employeeId: employee.id),
+      builder: (controller) {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.files.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'No hay archivos disponibles para este empleado',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: theme.dividerColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              // Encabezado de la tabla
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(8),
+                    topRight: Radius.circular(8),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        'Nombre del archivo',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Tamaño',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        'Fecha',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 60), // Espacio para el botón
+                  ],
+                ),
+              ),
+
+              // Filas de archivos
+              ...controller.files
+                  .map((file) => _buildFileRow(theme, file, controller)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFileRow(
+      ThemeData theme, FileModel file, EmployeeDetailsController controller) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: theme.dividerColor)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Row(
+                children: [
+                  _getFileIcon(file.type, theme),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      file.name,
+                      style: theme.textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                file.formattedSize,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Text(
+                _formatDate(file.uploadDate),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            SizedBox(
+              width: 60,
+              child: IconButton(
+                icon: const Icon(Icons.download_rounded),
+                tooltip: 'Descargar archivo',
+                onPressed: () => controller.downloadFile(file),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _getFileIcon(String type, ThemeData theme) {
+    IconData iconData;
+    Color color;
+
+    type = type.toLowerCase();
+
+    if (type.contains('pdf')) {
+      iconData = Icons.picture_as_pdf;
+      color = Colors.red;
+    } else if (type.contains('image') ||
+        type.contains('jpg') ||
+        type.contains('png')) {
+      iconData = Icons.image;
+      color = Colors.blue;
+    } else if (type.contains('doc')) {
+      iconData = Icons.description;
+      color = Colors.blue.shade800;
+    } else if (type.contains('xls')) {
+      iconData = Icons.table_chart;
+      color = Colors.green;
+    } else {
+      iconData = Icons.insert_drive_file;
+      color = Colors.grey;
     }
+
+    return Icon(iconData, size: 20, color: color);
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

@@ -252,7 +252,9 @@ class EmployeeForm extends BaseForm {
               child: Obx(() => DropdownForm(
                     label: 'Rol',
                     opciones: employeeController.roles,
-                    value: _getRoleName(employeeController.user.value.roleId),
+                    value: employeeController.getRoleName(
+                            employeeController.user.value.roleId) ??
+                        'Seleccione un rol',
                     onChanged: (value) async => employeeController.updateUser(
                       roleId: employeeController.getRoleId(value),
                     ),
@@ -264,21 +266,6 @@ class EmployeeForm extends BaseForm {
         ),
       ],
     );
-  }
-
-  String? _getRoleName(int roleId) {
-    switch (roleId) {
-      case 1:
-        return 'Captador de Campo';
-      case 2:
-        return 'Admin';
-      case 3:
-        return 'Promotor';
-      case 4:
-        return 'Recursos Humanos';
-      default:
-        return null;
-    }
   }
 
   Widget _buildFilesSection(ThemeData theme) {

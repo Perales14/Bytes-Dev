@@ -44,7 +44,7 @@ class UserModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
+    final map = {
       // 'id': id,
       'role_id': roleId,
       'specialty_id': specialtyId,
@@ -64,6 +64,12 @@ class UserModel extends BaseModel {
       'created_at': BaseModel.formatDateTime(createdAt),
       'updated_at': BaseModel.formatDateTime(updatedAt),
     };
+
+    if (id > 0) {
+      map['id'] = id;
+    }
+
+    return map;
   }
 
   @override

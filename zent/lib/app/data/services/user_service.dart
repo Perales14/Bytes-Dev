@@ -14,6 +14,8 @@ class UserService extends GetxService {
 
   // Employee operations
   Future<List<UserModel>> getEmployees() => _provider.getEmployees();
+  Future<List<UserModel>> getAllEmployees() =>
+      _provider.getAllEmployees(); // Nuevo método agregado
   Future<List<UserModel>> getActiveEmployees() =>
       _provider.getActiveEmployees();
   Future<UserModel> createEmployee(UserModel employee) =>
