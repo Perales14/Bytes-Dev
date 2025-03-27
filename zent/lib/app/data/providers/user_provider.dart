@@ -14,6 +14,8 @@ class UserProvider {
 
   // Custom operations with user roles
   Future<List<UserModel>> getEmployees() => _repository.getEmployees();
+  Future<List<UserModel>> getAllEmployees() =>
+      _repository.getAllEmployees(); // Nuevo método agregado
   Future<List<UserModel>> getActiveEmployees() =>
       _repository.getActiveEmployees();
   Future<List<UserModel>> getByRole(int roleId) =>

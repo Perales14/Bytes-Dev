@@ -28,13 +28,13 @@ class FileModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'name': name,
       'type': type,
       'url': url,
       'storage_path': storagePath,
       'upload_date': BaseModel.formatDateTime(uploadDate),
+      //cambiar entityId por id si lo que imprime es 8 o 9 por ahi, dependiendo el usuario que se registre
       'entity_id': entityId,
       'entity_type': entityType,
       'size': size,
@@ -42,6 +42,11 @@ class FileModel extends BaseModel {
       'updated_at': BaseModel.formatDateTime(updatedAt),
       'sent': sent ? 1 : 0,
     };
+    if (id > 0) {
+      map['id'] = id;
+    }
+
+    return map;
   }
 
   @override
@@ -133,5 +138,19 @@ class FileModel extends BaseModel {
   bool get isDocument {
     return ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'pdf']
         .contains(extension);
+  }
+
+  String get formattedSize {
+    if (size == null) return 'Desconocido';
+
+    if (size! < 1024) {
+      return '$size B';
+    } else if (size! < 1024 * 1024) {
+      return '${(size! / 1024).toStringAsFixed(1)} KB';
+    } else if (size! < 1024 * 1024 * 1024) {
+      return '${(size! / (1024 * 1024)).toStringAsFixed(1)} MB';
+    } else {
+      return '${(size! / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+    }
   }
 }

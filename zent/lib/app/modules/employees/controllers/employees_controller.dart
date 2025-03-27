@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/data/services/role_service.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/user_service.dart';
 import '../widgets/employee_details_dialog.dart';
@@ -57,7 +58,6 @@ class EmployeesController extends GetxController {
       }
     }
     return filtered;
-
   }
 
   // Obtener todos los empleados
@@ -65,7 +65,7 @@ class EmployeesController extends GetxController {
     try {
       isLoading(true);
       hasError(false);
-      final result = await _userService.getEmployees();
+      final result = await _userService.getAllEmployees();
       employees.assignAll(result);
     } catch (e) {
       hasError(true);
@@ -119,5 +119,24 @@ class EmployeesController extends GetxController {
         colorText: Get.theme.colorScheme.onError,
       );
     }
+  }
+
+  final RxList<String> roleNames = <String>[].obs;
+  bool _rolesLoaded = false;
+
+  void loadRolesIfNeeded() async {
+    if (!_rolesLoaded) {
+      final RoleService roleService = Get.find<RoleService>();
+      final rolesList = await roleService.getAllRoles();
+      roleNames.value = rolesList.map((role) => role.name).toList();
+      _rolesLoaded = true;
+    }
+  }
+
+  String getRoleName(int roleId) {
+    if (roleNames.isEmpty || roleId <= 0 || roleId > roleNames.length) {
+      return 'Rol desconocido';
+    }
+    return roleNames[roleId - 1];
   }
 }
