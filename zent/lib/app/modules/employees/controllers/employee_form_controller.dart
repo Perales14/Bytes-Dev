@@ -1,16 +1,23 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/modules/employees/controllers/employees_controller.dart';
+import '../../../data/models/file_model.dart';
 import '../../../data/models/user_model.dart';
+import '../../../data/repositories/file_repository.dart';
 import '../../../shared/widgets/form/base_form.dart';
 import '../../../data/services/user_service.dart';
 import '../../../data/services/file_service.dart';
 import '../../../data/services/role_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
-import '../../../shared/validators/list_validator.dart';
-import '../../../shared/validators/nss_validator.dart';
-import '../../../shared/validators/password_validator.dart';
+import '../../../shared/validators/validators.dart' as validators;
 
 class EmployeeFormController extends BaseFormController {
+  // Añadir referencia al EmployeesController
+  final EmployeesController _employeesController =
+      Get.find<EmployeesController>();
+
   // Modelo del usuario que estamos editando
   final Rx<UserModel> user = UserModel(
     roleId: 2, // Por defecto es empleado
@@ -53,7 +60,11 @@ class EmployeeFormController extends BaseFormController {
 
   // Catálogos
   late List<String> roles = ['Administrador'];
-  final List<String> contractTypes = ['Temporal', 'Indefinido', 'Por Obra'];
+  final List<String> contractTypes = [
+    'Temporal',
+    'Indefinido',
+    'Por Obra/Servicio'
+  ];
 
   @override
   Future<void> onInit() async {
@@ -91,7 +102,7 @@ class EmployeeFormController extends BaseFormController {
   @override
   void resetForm() {
     user.value = UserModel(
-      roleId: 2, // Por defecto es empleado
+      roleId: 1, // Por defecto es admin
       name: '',
       fatherLastName: '',
       motherLastName: '',
@@ -232,19 +243,20 @@ class EmployeeFormController extends BaseFormController {
   // VALIDACIONES
 
   String? validatePassword(String? value) {
-    return validatePassword(value);
+    return validators.validatePassword(value);
   }
 
   String? validateSocialSecurityNumber(String? value) {
-    return validateNSS(value);
+    return validators.validateNSS(value);
   }
 
   String? validateContractType(String? value) {
-    return validateInList(value, contractTypes, fieldName: 'tipo de contrato');
+    return validators.validateInList(value, contractTypes,
+        fieldName: 'tipo de contrato');
   }
 
   String? validateSalary(String? value) {
-    return validateSalary(value);
+    return validators.validateSalary(value);
   }
 
   String? validateConfirmPassword(String? value) {
@@ -279,22 +291,31 @@ class EmployeeFormController extends BaseFormController {
   }
 
   // Método para guardar referencias de archivos
+
   Future<void> _saveFileReferences(
       List<Map<String, dynamic>> fileData, int employeeId) async {
-    // try {
-    //   for (var file in fileData) {
-    //     await _fileService.createFile(file);
-    //   }
-    // } catch (e) {
-    //   print('Error al guardar referencias de archivos: $e');
-    // }
+    try {
+      // Crea un repositorio para archivos si no lo tienes ya
+      final fileRepository = Get.find<FileRepository>();
+
+      for (var file in fileData) {
+        // Convert Map to FileModel before passing to createFile
+        await fileRepository.saveFile({
+          ...file,
+          'entity_id': employeeId,
+          'entity_type': 'employee',
+        });
+      }
+    } catch (e) {
+      print('Error al guardar referencias de archivos: $e');
+    }
   }
 
   Future<bool> saveEmployee() async {
     try {
       // El departamento se puede usar para guardar información temporal
       // que luego se puede mover a la tabla de observaciones
-      print('formulario valido: ${validateForm()}');
+      // print('formulario valido: ${validateForm()}');
       if (observationText.value.isNotEmpty) {
         user.update((val) {
           if (val != null) val.department = observationText.value;
@@ -305,9 +326,10 @@ class EmployeeFormController extends BaseFormController {
       final savedUser = user.value.id > 0
           ? await _userService.updateUser(user.value)
           : await _userService.createEmployee(user.value);
-
       if (files.isNotEmpty) {
         // upload
+
+        user.value.id = savedUser.id;
         final uploadedFiles =
             await uploadFilesToSupabase(files, user.value.id.toString());
 
@@ -318,6 +340,9 @@ class EmployeeFormController extends BaseFormController {
       }
 
       if (savedUser.id > 0) {
+        Get.find<EmployeesController>()
+            .refreshData(); //no sabia que se podia hacer eso, pero
+        // espero que si funcione
         Get.snackbar(
           'Éxito',
           'Empleado guardado correctamente',
@@ -338,6 +363,11 @@ class EmployeeFormController extends BaseFormController {
       );
       return false;
     }
+  }
+
+  // Método para obtener el nombre del rol delegando al EmployeesController
+  String? getRoleName(int roleId) {
+    return _employeesController.getRoleName(roleId);
   }
 
   bool validateForm() {

@@ -27,6 +27,16 @@ class FileService extends GetxService {
   Future<List<FileModel>> getUnsentFiles() => _provider.getUnsent();
   Future<void> markFileAsSent(int id) => _provider.markAsSent(id);
 
+  Future<List<FileModel>> getFilesByEmployeeId(int employeeId) async {
+    try {
+      // Llamada específica para obtener archivos de empleado
+      return await _provider.getFilesByEntity(employeeId, 'employee');
+    } catch (e) {
+      print('Error al obtener archivos del empleado $employeeId: $e');
+      return [];
+    }
+  }
+
   // Upload methods
   Future<FileModel> uploadFile({
     required File file,

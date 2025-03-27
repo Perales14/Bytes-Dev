@@ -33,9 +33,9 @@ class EmployeesView extends GetView<EmployeesController> {
                   return _buildErrorState();
                 }
 
-                if (controller.employeesEmpty()) {
-                  return _buildEmptyState();
-                }
+                // if (controller.employeesEmpty()) {
+                //   return _buildEmptyState();
+                // }
 
                 // Usamos directamente los employees filtrados del controlador
                 return EmployeesCardsGrid(

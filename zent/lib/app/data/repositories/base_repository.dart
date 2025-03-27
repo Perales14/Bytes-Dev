@@ -35,7 +35,6 @@ abstract class BaseRepository<T extends BaseModel> {
     try {
       model.createdAt = DateTime.now();
       model.updatedAt = DateTime.now();
-
       final result = await _dbHelper.insert(tableName, model.toMap());
       return fromMap(result);
     } catch (e) {

@@ -28,6 +28,22 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
   @override
   void initState() {
     super.initState();
+
+    // Verificamos y registramos servicios si es necesario
+    if (!Get.isRegistered<UserService>()) {
+      Get.lazyPut(() => UserService());
+    }
+
+    if (!Get.isRegistered<RoleService>()) {
+      Get.lazyPut(() => RoleService());
+    }
+
+    if (!Get.isRegistered<FileService>()) {
+      Get.lazyPut(() => FileService());
+    }
+
+    // Inicializamos el controlador
+    controller = Get.put(EmployeeFormController());
   }
 
   @override

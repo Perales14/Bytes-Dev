@@ -65,9 +65,9 @@ class UserRepository extends BaseRepository<UserModel> {
   Future<UserModel> createEmployee(UserModel model) async {
     try {
       // Ensure employee role
-      if (model.roleId != 2) {
-        model = model.copyWith(roleId: 2);
-      }
+      // if (model.roleId != 2) {
+      //   model = model.copyWith(roleId: 2);
+      // }
 
       // Validate contract type
       if (model.contractType != null &&
@@ -138,6 +138,16 @@ class UserRepository extends BaseRepository<UserModel> {
       return results.isNotEmpty;
     } catch (e) {
       throw Exception('Error verifying social security number: $e');
+    }
+  }
+
+  // Obtener todos los empleados sin filtro de rol
+  Future<List<UserModel>> getAllEmployees() async {
+    try {
+      // Usa el método getAll() que probablemente heredaste del BaseRepository
+      return await getAll();
+    } catch (e) {
+      throw Exception('Error al obtener todos los empleados: $e');
     }
   }
 }
