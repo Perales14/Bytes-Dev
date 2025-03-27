@@ -17,14 +17,17 @@ class ObservationModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
       'source_table': sourceTable,
       'source_id': sourceId,
       'observation': observation,
       'user_id': userId,
       'created_at': BaseModel.formatDateTime(createdAt),
     };
+    if (id > 0) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   @override
