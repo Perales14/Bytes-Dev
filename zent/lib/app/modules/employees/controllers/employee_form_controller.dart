@@ -344,6 +344,16 @@ class EmployeeFormController extends BaseFormController {
       // Guardar archivos si hay
       if (files.isNotEmpty) {
         // Implementación para guardar archivos
+        // upload
+
+        user.value.id = savedUser.id;
+        final uploadedFiles =
+            await uploadFilesToSupabase(files, user.value.id.toString());
+
+        // Guarda las referencias de los archivos en la base de datos
+        if (uploadedFiles.isNotEmpty) {
+          await _saveFileReferences(uploadedFiles, user.value.id);
+        }
       }
 
       if (savedUser.id > 0) {
