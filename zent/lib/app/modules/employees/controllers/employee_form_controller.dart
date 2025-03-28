@@ -337,7 +337,7 @@ class EmployeeFormController extends BaseFormController {
 
       // Guardar o actualizar el usuario usando el servicio
       final savedUser = user.value.id > 0
-          ? await _userService.createEmployee(
+          ? await _userService.updateEmployee(
               user.value) // Reemplazar este metodo por updateEmployee
           : await _userService.createEmployee(user.value);
 

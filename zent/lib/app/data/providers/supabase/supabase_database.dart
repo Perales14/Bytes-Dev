@@ -53,6 +53,7 @@ class SupabaseDatabase {
     await initialize();
     final fieldName = where.split(' ')[0];
     final value = whereArgs[0];
+    data.remove('id'); // Remove the ID field from the data map
     await _client.from(table).update(data).eq(fieldName, value);
     return 1;
   }
