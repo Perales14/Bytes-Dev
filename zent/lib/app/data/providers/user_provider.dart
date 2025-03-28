@@ -38,6 +38,8 @@ class UserProvider {
       _repository.createEmployee(employee);
   Future<List<UserModel>> getEmployeesBySupervisor(int supervisorId) =>
       _repository.getEmployeesBySupervisor(supervisorId);
+  Future<UserModel> updateEmployee(UserModel employee) =>
+      _repository.updateEmployee(employee);
 
   // Authentication
   Future<UserModel?> authenticate(String email, String passwordHash) =>

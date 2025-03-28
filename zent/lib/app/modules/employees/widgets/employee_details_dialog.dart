@@ -6,6 +6,7 @@ import '../../../data/models/file_model.dart';
 import '../controllers/employee_details_controller.dart';
 import '../../../data/models/user_model.dart';
 import '../controllers/employees_controller.dart';
+import 'add_employee_dialog.dart';
 
 class EmployeeDetailsDialog extends StatelessWidget {
   final UserModel employee;
@@ -132,9 +133,32 @@ class EmployeeDetailsDialog extends StatelessWidget {
                     const SizedBox(height: 36),
                     Center(
                       child: ElevatedButton.icon(
-                        onPressed: onEditPressed,
                         icon: const Icon(Icons.edit),
-                        label: const Text('Editar información'),
+                        label: const Text('Editar Empleado'),
+                        onPressed: () {
+                          // Cierra el diálogo actual
+                          Navigator.of(context).pop();
+
+                          // Muestra el diálogo de edición
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AddEmployeeDialog(
+                                employee: employee,
+                                onSaveSuccess: () {
+                                  // Refrescar datos después de guardar
+                                  if (onEditPressed != null) {
+                                    onEditPressed!();
+                                  } else {
+                                    // Si no hay callback específico, intentamos refrescar el controlador principal
+                                    Get.find<EmployeesController>()
+                                        .refreshData();
+                                  }
+                                },
+                              );
+                            },
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 24, vertical: 12),

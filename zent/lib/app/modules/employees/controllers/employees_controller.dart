@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:zent/app/data/services/role_service.dart';
 import '../../../data/models/user_model.dart';
 import '../../../data/services/user_service.dart';
+import '../widgets/add_employee_dialog.dart';
 import '../widgets/employee_details_dialog.dart';
 
 class EmployeesController extends GetxController {
@@ -114,6 +115,34 @@ class EmployeesController extends GetxController {
       Get.snackbar(
         'Error',
         'No se pudo encontrar la información del empleado',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+      );
+    }
+  }
+
+  void showEditEmployeeDialog(int employeeId) {
+    try {
+      final employee = getUserById(employeeId);
+
+      showDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withOpacity(0.5),
+        builder: (context) {
+          return AddEmployeeDialog(
+            employee: employee,
+            onSaveSuccess: () {
+              refreshData();
+            },
+          );
+        },
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'No se pudo encontrar la información del empleado para editar',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Get.theme.colorScheme.error,
         colorText: Get.theme.colorScheme.onError,
