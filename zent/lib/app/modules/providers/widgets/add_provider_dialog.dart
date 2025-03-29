@@ -49,26 +49,16 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
     }
   }
 
+  // Llamar siempre al callback después del cierre
   void _handleSubmit() async {
-    try {
-      // Obtener el resultado del formulario
-      final isValid = controller.submitForm();
+    final isValid = controller.submitForm();
 
-      if (isValid) {
-        // Cerrar el diálogo primero, antes de que se elimine el controlador
-        if (mounted && Navigator.canPop(context)) {
-          Navigator.of(context).pop();
-        }
-
-        // Después llamar al callback de éxito
-        widget.onSaveSuccess();
+    if (isValid) {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop();
       }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Ocurrió un error inesperado: $e',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+
+      widget.onSaveSuccess();
     }
   }
 
