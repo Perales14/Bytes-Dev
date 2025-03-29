@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -154,10 +155,14 @@ abstract class BaseForm extends StatelessWidget {
           onPressed: () {
             // Validar el formulario antes de llamar al callback
             if (controller.formKey.currentState?.validate() ?? false) {
-              print('Formulario válido');
+              if (kDebugMode) {
+                print('Formulario válido');
+              }
               onSubmit();
             } else {
-              print('Formulario inválido');
+              if (kDebugMode) {
+                print('Formulario inválido');
+              }
             }
           },
           icon: Icons.add,

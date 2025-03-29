@@ -32,10 +32,6 @@ class ClientsView extends GetView<ClientsController> {
                   return _buildErrorState();
                 }
 
-                if (controller.clients.isEmpty) {
-                  return _buildEmptyState();
-                }
-
                 return ClientsCardsGrid(
                   clients: controller.filteredClients(),
                   onAddClient: () => _showAddClientDialog(context),

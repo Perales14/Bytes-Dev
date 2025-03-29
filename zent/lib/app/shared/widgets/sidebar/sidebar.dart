@@ -64,63 +64,70 @@ class Sidebar extends GetView<SidebarController> {
                             ),
                           ),
                           SizedBox(
-                            height: 16,
+                            height: 24,
                           ),
                           // Botones dinámicos (según el rol)
-                          Column(
-                            children: controller.visibleSidebarItems
-                                .map((item) => Column(
-                                      children: [
-                                        SidebarButton(
-                                          item: item,
-                                          isSelected: Get.currentRoute ==
-                                              item.routeName,
-                                          onPressed: () {
-                                            Get.toNamed(item.routeName);
-                                            // Close drawer after navigation on mobile
-                                            if (MediaQuery.of(context)
-                                                    .size
-                                                    .width <
-                                                600) {
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                        ),
-                                        const SizedBox(height: 16),
-                                      ],
-                                    ))
-                                .toList(),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: controller.visibleSidebarItems
+                                  .map((item) => Column(
+                                        children: [
+                                          SidebarButton(
+                                            item: item,
+                                            isSelected: Get.currentRoute ==
+                                                item.routeName,
+                                            onPressed: () {
+                                              Get.toNamed(item.routeName);
+                                              // Close drawer after navigation on mobile
+                                              if (MediaQuery.of(context)
+                                                      .size
+                                                      .width <
+                                                  600) {
+                                                Navigator.pop(context);
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
+                                      ))
+                                  .toList(),
+                            ),
                           ),
 
                           const Spacer(),
 
-                          Column(
-                            children: controller.staticSidebarItems
-                                .map((item) => Column(
-                                      children: [
-                                        SidebarButton(
-                                          item: item,
-                                          isSelected: Get.currentRoute ==
-                                              item.routeName,
-                                          onPressed: () {
-                                            if (item.label == 'Cerrar Sesión') {
-                                              Get.offAllNamed('/');
-                                            } else {
-                                              Get.toNamed(item.routeName);
-                                            }
-                                            // Close drawer after action on mobile
-                                            if (MediaQuery.of(context)
-                                                    .size
-                                                    .width <
-                                                600) {
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                        ),
-                                        const SizedBox(height: 16),
-                                      ],
-                                    ))
-                                .toList(),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: controller.staticSidebarItems
+                                  .map((item) => Column(
+                                        children: [
+                                          SidebarButton(
+                                            item: item,
+                                            isSelected: Get.currentRoute ==
+                                                item.routeName,
+                                            onPressed: () {
+                                              if (item.label ==
+                                                  'Cerrar Sesión') {
+                                                Get.offAllNamed('/');
+                                              } else {
+                                                Get.toNamed(item.routeName);
+                                              }
+                                              // Close drawer after action on mobile
+                                              if (MediaQuery.of(context)
+                                                      .size
+                                                      .width <
+                                                  600) {
+                                                Navigator.pop(context);
+                                              }
+                                            },
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
+                                      ))
+                                  .toList(),
+                            ),
                           ),
 
                           // Logo

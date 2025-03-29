@@ -25,10 +25,12 @@ class ProviderDetailsDialog extends StatefulWidget {
 }
 
 class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
+  // Servicios
   late final ObservationService _observationService;
   late final AddressService _addressService;
   late final ProvidersController _providersController;
 
+  // Variables reactivas
   final RxList<ObservationModel> observations = <ObservationModel>[].obs;
   final Rx<AddressModel?> address = Rx<AddressModel?>(null);
   final RxBool isLoadingObs = true.obs;
@@ -37,16 +39,17 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
   @override
   void initState() {
     super.initState();
+    _initializeServices();
+    _loadData();
+  }
 
-    // Verificamos y registramos las dependencias si es necesario
-    _ensureDependencies();
-
-    // Obtenemos las instancias
+  void _initializeServices() {
     _observationService = Get.find<ObservationService>();
     _addressService = Get.find<AddressService>();
     _providersController = Get.find<ProvidersController>();
+  }
 
-    // Cargamos los datos
+  void _loadData() {
     _loadObservations();
     if (widget.provider.addressId != null) {
       _loadAddress();
@@ -55,29 +58,14 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
     }
   }
 
-  void _ensureDependencies() {
-    if (!Get.isRegistered<ObservationService>()) {
-      Get.put(ObservationService());
-    }
-
-    if (!Get.isRegistered<AddressService>()) {
-      Get.put(AddressService());
-    }
-
-    // Asumimos que el ProvidersController ya está registrado
-    // ya que debería estar registrado en la página principal de proveedores
-  }
-
   Future<void> _loadObservations() async {
     try {
       isLoadingObs.value = true;
       final result = await _observationService.getObservationsBySource(
           'providers', widget.provider.id);
       observations.assignAll(result);
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error al cargar observaciones: $e');
-      }
+    } catch (_) {
+      // Manejo silencioso de errores
     } finally {
       isLoadingObs.value = false;
     }
@@ -91,10 +79,8 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
             await _addressService.getAddressById(widget.provider.addressId!);
         address.value = result;
       }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error al cargar dirección: $e');
-      }
+    } catch (_) {
+      // Manejo silencioso de errores
     } finally {
       isLoadingDir.value = false;
     }
@@ -145,217 +131,16 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Título con botón de cerrar
-                    Row(
-                      children: [
-                        const Spacer(),
-                        Text(
-                          'Información del Proveedor',
-                          style: theme.textTheme.headlineMedium,
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.of(context).pop(),
-                          tooltip: 'Cerrar',
-                        ),
-                      ],
-                    ),
+                    _buildHeaderSection(theme),
                     const SizedBox(height: 36),
-
-                    // Sección: Datos del Proveedor
-                    _buildSectionTitle(theme, 'Datos del Proveedor'),
-                    const SizedBox(height: 16),
-
-                    // Nombre de empresa
-                    _buildInfoRow(
-                        theme, 'Empresa:', widget.provider.companyName),
-
-                    // Especialidad
-                    Obx(() => _buildInfoRow(
-                        theme,
-                        'Especialidad:',
-                        _providersController
-                            .getSpecialtyName(widget.provider.specialtyId))),
-
-                    // Tipo de servicio
-                    _buildInfoRow(theme, 'Tipo de servicio:',
-                        widget.provider.serviceType ?? 'No especificado'),
-
-                    // Condiciones de pago
-                    _buildInfoRow(theme, 'Condiciones de pago:',
-                        widget.provider.paymentTerms ?? 'No especificado'),
-
+                    _buildProviderDataSection(theme),
                     const SizedBox(height: 24),
-
-                    // Sección: Información de Contacto
-                    _buildSectionTitle(theme, 'Información de Contacto'),
-                    const SizedBox(height: 16),
-
-                    // Contacto principal
-                    _buildInfoRow(theme, 'Contacto principal:',
-                        widget.provider.mainContactName ?? 'No especificado'),
-
-                    // Teléfono
-                    _buildInfoRow(theme, 'Teléfono:',
-                        widget.provider.phoneNumber ?? 'No especificado'),
-
-                    // Email
-                    _buildInfoRow(theme, 'Correo electrónico:',
-                        widget.provider.email ?? 'No especificado'),
-
-                    // RFC
-                    _buildInfoRow(
-                        theme,
-                        'RFC:',
-                        widget.provider.taxIdentificationNumber ??
-                            'No especificado'),
-
-                    // Sección: Dirección (si existe)
-                    Obx(() {
-                      if (isLoadingDir.value) {
-                        return Column(
-                          children: [
-                            const SizedBox(height: 24),
-                            _buildSectionTitle(theme, 'Dirección'),
-                            const SizedBox(height: 16),
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-
-                      if (address.value != null) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 24),
-                            _buildSectionTitle(theme, 'Dirección'),
-                            const SizedBox(height: 16),
-
-                            // Calle y número
-                            _buildInfoRow(theme, 'Calle y número:',
-                                '${address.value!.street} ${address.value!.streetNumber}'),
-
-                            // Colonia
-                            _buildInfoRow(
-                                theme, 'Colonia:', address.value!.neighborhood),
-
-                            // CP
-                            _buildInfoRow(theme, 'Código postal:',
-                                address.value!.postalCode),
-
-                            // Estado
-                            if (address.value!.state != null &&
-                                address.value!.state!.isNotEmpty)
-                              _buildInfoRow(
-                                  theme, 'Estado:', address.value!.state!),
-
-                            // País
-                            if (address.value!.country != null &&
-                                address.value!.country!.isNotEmpty)
-                              _buildInfoRow(
-                                  theme, 'País:', address.value!.country!),
-                          ],
-                        );
-                      }
-
-                      return Container();
-                    }),
-
-                    // Sección: Observaciones
+                    _buildContactSection(theme),
+                    Obx(() => _buildAddressSection(theme)),
                     const SizedBox(height: 24),
-                    _buildSectionTitle(theme, 'Observaciones'),
-                    const SizedBox(height: 16),
-
-                    // Observaciones
-                    Obx(() {
-                      if (isLoadingObs.value) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-
-                      if (observations.isEmpty) {
-                        return Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color:
-                                    theme.colorScheme.outline.withOpacity(0.3)),
-                          ),
-                          child: Text(
-                            'No hay observaciones registradas para este proveedor.',
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                        );
-                      }
-
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color:
-                                  theme.colorScheme.outline.withOpacity(0.3)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: observations.map((obs) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    obs.observation,
-                                    style: theme.textTheme.bodyLarge,
-                                  ),
-                                  Text(
-                                    _formatDate(obs.createdAt),
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      fontStyle: FontStyle.italic,
-                                      color: theme.colorScheme.outline,
-                                    ),
-                                  ),
-                                  if (observations.last != obs)
-                                    Divider(
-                                      color: theme.colorScheme.outline
-                                          .withOpacity(0.2),
-                                      height: 16,
-                                    ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      );
-                    }),
-
+                    _buildObservationsSection(theme),
                     const SizedBox(height: 36),
-
-                    // Botón para editar
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: widget.onEditPressed,
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Editar información'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                        ),
-                      ),
-                    ),
+                    _buildFooterSection(),
                   ],
                 ),
               ),
@@ -366,12 +151,181 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} - ${_formatTimeDigit(date.hour)}:${_formatTimeDigit(date.minute)}';
+  Widget _buildHeaderSection(ThemeData theme) {
+    return Row(
+      children: [
+        const Spacer(),
+        Text(
+          'Información del Proveedor',
+          style: theme.textTheme.headlineMedium,
+        ),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Cerrar',
+        ),
+      ],
+    );
   }
 
-  String _formatTimeDigit(int digit) {
-    return digit.toString().padLeft(2, '0');
+  Widget _buildProviderDataSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(theme, 'Datos del Proveedor'),
+        const SizedBox(height: 16),
+        _buildInfoRow(theme, 'Empresa:', widget.provider.companyName),
+        Obx(() => _buildInfoRow(
+            theme,
+            'Especialidad:',
+            _providersController
+                .getSpecialtyName(widget.provider.specialtyId))),
+        _buildInfoRow(theme, 'Tipo de servicio:',
+            widget.provider.serviceType ?? 'No especificado'),
+        _buildInfoRow(theme, 'Condiciones de pago:',
+            widget.provider.paymentTerms ?? 'No especificado'),
+      ],
+    );
+  }
+
+  Widget _buildContactSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(theme, 'Información de Contacto'),
+        const SizedBox(height: 16),
+        _buildInfoRow(theme, 'Contacto principal:',
+            widget.provider.mainContactName ?? 'No especificado'),
+        _buildInfoRow(theme, 'Teléfono:',
+            widget.provider.phoneNumber ?? 'No especificado'),
+        _buildInfoRow(theme, 'Correo electrónico:',
+            widget.provider.email ?? 'No especificado'),
+        _buildInfoRow(theme, 'RFC:',
+            widget.provider.taxIdentificationNumber ?? 'No especificado'),
+      ],
+    );
+  }
+
+  Widget _buildAddressSection(ThemeData theme) {
+    if (isLoadingDir.value) {
+      return Column(
+        children: [
+          const SizedBox(height: 24),
+          _buildSectionTitle(theme, 'Dirección'),
+          const SizedBox(height: 16),
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (address.value != null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          _buildSectionTitle(theme, 'Dirección'),
+          const SizedBox(height: 16),
+          _buildInfoRow(theme, 'Calle y número:',
+              '${address.value!.street} ${address.value!.streetNumber}'),
+          _buildInfoRow(theme, 'Colonia:', address.value!.neighborhood),
+          _buildInfoRow(theme, 'Código postal:', address.value!.postalCode),
+          if (address.value!.state != null && address.value!.state!.isNotEmpty)
+            _buildInfoRow(theme, 'Estado:', address.value!.state!),
+          if (address.value!.country != null &&
+              address.value!.country!.isNotEmpty)
+            _buildInfoRow(theme, 'País:', address.value!.country!),
+        ],
+      );
+    }
+
+    return Container();
+  }
+
+  Widget _buildObservationsSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(theme, 'Observaciones'),
+        const SizedBox(height: 16),
+        Obx(() {
+          if (isLoadingObs.value) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border:
+                  Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            ),
+            child: observations.isEmpty
+                ? Text(
+                    'No hay observaciones registradas para este proveedor.',
+                    style: theme.textTheme.bodyLarge,
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: observations
+                        .map((obs) => _buildObservationItem(theme, obs))
+                        .toList(),
+                  ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildObservationItem(ThemeData theme, ObservationModel obs) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            obs.observation,
+            style: theme.textTheme.bodyLarge,
+          ),
+          Text(
+            _formatDate(obs.createdAt),
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontStyle: FontStyle.italic,
+              color: theme.colorScheme.outline,
+            ),
+          ),
+          if (observations.last != obs)
+            Divider(
+              color: theme.colorScheme.outline.withOpacity(0.2),
+              height: 16,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooterSection() {
+    return Center(
+      child: ElevatedButton.icon(
+        onPressed: widget.onEditPressed,
+        icon: const Icon(Icons.edit),
+        label: const Text('Editar información'),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+    );
   }
 
   Widget _buildSectionTitle(ThemeData theme, String title) {
@@ -392,7 +346,6 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
   }
 
   Widget _buildInfoRow(ThemeData theme, String label, String value) {
-    // Si el valor es vacío, mostrar un texto predeterminado
     final displayValue = value.isEmpty ? 'No disponible' : value;
 
     return Padding(
@@ -418,5 +371,13 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
         ],
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year} - ${_formatTimeDigit(date.hour)}:${_formatTimeDigit(date.minute)}';
+  }
+
+  String _formatTimeDigit(int digit) {
+    return digit.toString().padLeft(2, '0');
   }
 }
