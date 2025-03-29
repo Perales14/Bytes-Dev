@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,33 +12,31 @@ import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart';
 
 class ProviderFormController extends BaseFormController {
-  // Services
+  // SERVICIOS
   final ProviderService _providerService = Get.find<ProviderService>();
   final AddressService _addressService = Get.find<AddressService>();
   final SpecialtyService _specialtyService = Get.find<SpecialtyService>();
   final ObservationService _observationService = Get.find<ObservationService>();
 
-  // Models
+  // MODELOS REACTIVOS
   final Rx<ProviderModel> provider = ProviderModel(
-    specialtyId: 1, // Default value, should be updated
+    specialtyId: 1,
     companyName: '',
-    stateId: 1, // Active by default
+    stateId: 1,
   ).obs;
 
   late AddressModel address;
-
-  // UI control
   final showAddress = false.obs;
   final observationText = ''.obs;
 
-  // Text controllers
+  // CONTROLADORES DE FORMULARIO
   final companyNameController = TextEditingController();
   final mainContactController = TextEditingController();
   final phoneController = TextEditingController();
   final emailController = TextEditingController();
   final taxIdController = TextEditingController();
 
-  // Address controllers
+  // CONTROLADORES DE DIRECCIÓN
   final streetController = TextEditingController();
   final streetNumberController = TextEditingController();
   final neighborhoodController = TextEditingController();
@@ -47,19 +44,17 @@ class ProviderFormController extends BaseFormController {
   final stateController = TextEditingController();
   final countryController = TextEditingController();
 
-  // Dropdown lists
+  // LISTAS DE OPCIONES
   final RxList<SpecialtyModel> specialties = <SpecialtyModel>[].obs;
-  final serviceTypes = [
-    'Suministros',
-    'Mantenimiento',
-  ].obs;
+  final serviceTypes = ['Suministros', 'Mantenimiento'].obs;
   final paymentTerms =
       ['Contado', '1 Mes', '3 Meses', '6 Meses', '12 Meses'].obs;
 
-  // Loading states
+  // ESTADOS
   final isLoadingSpecialties = true.obs;
   final hasErrorSpecialties = false.obs;
 
+  // CICLO DE VIDA
   @override
   void onInit() {
     super.onInit();
@@ -69,7 +64,6 @@ class ProviderFormController extends BaseFormController {
 
   @override
   void onClose() {
-    // Release controller resources
     companyNameController.dispose();
     mainContactController.dispose();
     phoneController.dispose();
@@ -84,7 +78,7 @@ class ProviderFormController extends BaseFormController {
     super.onClose();
   }
 
-  // Initialize models with default values
+  // MÉTODOS DE INICIALIZACIÓN
   void _initializeProvider() {
     provider.value = ProviderModel(
       specialtyId: specialties.isNotEmpty ? specialties.first.id : 1,
@@ -96,10 +90,10 @@ class ProviderFormController extends BaseFormController {
       serviceType: serviceTypes.isNotEmpty ? serviceTypes[0] : null,
       paymentTerms: paymentTerms.isNotEmpty ? paymentTerms[0] : null,
       addressId: null,
-      stateId: 1, // Active by default
+      stateId: 1,
     );
 
-    // Initialize controllers with initial values
+    // Inicializar controladores
     companyNameController.text = provider.value.companyName;
     mainContactController.text = provider.value.mainContactName ?? '';
     phoneController.text = provider.value.phoneNumber ?? '';
@@ -115,7 +109,7 @@ class ProviderFormController extends BaseFormController {
       country: 'México',
     );
 
-    // Initialize address controllers
+    // Inicializar controladores de dirección
     streetController.text = address.street;
     streetNumberController.text = address.streetNumber;
     neighborhoodController.text = address.neighborhood;
@@ -126,17 +120,14 @@ class ProviderFormController extends BaseFormController {
     observationText.value = '';
   }
 
+  // MÉTODOS DE CARGA DE DATOS
   Future<void> _loadSpecialties() async {
     try {
       isLoadingSpecialties(true);
       hasErrorSpecialties(false);
 
       final result = await _specialtyService.getAllSpecialties();
-      if (kDebugMode) {
-        print('Especialidades cargadas: ${result.length}');
-      }
 
-      // Add default specialty if none exist
       if (result.isEmpty) {
         specialties.add(SpecialtyModel(
           id: 1,
@@ -147,17 +138,11 @@ class ProviderFormController extends BaseFormController {
         specialties.assignAll(result);
       }
 
-      // Update model if needed
       if (provider.value.id == 0 && specialties.isNotEmpty) {
         updateProvider(specialtyId: specialties.first.id);
       }
     } catch (e) {
       hasErrorSpecialties(true);
-      if (kDebugMode) {
-        print('Error al cargar especialidades: $e');
-      }
-
-      // Add default specialty as fallback
       specialties.add(SpecialtyModel(
         id: 1,
         name: 'General',
@@ -168,19 +153,50 @@ class ProviderFormController extends BaseFormController {
     }
   }
 
-  // Get current specialty by ID
-  SpecialtyModel? getCurrentSpecialty() {
+  Future<void> _loadSpecificSpecialty(int specialtyId) async {
     try {
-      return specialties.firstWhere(
-        (e) => e.id == provider.value.specialtyId,
-      );
+      final specialty = await _specialtyService.getSpecialtyById(specialtyId);
+      if (specialty != null && !specialties.any((s) => s.id == specialty.id)) {
+        specialties.add(specialty);
+      }
     } catch (e) {
-      // If not found, return first or null
-      return specialties.isNotEmpty ? specialties.first : null;
+      // Manejo silencioso de errores
     }
   }
 
-  // Update provider data
+  Future<void> loadAddress(int addressId) async {
+    try {
+      final addressModel = await _addressService.getAddressById(addressId);
+      if (addressModel != null) {
+        address = addressModel;
+
+        streetController.text = address.street;
+        streetNumberController.text = address.streetNumber;
+        neighborhoodController.text = address.neighborhood;
+        postalCodeController.text = address.postalCode;
+        stateController.text = address.state ?? '';
+        countryController.text = address.country ?? '';
+      }
+    } catch (e) {
+      // Manejo silencioso de errores
+    }
+  }
+
+  // MÉTODOS DE ESPECIALIDAD
+  SpecialtyModel? getCurrentSpecialty() {
+    try {
+      if (specialties.isEmpty) return null;
+
+      return specialties.firstWhere(
+        (e) => e.id == provider.value.specialtyId,
+        orElse: () => specialties.first,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // MÉTODOS DE ACTUALIZACIÓN DE MODELOS
   void updateProvider({
     int? specialtyId,
     String? companyName,
@@ -209,7 +225,6 @@ class ProviderFormController extends BaseFormController {
     });
   }
 
-  // Update address
   void updateAddress({
     String? street,
     String? streetNumber,
@@ -231,38 +246,94 @@ class ProviderFormController extends BaseFormController {
         updatedAt: DateTime.now(),
       );
     } catch (e) {
-      if (kDebugMode) {
-        print("Error al actualizar dirección: $e");
-      }
+      // Manejo silencioso de errores
     }
   }
 
-  // Toggle address visibility
-  void toggleAddress() {
-    showAddress.toggle();
-  }
-
-  // Update observation text
   void updateObservation(String value) {
     observationText.value = value;
   }
 
-  // Prepare model for saving
-  void prepareModelForSave() {
-    provider.update((val) {
-      if (val != null) {
-        val.companyName = companyNameController.text;
-        val.mainContactName = mainContactController.text.isEmpty
-            ? null
-            : mainContactController.text;
-        val.phoneNumber =
-            phoneController.text.isEmpty ? null : phoneController.text;
-        val.email = emailController.text.isEmpty ? null : emailController.text;
-        val.taxIdentificationNumber =
-            taxIdController.text.isEmpty ? null : taxIdController.text;
-      }
-    });
+  void toggleAddress() {
+    showAddress.toggle();
+  }
 
+  // MÉTODOS DE CARGA DE MODELOS
+  void loadProvider(ProviderModel model) {
+    // Usar copyWith para preservar valores incluido el ID
+    provider.value = model.copyWith();
+
+    // Cargar datos en controladores de texto
+    companyNameController.text = model.companyName;
+    mainContactController.text = model.mainContactName ?? '';
+    phoneController.text = model.phoneNumber ?? '';
+    emailController.text = model.email ?? '';
+    taxIdController.text = model.taxIdentificationNumber ?? '';
+
+    // Añadir valores a listas si no existen
+    if (model.serviceType != null &&
+        !serviceTypes.contains(model.serviceType)) {
+      serviceTypes.add(model.serviceType!);
+    }
+
+    if (model.paymentTerms != null &&
+        !paymentTerms.contains(model.paymentTerms)) {
+      paymentTerms.add(model.paymentTerms!);
+    }
+
+    // Cargar especialidad si no existe
+    if (model.specialtyId > 0 &&
+        specialties.every((s) => s.id != model.specialtyId)) {
+      _loadSpecificSpecialty(model.specialtyId);
+    }
+
+    // Cargar dirección si existe
+    if (model.addressId != null) {
+      loadAddress(model.addressId!);
+      showAddress.value = true;
+    } else {
+      address = AddressModel(
+        street: '',
+        streetNumber: '',
+        neighborhood: '',
+        postalCode: '',
+        state: '',
+        country: 'México',
+      );
+      showAddress.value = false;
+    }
+
+    update();
+  }
+
+  // MÉTODOS DE PREPARACIÓN DE MODELOS
+  void prepareModelForSave() {
+    final currentId = provider.value.id;
+    final currentCreatedAt = provider.value.createdAt;
+    final currentStateId = provider.value.stateId;
+
+    final updatedProvider = ProviderModel(
+      id: currentId, // Preservar ID original
+      specialtyId: provider.value.specialtyId,
+      companyName: companyNameController.text,
+      mainContactName: mainContactController.text.isEmpty
+          ? null
+          : mainContactController.text,
+      phoneNumber: phoneController.text.isEmpty ? null : phoneController.text,
+      email: emailController.text.isEmpty ? null : emailController.text,
+      taxIdentificationNumber:
+          taxIdController.text.isEmpty ? null : taxIdController.text,
+      serviceType: provider.value.serviceType,
+      paymentTerms: provider.value.paymentTerms,
+      addressId: provider.value.addressId,
+      stateId: currentStateId,
+      createdAt: currentCreatedAt,
+      updatedAt: DateTime.now(),
+    );
+
+    provider.value = updatedProvider;
+
+    // Actualizar modelo de dirección
     address = AddressModel(
       id: address.id,
       street: streetController.text,
@@ -276,78 +347,10 @@ class ProviderFormController extends BaseFormController {
     );
   }
 
-  void loadProvider(ProviderModel model) {
-    provider.value = model;
-
-    companyNameController.text = model.companyName;
-    mainContactController.text = model.mainContactName ?? '';
-    phoneController.text = model.phoneNumber ?? '';
-    emailController.text = model.email ?? '';
-    taxIdController.text = model.taxIdentificationNumber ?? '';
-
-    if (model.serviceType != null &&
-        !serviceTypes.contains(model.serviceType)) {
-      serviceTypes.add(model.serviceType!);
-    }
-
-    if (model.paymentTerms != null &&
-        !paymentTerms.contains(model.paymentTerms)) {
-      paymentTerms.add(model.paymentTerms!);
-    }
-
-    if (model.specialtyId > 0 &&
-        specialties.every((s) => s.id != model.specialtyId)) {
-      _loadSpecificSpecialty(model.specialtyId);
-    }
-
-    if (model.addressId != null) {
-      loadAddress(model.addressId!);
-      showAddress.value = true;
-    }
-
-    update();
-  }
-
-  Future<void> _loadSpecificSpecialty(int specialtyId) async {
-    try {
-      final specialty = await _specialtyService.getSpecialtyById(specialtyId);
-      if (specialty != null && !specialties.any((s) => s.id == specialty.id)) {
-        specialties.add(specialty);
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error al cargar esoecialidad especifica: $e');
-      }
-    }
-  }
-
-  Future<void> loadAddress(int addressId) async {
-    try {
-      final addressModel = await _addressService.getAddressById(addressId);
-      if (addressModel != null) {
-        address = addressModel;
-
-        streetController.text = address.street;
-        streetNumberController.text = address.streetNumber;
-        neighborhoodController.text = address.neighborhood;
-        postalCodeController.text = address.postalCode;
-        stateController.text = address.state ?? '';
-        countryController.text = address.country ?? '';
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error al cargar dirección: $e');
-      }
-    }
-  }
-
-  // Validate tax ID
+  // MÉTODOS DE VALIDACIÓN
   String? validateTaxId(String? value) {
-    if (value == null || value.isEmpty) {
-      return null; // Tax ID is optional
-    }
+    if (value == null || value.isEmpty) return null;
 
-    // RegEx to validate tax ID
     final taxIdRegExp = RegExp(
         r'^([A-ZÑ&]{3,4})(\d{2}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))([A-Z\d]{2})([A\d])$');
     if (!taxIdRegExp.hasMatch(value)) {
@@ -356,14 +359,12 @@ class ProviderFormController extends BaseFormController {
     return null;
   }
 
-  // Validate postal code
   String? validatePostalCode(String? value) {
     if (showAddress.value && (value == null || value.isEmpty)) {
       return 'Código Postal Requerido';
     }
 
     if (showAddress.value && value != null && value.isNotEmpty) {
-      // Validate postal code format (5 digits in Mexico)
       if (!RegExp(r'^\d{5}$').hasMatch(value)) {
         return 'Código Postal Inválido';
       }
@@ -380,10 +381,7 @@ class ProviderFormController extends BaseFormController {
   }
 
   bool _validateForm() {
-    // Validate all form fields
-    if (!formKey.currentState!.validate()) {
-      return false;
-    }
+    if (!formKey.currentState!.validate()) return false;
 
     if (provider.value.companyName.isEmpty) {
       Get.snackbar(
@@ -397,50 +395,66 @@ class ProviderFormController extends BaseFormController {
     return true;
   }
 
-  // Validate address
   bool _validateAddress() {
     if (!showAddress.value) return true;
 
     if (address.street.isEmpty) {
-      Get.snackbar('Error', 'La calle es requerida');
+      Get.snackbar('Error', 'La calle es requerida',
+          snackPosition: SnackPosition.BOTTOM);
       return false;
     }
 
     if (address.streetNumber.isEmpty) {
-      Get.snackbar('Error', 'El número es requerido');
+      Get.snackbar('Error', 'El número es requerido',
+          snackPosition: SnackPosition.BOTTOM);
       return false;
     }
 
     if (address.neighborhood.isEmpty) {
-      Get.snackbar('Error', 'La colonia es requerida');
+      Get.snackbar('Error', 'La colonia es requerida',
+          snackPosition: SnackPosition.BOTTOM);
       return false;
     }
 
     if (address.postalCode.isEmpty) {
-      Get.snackbar('Error', 'El código postal es requerido');
+      Get.snackbar('Error', 'El código postal es requerido',
+          snackPosition: SnackPosition.BOTTOM);
       return false;
     }
 
-    // Validate postal code format
     if (!RegExp(r'^\d{5}$').hasMatch(address.postalCode)) {
-      Get.snackbar('Error', 'Formato de código postal inválido (5 dígitos)');
+      Get.snackbar('Error', 'Formato de código postal inválido (5 dígitos)',
+          snackPosition: SnackPosition.BOTTOM);
       return false;
     }
 
     return true;
   }
 
+  // MÉTODOS DE FORMULARIO
   @override
   bool submitForm() {
     if (_validateForm()) {
       try {
-        prepareModelForSave(); // Prepare model before saving
-        saveProviderWithData();
+        final int originalId = provider.value.id;
+
+        prepareModelForSave();
+
+        ProviderModel providerToSave = provider.value;
+
+        if (originalId > 0 && providerToSave.id != originalId) {
+          providerToSave = providerToSave.copyWith(id: originalId);
+        }
+
+        Future.delayed(Duration.zero, () {
+          saveProviderWithDataWithModel(providerToSave);
+        });
+
         return true;
       } catch (e) {
         Get.snackbar(
           'Error',
-          'Error al guardar proveedor: $e',
+          'Error al guardar: $e',
           snackPosition: SnackPosition.BOTTOM,
         );
         return false;
@@ -452,24 +466,77 @@ class ProviderFormController extends BaseFormController {
   @override
   void resetForm() {
     formKey.currentState?.reset();
-    _initializeProvider();
+
+    // Limpiar controladores
+    companyNameController.clear();
+    mainContactController.clear();
+    phoneController.clear();
+    emailController.clear();
+    taxIdController.clear();
+    streetController.clear();
+    streetNumberController.clear();
+    neighborhoodController.clear();
+    postalCodeController.clear();
+    stateController.clear();
+    countryController.clear();
+
+    // Restablecer listas predefinidas
+    serviceTypes.value = ['Suministros', 'Mantenimiento'];
+    paymentTerms.value = ['Contado', '1 Mes', '3 Meses', '6 Meses', '12 Meses'];
+
+    // Reinicializar modelos
+    provider.value = ProviderModel(
+      specialtyId: specialties.isNotEmpty ? specialties.first.id : 1,
+      companyName: '',
+      stateId: 1,
+    );
+
+    address = AddressModel(
+      street: '',
+      streetNumber: '',
+      neighborhood: '',
+      postalCode: '',
+      state: '',
+      country: 'México',
+    );
+
     showAddress.value = false;
+    observationText.value = '';
+    update();
   }
 
-  Future<bool> saveProviderWithData() async {
+  // MÉTODOS DE GUARDADO
+  Future<bool> saveProviderWithDataWithModel(
+      ProviderModel providerToSave) async {
     try {
       int? addressId;
+      final bool isEditing = providerToSave.id > 0;
 
-      // 1. If address is active, save it first
+      // 1. Guardar dirección si está habilitada
       if (showAddress.value) {
         if (_validateAddress()) {
-          final savedAddress = await _addressService.createAddress(address);
-          if (savedAddress.id > 0) {
-            addressId = savedAddress.id;
-          } else {
+          try {
+            final savedAddress = address.id > 0
+                ? await _addressService.updateAddress(address)
+                : await _addressService.createAddress(address);
+
+            if (savedAddress.id > 0) {
+              addressId = savedAddress.id;
+              providerToSave = providerToSave.copyWith(addressId: addressId);
+            } else {
+              Get.snackbar(
+                'Error',
+                'Error al guardar dirección',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Get.theme.colorScheme.errorContainer,
+                colorText: Get.theme.colorScheme.onErrorContainer,
+              );
+              return false;
+            }
+          } catch (e) {
             Get.snackbar(
               'Error',
-              'No se pudo guardar la dirección',
+              'Error al guardar dirección: $e',
               snackPosition: SnackPosition.BOTTOM,
             );
             return false;
@@ -477,51 +544,52 @@ class ProviderFormController extends BaseFormController {
         } else {
           return false;
         }
+      } else if (providerToSave.addressId != null) {
+        // Si se desactivó la dirección pero antes existía, desasociarla
+        providerToSave = providerToSave.copyWith(addressId: null);
       }
 
-      // 2. Update provider with address ID if exists
-      if (addressId != null) {
-        provider.update((val) {
-          if (val != null) val.addressId = addressId;
-        });
+      // 2. Guardar el proveedor
+      ProviderModel savedProvider;
+      if (isEditing) {
+        savedProvider = await _providerService.updateProvider(providerToSave);
+      } else {
+        savedProvider = await _providerService.createProvider(providerToSave);
       }
 
-      // 3. Save the provider
-      final savedProvider =
-          await _providerService.createProvider(provider.value);
-
-      if (savedProvider.id <= 0) {
-        Get.snackbar(
-          'Error',
-          'No se pudo guardar el proveedor',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-
-      // 4. If there's an observation, save it
-      if (observationText.value.trim().isNotEmpty) {
-        await _observationService.addQuickObservation(
-          sourceTable: 'providers',
-          sourceId: savedProvider.id,
-          text: observationText.value.trim(),
-          userId: 1, // Default user ID, should be updated to current user
-        );
-      }
-
+      // 3. Mostrar mensaje de éxito
       Get.snackbar(
         'Éxito',
-        'Proveedor guardado correctamente',
+        isEditing
+            ? 'Proveedor actualizado correctamente'
+            : 'Proveedor creado correctamente',
         snackPosition: SnackPosition.BOTTOM,
       );
+
+      // 4. Guardar observación si existe
+      if (observationText.value.trim().isNotEmpty) {
+        try {
+          await _observationService.addQuickObservation(
+            sourceTable: 'providers',
+            sourceId: savedProvider.id,
+            text: observationText.value.trim(),
+            userId: 1,
+          );
+        } catch (e) {
+          Get.snackbar(
+            'Advertencia',
+            'Proveedor guardado pero hubo un error con la observación',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
+      }
+
       return true;
     } catch (e) {
       Get.snackbar(
         'Error',
         'Error al guardar: $e',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
       );
       return false;
     }

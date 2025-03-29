@@ -124,4 +124,40 @@ class ProviderRepository extends BaseRepository<ProviderModel> {
       throw Exception('Error creating provider: $e');
     }
   }
+
+  @override
+  Future<ProviderModel> update(ProviderModel model) async {
+    try {
+      if (model.id <= 0) {
+        throw Exception('ID de proveedor inválido para actualización');
+      }
+
+      final providerExists = await getById(model.id);
+      if (providerExists == null) {
+        throw Exception('No se encontró el proveedor con ID ${model.id}');
+      }
+
+      model = model.copyWith(updatedAt: DateTime.now());
+
+      if (model.email != null && model.email != providerExists.email) {
+        final existingByEmail = await findByEmail(model.email!);
+        if (existingByEmail != null && existingByEmail.id != model.id) {
+          throw Exception('Ya existe un proveedor con este email');
+        }
+      }
+      if (model.taxIdentificationNumber != null &&
+          model.taxIdentificationNumber !=
+              providerExists.taxIdentificationNumber) {
+        final existingByTaxId =
+            await findByTaxId(model.taxIdentificationNumber!);
+        if (existingByTaxId != null && existingByTaxId.id != model.id) {
+          throw Exception('Ya existe un proveedor con este RFC');
+        }
+      }
+
+      return await super.update(model);
+    } catch (e) {
+      throw Exception('Error al actualizar el proveedor: $e');
+    }
+  }
 }

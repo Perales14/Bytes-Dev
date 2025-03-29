@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/models/provider_model.dart';
@@ -8,24 +7,24 @@ import '../widgets/add_provider_dialog.dart';
 import '../widgets/provider_details_dialog.dart';
 
 class ProvidersController extends GetxController {
-  // Reactive provider list
+  // Listas reactivas y estados
   final providers = <ProviderModel>[].obs;
   final filter = ''.obs;
   final TextEditingController textController = TextEditingController();
 
-  // Loading states
+  // Estados de carga
   final isLoading = true.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
 
-  // Cache for specialty names
+  // Caché para nombres de especialidades
   final specialtiesCache = <int, String>{}.obs;
 
-  // Services
+  // Servicios
   final ProviderService _providerService;
   final SpecialtyService _specialtyService;
 
-  // Dependency injection through constructor
+  // Inyección de dependencias
   ProvidersController({
     ProviderService? providerService,
     SpecialtyService? specialtyService,
@@ -37,7 +36,7 @@ class ProvidersController extends GetxController {
     super.onInit();
     loadProviders();
 
-    // Setup listener for text filter
+    // Configurar filtro de texto
     textController.addListener(() {
       filter.value = textController.text;
       filterProviders();
@@ -50,40 +49,33 @@ class ProvidersController extends GetxController {
     super.onClose();
   }
 
-  // Load providers from service
+  // Cargar proveedores desde el servicio
   void loadProviders() async {
     try {
       isLoading(true);
       hasError(false);
 
-      // Use getActiveProviders to ensure we only get active providers
       final result = await _providerService.getActiveProviders();
-      if (kDebugMode) {
-        print('Proveedores cargados: ${result.length}');
-      }
       providers.assignAll(result);
 
-      // Preload specialty names
+      // Precargar nombres de especialidades
       for (var provider in result) {
         loadSpecialtyIfNeeded(provider.specialtyId);
       }
     } catch (e) {
       hasError(true);
       errorMessage('Error al cargar proveedores: $e');
-      if (kDebugMode) {
-        print('Error al cargar proveedores: $e');
-      }
     } finally {
       isLoading(false);
     }
   }
 
-  // Reload data
+  // Recargar datos
   void refreshData() {
     loadProviders();
   }
 
-  // Filter providers based on search text
+  // Filtrar proveedores según texto de búsqueda
   void filterProviders() {
     if (filter.isEmpty) {
       loadProviders();
@@ -103,16 +95,14 @@ class ProvidersController extends GetxController {
 
       providers.assignAll(filteredProviders);
     } catch (e) {
-      if (kDebugMode) {
-        print('Error al filtrar proveedores: $e');
-      }
+      // Manejo silencioso de errores
     }
   }
 
-  // Check if there are no providers
+  // Verificar si no hay proveedores
   bool providersEmpty() => providers.isEmpty;
 
-  // Load specialty name if not in cache
+  // Cargar nombre de especialidad si no está en caché
   void loadSpecialtyIfNeeded(int specialtyId) async {
     if (!specialtiesCache.containsKey(specialtyId)) {
       specialtiesCache[specialtyId] = 'Cargando...';
@@ -125,20 +115,17 @@ class ProvidersController extends GetxController {
           specialtiesCache[specialtyId] = 'Especialidad $specialtyId';
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('Error loading specialty $specialtyId: $e');
-        }
         specialtiesCache[specialtyId] = 'Especialidad $specialtyId';
       }
     }
   }
 
-  // Get specialty name from cache
+  // Obtener nombre de especialidad desde caché
   String getSpecialtyName(int specialtyId) {
     return specialtiesCache[specialtyId] ?? 'Cargando...';
   }
 
-  // Helper method to get provider by ID
+  // Obtener proveedor por ID
   ProviderModel getProviderById(int id) {
     try {
       return providers.firstWhere((provider) => provider.id == id);
@@ -147,7 +134,7 @@ class ProvidersController extends GetxController {
     }
   }
 
-  // Show provider details dialog
+  // Mostrar detalles de proveedor
   void showProviderDetails(int providerId) {
     try {
       final provider = providers.firstWhere((p) => p.id == providerId);
@@ -160,9 +147,7 @@ class ProvidersController extends GetxController {
           return ProviderDetailsDialog(
             provider: provider,
             onEditPressed: () {
-              // First close the dialog
               Navigator.of(context).pop();
-              // Then navigate to edit page or show another dialog
               _showEditProviderDialog(context, provider);
             },
           );
@@ -179,7 +164,7 @@ class ProvidersController extends GetxController {
     }
   }
 
-  // Helper method to show edit dialog
+  // Método auxiliar para mostrar diálogo de edición
   void _showEditProviderDialog(BuildContext context, ProviderModel provider) {
     showDialog(
       context: context,

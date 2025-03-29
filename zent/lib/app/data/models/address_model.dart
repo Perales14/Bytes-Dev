@@ -34,8 +34,22 @@ class AddressModel extends BaseModel {
     };
 
     if (id > 0) {
-      map['id'] = id as String?;
+      map['id'] = id.toString();
     }
+    return map;
+  }
+
+  Map<String, dynamic> toUpdateMap() {
+    final map = {
+      'street': street,
+      'street_number': streetNumber,
+      'neighborhood': neighborhood,
+      'postal_code': postalCode,
+      'state': state,
+      'country': country,
+      'updated_at': BaseModel.formatDateTime(updatedAt),
+    };
+
     return map;
   }
 
