@@ -64,11 +64,6 @@ class UserRepository extends BaseRepository<UserModel> {
   // Create employee with basic validations
   Future<UserModel> createEmployee(UserModel model) async {
     try {
-      // Ensure employee role
-      // if (model.roleId != 2) {
-      //   model = model.copyWith(roleId: 2);
-      // }
-
       // Validate contract type
       if (model.contractType != null &&
           !['Temporal', 'Indefinido', 'Por Obra/Servicio']
@@ -148,6 +143,25 @@ class UserRepository extends BaseRepository<UserModel> {
       return await getAll();
     } catch (e) {
       throw Exception('Error al obtener todos los empleados: $e');
+    }
+  }
+
+  /// Actualiza un empleado en la base de datos
+  ///
+  /// [model] El modelo de usuario con los datos actualizados
+  /// Retorna el modelo de usuario actualizado con datos de la base de datos
+  Future<UserModel> updateEmployee(UserModel model) async {
+    try {
+      // Validar el ID del empleado
+      if (model.id <= 0) {
+        throw Exception('ID de empleado inválido');
+      }
+
+      // Actualizar empleado usando el método base
+      final updatedEmployee = await update(model);
+      return updatedEmployee;
+    } catch (e) {
+      throw Exception('Error al actualizar empleado: $e');
     }
   }
 }

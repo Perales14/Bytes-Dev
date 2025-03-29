@@ -14,12 +14,13 @@ class UserService extends GetxService {
 
   // Employee operations
   Future<List<UserModel>> getEmployees() => _provider.getEmployees();
-  Future<List<UserModel>> getAllEmployees() =>
-      _provider.getAllEmployees(); // Nuevo método agregado
+  Future<List<UserModel>> getAllEmployees() => _provider.getAllEmployees();
   Future<List<UserModel>> getActiveEmployees() =>
       _provider.getActiveEmployees();
   Future<UserModel> createEmployee(UserModel employee) =>
       _provider.createEmployee(employee);
+  Future<UserModel> updateEmployee(UserModel employee) =>
+      _provider.updateEmployee(employee);
   Future<List<UserModel>> getEmployeesBySupervisor(int supervisorId) =>
       _provider.getEmployeesBySupervisor(supervisorId);
   Future<List<UserModel>> getEmployeesByDepartment(String department) =>

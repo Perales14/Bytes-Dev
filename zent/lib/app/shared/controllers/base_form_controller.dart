@@ -44,12 +44,13 @@ abstract class BaseFormController extends GetxController {
     return validators.validateEmail(value);
   }
 
-  /// Agrega un nuevo archivo desde el selector de archivos del sistema
+  /// Agrega un nuevo archivo PDF desde el selector de archivos del sistema
   Future<void> addNewFile() async {
     try {
       picker.FilePickerResult? result =
           await picker.FilePicker.platform.pickFiles(
-        type: picker.FileType.any,
+        type: picker.FileType.custom,
+        allowedExtensions: ['pdf'],
         allowMultiple: false,
       );
 
@@ -57,15 +58,21 @@ abstract class BaseFormController extends GetxController {
         // Obtener información del archivo seleccionado
         picker.PlatformFile platformFile = result.files.first;
 
-        // Determinar el tipo de archivo basado en la extensión
-        FileType fileType =
-            _getFileTypeFromExtension(platformFile.extension ?? '');
+        // Verificación adicional de seguridad para garantizar que sea PDF
+        if (platformFile.extension?.toLowerCase() != 'pdf') {
+          Get.snackbar(
+            'Error',
+            'Solo se permiten archivos PDF',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
 
         // Crear y agregar el nuevo FileData
         files.add(FileData(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           name: platformFile.name,
-          type: fileType,
+          type: FileType.pdf, // Forzamos el tipo a PDF
           uploadDate: DateTime.now(),
           path: platformFile.path,
           size: platformFile.size,

@@ -204,13 +204,19 @@ class EmployeeFormController extends BaseFormController {
             ? null
             : phoneNumberController.text;
         val.socialSecurityNumber = socialSecurityNumberController.text;
-        val.passwordHash = passwordController.text;
-        val.department = departmentController.text.isEmpty
-            ? null
-            : departmentController.text;
+
+        // Solo actualizar contraseña si estamos creando o si se cambió
+        if (val.id == 0 || passwordController.text != val.passwordHash) {
+          val.passwordHash = passwordController.text;
+        }
+
         val.salary = salaryController.text.isEmpty
             ? null
             : double.tryParse(salaryController.text);
+
+        val.department = departmentController.text.isEmpty
+            ? null
+            : departmentController.text;
       }
     });
   }
@@ -313,20 +319,31 @@ class EmployeeFormController extends BaseFormController {
 
   Future<bool> saveEmployee() async {
     try {
-      // El departamento se puede usar para guardar información temporal
-      // que luego se puede mover a la tabla de observaciones
-      // print('formulario valido: ${validateForm()}');
+      if (!validateForm()) {
+        return false;
+      }
+
+      // Preparar datos del modelo para guardar
+      prepareModelForSave();
+
+      // Guardar observación si existe
       if (observationText.value.isNotEmpty) {
         user.update((val) {
-          if (val != null) val.department = observationText.value;
+          if (val != null) {
+            val.department = observationText.value;
+          }
         });
       }
 
       // Guardar o actualizar el usuario usando el servicio
       final savedUser = user.value.id > 0
-          ? await _userService.updateUser(user.value)
+          ? await _userService.updateEmployee(
+              user.value) // Reemplazar este metodo por updateEmployee
           : await _userService.createEmployee(user.value);
+
+      // Guardar archivos si hay
       if (files.isNotEmpty) {
+        // Implementación para guardar archivos
         // upload
 
         user.value.id = savedUser.id;
@@ -340,26 +357,32 @@ class EmployeeFormController extends BaseFormController {
       }
 
       if (savedUser.id > 0) {
-        Get.find<EmployeesController>()
-            .refreshData(); //no sabia que se podia hacer eso, pero
-        // espero que si funcione
         Get.snackbar(
           'Éxito',
-          'Empleado guardado correctamente',
+          user.value.id > 0
+              ? 'Empleado actualizado correctamente'
+              : 'Empleado creado correctamente',
           snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Get.theme.colorScheme.surfaceContainerHighest,
         );
-
-        // También podrías guardar la observación en su tabla correspondiente aquí
-
         return true;
       } else {
-        throw Exception('No se pudo guardar el empleado');
+        Get.snackbar(
+          'Error',
+          'No se pudo guardar el empleado',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Get.theme.colorScheme.error,
+          colorText: Get.theme.colorScheme.onError,
+        );
+        return false;
       }
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Error al guardar: $e',
+        'Error al guardar: ${e.toString()}',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
       );
       return false;
     }

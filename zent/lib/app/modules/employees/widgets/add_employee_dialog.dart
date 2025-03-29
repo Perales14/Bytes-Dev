@@ -8,13 +8,16 @@ import '../../../data/services/user_service.dart';
 import '../../../data/services/role_service.dart';
 import '../../../data/services/file_service.dart';
 import '../controllers/employee_form_controller.dart';
+import '../../../data/models/user_model.dart';
 import 'employee_form.dart';
 
 class AddEmployeeDialog extends StatefulWidget {
   final Function onSaveSuccess;
+  final UserModel? employee;
 
   const AddEmployeeDialog({
     required this.onSaveSuccess,
+    this.employee,
     super.key,
   });
 
@@ -44,6 +47,11 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
 
     // Inicializamos el controlador
     controller = Get.put(EmployeeFormController());
+
+    // Si estamos en modo edición, cargamos los datos del empleado
+    if (widget.employee != null) {
+      controller.loadUser(widget.employee!);
+    }
   }
 
   @override
