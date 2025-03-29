@@ -168,4 +168,14 @@ class EmployeesController extends GetxController {
     }
     return roleNames[roleId - 1];
   }
+
+  Future<void> deleteEmployee(int id) async {
+    try {
+      await _userService.deleteUser(id);
+      // Actualizar la lista
+      refreshData();
+    } catch (e) {
+      throw Exception('Error al eliminar el empleado: $e');
+    }
+  }
 }

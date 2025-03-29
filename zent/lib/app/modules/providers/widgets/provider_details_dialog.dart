@@ -8,6 +8,7 @@ import '../../../data/models/observation_model.dart';
 import '../../../data/services/observation_service.dart';
 import '../../../data/services/address_service.dart';
 import '../../../data/models/address_model.dart';
+import '../../../shared/widgets/detail_action_button.dart';
 import '../controllers/providers_controller.dart';
 
 class ProviderDetailsDialog extends StatefulWidget {
@@ -316,15 +317,43 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
   }
 
   Widget _buildFooterSection() {
-    return Center(
-      child: ElevatedButton.icon(
-        onPressed: widget.onEditPressed,
-        icon: const Icon(Icons.edit),
-        label: const Text('Editar información'),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        DetailActionButton(
+          type: DetailActionType.edit,
+          onPressed: widget.onEditPressed ?? () {},
         ),
-      ),
+        const SizedBox(width: 60),
+        DetailActionButton(
+          type: DetailActionType.delete,
+          onPressed: () {
+            try {
+              _providersController.setProviderInactive(widget.provider.id);
+              Navigator.of(context).pop();
+              Get.snackbar(
+                'Éxito',
+                'Proveedor desactivado correctamente',
+                snackPosition: SnackPosition.BOTTOM,
+              );
+            } catch (e) {
+              //Esto se podria eliminar, ya que el error se maneja en el controlador
+              Get.snackbar(
+                'Error',
+                'No se pudo desactivar el proveedor: ${e.toString()}',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Get.theme.colorScheme.error,
+                colorText: Get.theme.colorScheme.onError,
+              );
+            }
+          },
+          isOutlined: true,
+          customText: 'Dar de baja',
+          confirmationTitle: 'Desactivar proveedor',
+          confirmationMessage:
+              '¿Está seguro que desea desactivar este proveedor? Podrá reactivarlo posteriormente.',
+        ),
+      ],
     );
   }
 

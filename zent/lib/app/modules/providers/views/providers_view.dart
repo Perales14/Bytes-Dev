@@ -57,26 +57,6 @@ class ProvidersView extends GetView<ProvidersController> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.business_outlined,
-            size: 48,
-            color: Get.theme.colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'No hay proveedores registrados',
-            style: Get.textTheme.titleMedium,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildErrorState() {
     return Center(
       child: Column(
