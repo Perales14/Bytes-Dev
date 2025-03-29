@@ -178,4 +178,16 @@ class ProvidersController extends GetxController {
       },
     );
   }
+
+  // Marcar proveedor como inactivo
+  Future<void> setProviderInactive(int id) async {
+    try {
+      await _providerService.setProviderInactive(id);
+      refreshData();
+    } catch (e) {
+      hasError(true);
+      errorMessage('Error al cambiar estado del proveedor: $e');
+      throw Exception('Error al cambiar estado del proveedor: $e');
+    }
+  }
 }

@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import '../../../data/models/client_model.dart';
 import '../../../data/models/observation_model.dart';
 import '../../../data/services/observation_service.dart';
+import '../../../shared/widgets/detail_action_button.dart';
+import '../controllers/clients_controller.dart';
 
 class ClientDetailsDialog extends StatefulWidget {
   final ClientModel client;
@@ -223,16 +225,46 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
 
                     const SizedBox(height: 36),
 
-                    // Botón para editar
+                    // Fila de botones de acción
                     Center(
-                      child: ElevatedButton.icon(
-                        onPressed: widget.onEditPressed,
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Editar información'),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          DetailActionButton(
+                            type: DetailActionType.edit,
+                            onPressed: widget.onEditPressed ?? () {},
+                            showIcon: true,
+                          ),
+                          const SizedBox(width: 60),
+                          DetailActionButton(
+                            type: DetailActionType.delete,
+                            onPressed: () {
+                              // Implementar la lógica de eliminación del cliente
+                              try {
+                                // Aquí debería ir la llamada al servicio para eliminar
+                                Get.find<ClientsController>()
+                                    .deleteClient(widget.client.id);
+                                Navigator.of(context).pop();
+                                Get.snackbar(
+                                  'Éxito',
+                                  'Cliente eliminado correctamente',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                              } catch (e) {
+                                Get.snackbar(
+                                  'Error',
+                                  'No se pudo eliminar el cliente',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: theme.colorScheme.error,
+                                  colorText: theme.colorScheme.onError,
+                                );
+                              }
+                            },
+                            isOutlined: true,
+                            confirmationMessage:
+                                '¿Está seguro que desea eliminar este cliente? Esta acción no se puede deshacer.',
+                          ),
+                        ],
                       ),
                     ),
                   ],

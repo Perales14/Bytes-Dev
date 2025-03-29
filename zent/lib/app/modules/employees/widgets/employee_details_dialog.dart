@@ -7,6 +7,7 @@ import '../controllers/employee_details_controller.dart';
 import '../../../data/models/user_model.dart';
 import '../controllers/employees_controller.dart';
 import 'add_employee_dialog.dart';
+import '../../../shared/widgets/detail_action_button.dart';
 
 class EmployeeDetailsDialog extends StatelessWidget {
   final UserModel employee;
@@ -132,37 +133,67 @@ class EmployeeDetailsDialog extends StatelessWidget {
                     _buildFilesTable(theme),
                     const SizedBox(height: 36),
                     Center(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Editar Empleado'),
-                        onPressed: () {
-                          // Cierra el diálogo actual
-                          Navigator.of(context).pop();
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          DetailActionButton(
+                            type: DetailActionType.edit,
+                            onPressed: () {
+                              // Cierra el diálogo actual
+                              Navigator.of(context).pop();
 
-                          // Muestra el diálogo de edición
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AddEmployeeDialog(
-                                employee: employee,
-                                onSaveSuccess: () {
-                                  // Refrescar datos después de guardar
-                                  if (onEditPressed != null) {
-                                    onEditPressed!();
-                                  } else {
-                                    // Si no hay callback específico, intentamos refrescar el controlador principal
-                                    Get.find<EmployeesController>()
-                                        .refreshData();
-                                  }
+                              // Muestra el diálogo de edición
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AddEmployeeDialog(
+                                    employee: employee,
+                                    onSaveSuccess: () {
+                                      // Refrescar datos después de guardar
+                                      if (onEditPressed != null) {
+                                        onEditPressed!();
+                                      } else {
+                                        // Si no hay callback específico, intentamos refrescar el controlador principal
+                                        Get.find<EmployeesController>()
+                                            .refreshData();
+                                      }
+                                    },
+                                  );
                                 },
                               );
                             },
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                        ),
+                            showIcon: true,
+                          ),
+                          const SizedBox(width: 60),
+                          DetailActionButton(
+                            type: DetailActionType.delete,
+                            onPressed: () {
+                              // Implementar la lógica de eliminación del empleado
+                              try {
+                                // Aquí debería ir la llamada al servicio para eliminar
+                                Get.find<EmployeesController>()
+                                    .deleteEmployee(employee.id);
+                                Navigator.of(context).pop();
+                                Get.snackbar(
+                                  'Éxito',
+                                  'Empleado eliminado correctamente',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                              } catch (e) {
+                                Get.snackbar(
+                                  'Error',
+                                  'No se pudo eliminar el empleado',
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: theme.colorScheme.error,
+                                  colorText: theme.colorScheme.onError,
+                                );
+                              }
+                            },
+                            isOutlined: true,
+                            confirmationMessage:
+                                '¿Está seguro que desea eliminar este empleado? Esta acción no se puede deshacer.',
+                          ),
+                        ],
                       ),
                     ),
                   ],
