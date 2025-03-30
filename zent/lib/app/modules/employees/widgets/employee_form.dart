@@ -25,6 +25,7 @@ class EmployeeForm extends BaseForm {
   @override
   Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
+    final bool isCreating = employeeController.user.value.id == 0;
 
     return SingleChildScrollView(
       child: Padding(
@@ -35,11 +36,14 @@ class EmployeeForm extends BaseForm {
           children: [
             _buildPersonalDataSection(theme),
             const SizedBox(height: 20),
-            if (config.showObservations) _buildObservationsSection(theme),
+            // Solo mostrar observaciones al crear un nuevo empleado
+            if (config.showObservations && isCreating)
+              _buildObservationsSection(theme),
             const SizedBox(height: 20),
             _buildCompanyDataSection(theme),
             const SizedBox(height: 20),
-            if (config.showFiles) _buildFilesSection(theme),
+            // Solo mostrar archivos al crear un nuevo empleado
+            if (config.showFiles && isCreating) _buildFilesSection(theme),
           ],
         ),
       ),

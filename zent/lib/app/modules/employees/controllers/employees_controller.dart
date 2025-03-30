@@ -8,30 +8,26 @@ import '../widgets/add_employee_dialog.dart';
 import '../widgets/employee_details_dialog.dart';
 
 class EmployeesController extends GetxController {
-  // Lista reactiva de empleados
+  // Estado y propiedades
   final employees = <UserModel>[].obs;
   final filter = ''.obs;
   final textController = TextEditingController();
-
-  // Estado de carga
   final isLoading = true.obs;
   final hasError = false.obs;
   final errorMessage = ''.obs;
+  final RxList<String> roleNames = <String>[].obs;
 
-  // Servicio
+  // Dependencias
   final UserService _userService;
+  bool _rolesLoaded = false;
 
-  // Inyección de dependencia mediante constructor
   EmployeesController({UserService? userService})
       : _userService = userService ?? Get.find<UserService>();
 
   @override
   void onInit() {
     super.onInit();
-
     loadEmployees();
-
-    // Configurar listener para el filtro de texto
     textController.addListener(() {
       filter.value = textController.text;
     });
@@ -43,25 +39,7 @@ class EmployeesController extends GetxController {
     super.onClose();
   }
 
-  List<UserModel> filteredEmployees() {
-    if (employees.isEmpty) {
-      print('No hay empleados');
-      return <UserModel>[].obs;
-    }
-
-    final filtered = <UserModel>[];
-
-    for (var employee in employees) {
-      if (employee.fullName
-          .toLowerCase()
-          .contains(filter.value.toLowerCase())) {
-        filtered.add(employee);
-      }
-    }
-    return filtered;
-  }
-
-  // Obtener todos los empleados
+  // Operaciones CRUD
   void loadEmployees() async {
     try {
       isLoading(true);
@@ -76,12 +54,9 @@ class EmployeesController extends GetxController {
     }
   }
 
-  // Recargar datos
   void refreshData() {
     loadEmployees();
   }
-
-  bool employeesEmpty() => employees.isEmpty;
 
   UserModel getUserById(int id) {
     try {
@@ -91,6 +66,36 @@ class EmployeesController extends GetxController {
     }
   }
 
+  Future<void> setEmployeeInactive(int id) async {
+    try {
+      await _userService.setEmployeeInactive(id);
+      refreshData();
+    } catch (e) {
+      throw Exception('Error al desactivar el empleado: $e');
+    }
+  }
+
+  // Gestión de UI
+  List<UserModel> filteredEmployees() {
+    if (employees.isEmpty) {
+      print('No hay empleados');
+      return <UserModel>[];
+    }
+
+    final filtered = <UserModel>[];
+    for (var employee in employees) {
+      if (employee.fullName
+          .toLowerCase()
+          .contains(filter.value.toLowerCase())) {
+        filtered.add(employee);
+      }
+    }
+    return filtered;
+  }
+
+  bool employeesEmpty() => employees.isEmpty;
+
+  // Diálogos
   void showEmployeeDetails(int employeeId) {
     try {
       final employee = getUserById(employeeId);
@@ -103,9 +108,7 @@ class EmployeesController extends GetxController {
           return EmployeeDetailsDialog(
             employee: employee,
             onEditPressed: () {
-              // Primero cerramos el diálogo
               Navigator.of(context).pop();
-              // Luego navegamos a la página de edición
               Get.toNamed('/employees/$employeeId/edit');
             },
           );
@@ -136,6 +139,7 @@ class EmployeesController extends GetxController {
             onSaveSuccess: () {
               refreshData();
             },
+            isEditing: true,
           );
         },
       );
@@ -150,9 +154,7 @@ class EmployeesController extends GetxController {
     }
   }
 
-  final RxList<String> roleNames = <String>[].obs;
-  bool _rolesLoaded = false;
-
+  // Gestión de roles
   void loadRolesIfNeeded() async {
     if (!_rolesLoaded) {
       final RoleService roleService = Get.find<RoleService>();
@@ -167,15 +169,5 @@ class EmployeesController extends GetxController {
       return 'Rol desconocido';
     }
     return roleNames[roleId - 1];
-  }
-
-  Future<void> deleteEmployee(int id) async {
-    try {
-      await _userService.deleteUser(id);
-      // Actualizar la lista
-      refreshData();
-    } catch (e) {
-      throw Exception('Error al eliminar el empleado: $e');
-    }
   }
 }

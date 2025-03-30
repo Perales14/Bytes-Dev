@@ -594,15 +594,11 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
               final text = controller.text.trim();
               if (text.isNotEmpty) {
                 try {
-                  // Actualizar la observación
                   await _observationService.updateObservation(
                     observation.copyWith(observation: text),
                   );
-
-                  // Cerrar el diálogo
                   Get.back();
 
-                  // Recargar las observaciones
                   _loadObservations();
 
                   Get.snackbar(
@@ -649,13 +645,10 @@ class _ProviderDetailsDialogState extends State<ProviderDetailsDialog> {
           ElevatedButton(
             onPressed: () async {
               try {
-                // Eliminar la observación
                 await _observationService.deleteObservation(observation.id);
 
-                // Cerrar el diálogo
                 Get.back();
 
-                // Recargar las observaciones
                 _loadObservations();
 
                 Get.snackbar(

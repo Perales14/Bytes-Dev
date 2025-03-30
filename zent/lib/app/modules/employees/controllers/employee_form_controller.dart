@@ -14,6 +14,9 @@ import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart' as validators;
 
 class EmployeeFormController extends BaseFormController {
+  // Añadir isLoading property
+  final RxBool isLoading = false.obs;
+
   // Añadir referencia al EmployeesController
   final EmployeesController _employeesController =
       Get.find<EmployeesController>();
@@ -69,6 +72,7 @@ class EmployeeFormController extends BaseFormController {
   @override
   Future<void> onInit() async {
     super.onInit();
+    isLoading.value = true;
 
     try {
       // Obtener roles del servicio
@@ -77,6 +81,8 @@ class EmployeeFormController extends BaseFormController {
       print('Roles: $roles');
     } catch (e) {
       print('Error al cargar roles: $e');
+    } finally {
+      isLoading.value = false;
     }
 
     resetForm();
@@ -229,6 +235,8 @@ class EmployeeFormController extends BaseFormController {
 
   // Carga los datos de un usuario existente
   void loadUser(UserModel model) {
+    isLoading.value = true;
+
     user.value = model;
     observationText.value = model.department ?? '';
 
@@ -244,6 +252,7 @@ class EmployeeFormController extends BaseFormController {
     departmentController.text = model.department ?? '';
 
     update();
+    isLoading.value = false;
   }
 
   // VALIDACIONES
@@ -319,7 +328,10 @@ class EmployeeFormController extends BaseFormController {
 
   Future<bool> saveEmployee() async {
     try {
+      isLoading.value = true;
+
       if (!validateForm()) {
+        isLoading.value = false;
         return false;
       }
 
@@ -365,6 +377,7 @@ class EmployeeFormController extends BaseFormController {
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Get.theme.colorScheme.surfaceContainerHighest,
         );
+        isLoading.value = false;
         return true;
       } else {
         Get.snackbar(
@@ -374,9 +387,11 @@ class EmployeeFormController extends BaseFormController {
           backgroundColor: Get.theme.colorScheme.error,
           colorText: Get.theme.colorScheme.onError,
         );
+        isLoading.value = false;
         return false;
       }
     } catch (e) {
+      isLoading.value = false;
       Get.snackbar(
         'Error',
         'Error al guardar: ${e.toString()}',

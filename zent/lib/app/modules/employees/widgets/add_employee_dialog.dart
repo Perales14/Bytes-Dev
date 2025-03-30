@@ -14,10 +14,12 @@ import 'employee_form.dart';
 class AddEmployeeDialog extends StatefulWidget {
   final Function onSaveSuccess;
   final UserModel? employee;
+  final bool isEditing;
 
   const AddEmployeeDialog({
     required this.onSaveSuccess,
     this.employee,
+    this.isEditing = false,
     super.key,
   });
 
@@ -104,10 +106,8 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
       focusNode: FocusNode()..requestFocus(),
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent &&
-            event.logicalKey == LogicalKeyboardKey.escape &&
-            mounted &&
-            Navigator.canPop(context)) {
-          Navigator.of(context).pop();
+            event.logicalKey == LogicalKeyboardKey.escape) {
+          _handleCancel();
         }
       },
       child: BackdropFilter(
@@ -120,19 +120,41 @@ class _AddEmployeeDialogState extends State<AddEmployeeDialog> {
           ),
           child: Container(
             constraints: BoxConstraints(
-              maxWidth: size.width * 0.9,
+              maxWidth: 900,
               maxHeight: size.height * 0.9,
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).dialogBackgroundColor,
-              borderRadius: BorderRadius.circular(8),
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: EmployeeForm(
-              controller: controller,
-              config: FormConfig.employee,
-              onCancel: _handleCancel,
-              onSubmit: _handleSubmit,
-            ),
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              return EmployeeForm(
+                controller: controller,
+                config: FormConfig(
+                  title: widget.employee != null
+                      ? 'Editar Empleado'
+                      : 'Nuevo Empleado',
+                  primaryButtonText: 'Guardar',
+                  secondaryButtonText: 'Cancelar',
+                  // No mostrar observaciones ni archivos en modo edición
+                  showObservations: !widget.isEditing,
+                  showFiles: !widget.isEditing,
+                ),
+                onCancel: _handleCancel,
+                onSubmit: _handleSubmit,
+              );
+            }),
           ),
         ),
       ),

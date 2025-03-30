@@ -26,6 +26,21 @@ class UserService extends GetxService {
   Future<List<UserModel>> getEmployeesByDepartment(String department) =>
       _provider.getEmployeesByDepartment(department);
 
+  Future<UserModel> setEmployeeInactive(int id) async {
+    try {
+      final employee = await getUserById(id);
+      if (employee == null) {
+        throw Exception('No se encontró el empleado con ID $id');
+      }
+
+      // Actualizar estado a inactivo (2) manteniendo el resto de propiedades
+      final updatedEmployee = employee.copyWith(stateId: 2);
+      return await updateEmployee(updatedEmployee);
+    } catch (e) {
+      throw Exception('Error al desactivar el empleado: $e');
+    }
+  }
+
   // Role and specialty operations
   Future<List<UserModel>> getUsersByRole(int roleId) =>
       _provider.getByRole(roleId);

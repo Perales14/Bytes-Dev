@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../data/services/file_service.dart';
+import '../../../data/services/observation_service.dart';
 import '../../../data/services/role_service.dart';
 import '../../../data/services/user_service.dart';
 import '../controllers/employees_controller.dart';
@@ -14,6 +15,10 @@ class EmployeesBinding extends Bindings {
 
     if (!Get.isRegistered<RoleService>()) {
       Get.lazyPut<RoleService>(() => RoleService(), fenix: true);
+    }
+    //observations
+    if (!Get.isRegistered<ObservationService>()) {
+      Get.lazyPut<ObservationService>(() => ObservationService(), fenix: true);
     }
 
     if (!Get.isRegistered<FileService>()) {
