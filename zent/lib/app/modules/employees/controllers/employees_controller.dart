@@ -44,7 +44,8 @@ class EmployeesController extends GetxController {
     try {
       isLoading(true);
       hasError(false);
-      final result = await _userService.getAllEmployees();
+      // Cambiar getAllEmployees por getActiveEmployees para solo obtener empleados activos
+      final result = await _userService.getActiveEmployees();
       employees.assignAll(result);
     } catch (e) {
       hasError(true);

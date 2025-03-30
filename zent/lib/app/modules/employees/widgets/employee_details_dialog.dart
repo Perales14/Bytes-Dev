@@ -357,7 +357,7 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
               if (observations.indexOf(obs) != observations.length - 1)
                 Container(
                   width: 2,
-                  height: 16,
+                  height: 55,
                   color: theme.colorScheme.primary.withOpacity(0.5),
                 ),
             ],

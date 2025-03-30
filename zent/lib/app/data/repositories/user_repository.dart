@@ -55,7 +55,8 @@ class UserRepository extends BaseRepository<UserModel> {
   // Get active employees
   Future<List<UserModel>> getActiveEmployees() async {
     try {
-      return await query('state_id = ? AND role_id = ?', [1, 2]);
+      // Solo filtrar por state_id = 1 (activos) sin filtrar por rol específico
+      return await query('state_id = ?', [1]);
     } catch (e) {
       throw Exception('Error getting active employees: $e');
     }
