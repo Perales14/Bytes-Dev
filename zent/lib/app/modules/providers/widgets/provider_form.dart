@@ -49,6 +49,7 @@ class ProviderForm extends BaseForm {
   @override
   Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
+    final bool isCreating = providerController.provider.value.id == 0;
 
     return SingleChildScrollView(
       child: Padding(
@@ -59,7 +60,9 @@ class ProviderForm extends BaseForm {
           children: [
             _buildProviderDataSection(theme),
             const SizedBox(height: 20),
-            if (config.showObservations) _buildObservationsSection(theme),
+            // Solo mostrar observaciones al crear un nuevo proveedor
+            if (config.showObservations && isCreating)
+              _buildObservationsSection(theme),
             const SizedBox(height: 20),
             _buildContactSection(theme),
             const SizedBox(height: 20),

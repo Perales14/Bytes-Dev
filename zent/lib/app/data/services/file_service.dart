@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mime/mime.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import '../models/file_model.dart';
 import '../providers/file_provider.dart';
 
@@ -83,16 +85,113 @@ class FileService extends GetxService {
     }
   }
 
+  Future<bool> uploadFileWithFilePicker({
+    required int entityId,
+    required String entityType,
+    required Function onFileSelected,
+  }) async {
+    try {
+      // Implementar la selección de archivo con file_picker
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+        allowMultiple: false,
+      );
+
+      if (result == null || result.files.isEmpty) {
+        return false; // El usuario canceló la selección
+      }
+
+      // Notificar que se ha seleccionado un archivo
+      onFileSelected();
+
+      final platformFile = result.files.first;
+
+      if (kIsWeb) {
+        // Para web, implementar la subida desde bytes
+        if (platformFile.bytes == null) return false;
+
+        final fileName = platformFile.name;
+        final mimeType = platformFile.extension != null
+            ? lookupMimeType('file.${platformFile.extension}') ??
+                'application/octet-stream'
+            : 'application/octet-stream';
+
+        // Generate storage path
+        final storagePath =
+            'entities/$entityType/$entityId/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+
+        // Upload to Supabase Storage
+        await _supabase.storage.from('files').uploadBinary(
+              storagePath,
+              platformFile.bytes!,
+              fileOptions: FileOptions(contentType: mimeType),
+            );
+
+        // Get public URL
+        final url = _supabase.storage.from('files').getPublicUrl(storagePath);
+
+        // Create file data
+        final fileData = {
+          'name': fileName,
+          'type': mimeType,
+          'url': url,
+          'storage_path': storagePath,
+          'upload_date': DateTime.now().toIso8601String(),
+          'entity_id': entityId,
+          'entity_type': entityType,
+          'size': platformFile.size,
+          'sent': 0,
+        };
+
+        // Save to database
+        await _provider.saveFile(fileData);
+        return true;
+      } else {
+        // Para dispositivos móviles, implementar la subida desde archivo
+        if (platformFile.path == null) return false;
+
+        final file = File(platformFile.path!);
+        await uploadFile(
+          file: file,
+          entityId: entityId,
+          entityType: entityType,
+        );
+        return true;
+      }
+    } catch (e) {
+      print('Error uploading file: $e');
+      throw Exception('Error uploading file: $e');
+    }
+  }
+
   // Delete file from storage and database
   Future<void> deleteFileCompletely(FileModel file) async {
     try {
-      // Delete from storage
-      await _supabase.storage.from('files').remove([file.storagePath]);
+      print('Eliminando archivo de storage: ${file.storagePath}');
 
-      // Delete from database
+      // Asegurarnos que el storage path esté bien formateado
+      final storagePath = file.storagePath.startsWith('/')
+          ? file.storagePath.substring(1)
+          : file.storagePath;
+
+      // Eliminar primero del storage
+      await _supabase.storage.from('files').remove([storagePath]);
+      print('Archivo eliminado del storage');
+
+      // Luego eliminar de la base de datos
       await deleteFile(file.id);
+      print('Archivo eliminado de la base de datos');
     } catch (e) {
-      throw Exception('Error deleting file: $e');
+      print('Error al eliminar archivo completamente: $e');
+      // Intentar eliminar al menos de la base de datos si falla el storage
+      try {
+        await deleteFile(file.id);
+        throw Exception(
+            'El archivo se eliminó de la base de datos, pero no del almacenamiento: $e');
+      } catch (dbError) {
+        throw Exception(
+            'Error eliminando archivo: $e, Error adicional: $dbError');
+      }
     }
   }
 
