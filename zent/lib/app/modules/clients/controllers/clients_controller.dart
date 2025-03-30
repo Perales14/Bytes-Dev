@@ -134,4 +134,14 @@ class ClientsController extends GetxController {
       throw Exception('Cliente con ID $id no encontrado');
     }
   }
+
+  Future<void> deleteClient(int id) async {
+    try {
+      await _clientService.deleteClient(id);
+      refreshData();
+    } catch (e) {
+      throw Exception('Error al eliminar el cliente: $e');
+    }
+    return;
+  }
 }

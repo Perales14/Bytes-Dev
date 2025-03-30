@@ -42,4 +42,19 @@ class ProviderService extends GetxService {
     return provider.taxIdentificationNumber != null &&
         provider.taxIdentificationNumber!.isNotEmpty;
   }
+
+  Future<ProviderModel> setProviderInactive(int id) async {
+    try {
+      final provider = await getProviderById(id);
+      if (provider == null) {
+        throw Exception('No se encontró el proveedor con ID $id');
+      }
+
+      // Actualizar estado a inactivo (2) manteniendo el resto de propiedades
+      final updatedProvider = provider.copyWith(stateId: 2);
+      return await updateProvider(updatedProvider);
+    } catch (e) {
+      throw Exception('Error al desactivar el proveedor: $e');
+    }
+  }
 }

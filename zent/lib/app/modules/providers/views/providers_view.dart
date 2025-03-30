@@ -32,10 +32,6 @@ class ProvidersView extends GetView<ProvidersController> {
                   return _buildErrorState();
                 }
 
-                // if (controller.providersEmpty()) {
-                //   return _buildEmptyState();
-                // }
-
                 return ProvidersCardsGrid(
                   providers: controller.providers,
                   onAddProvider: () => _showAddProviderDialog(context),
@@ -58,26 +54,6 @@ class ProvidersView extends GetView<ProvidersController> {
           onSaveSuccess: () => controller.refreshData(),
         );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.business_outlined,
-            size: 48,
-            color: Get.theme.colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'No hay proveedores registrados',
-            style: Get.textTheme.titleMedium,
-          ),
-        ],
-      ),
     );
   }
 

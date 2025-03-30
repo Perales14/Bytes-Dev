@@ -17,6 +17,19 @@ class ObservationRepository extends BaseRepository<ObservationModel> {
     );
   }
 
+  @override
+  Future<ObservationModel> update(ObservationModel model) async {
+    try {
+      if (model.id <= 0) {
+        throw Exception('ID de observación inválido para actualización');
+      }
+
+      return await super.update(model);
+    } catch (e) {
+      throw Exception('Error al actualizar observación: $e');
+    }
+  }
+
   // Get observations by source
   Future<List<ObservationModel>> getBySource(
       String sourceTable, int sourceId) async {

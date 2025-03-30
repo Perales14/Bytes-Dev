@@ -1,3 +1,5 @@
+import 'package:zent/app/data/utils/database_helper.dart';
+
 import '../models/base_model.dart';
 import '../models/address_model.dart';
 import 'base_repository.dart';
@@ -18,6 +20,26 @@ class AddressRepository extends BaseRepository<AddressModel> {
       createdAt: BaseModel.parseDateTime(map['created_at']),
       updatedAt: BaseModel.parseDateTime(map['updated_at']),
     );
+  }
+
+  @override
+  Future<AddressModel> update(AddressModel model) async {
+    try {
+      if (model.id <= 0) {
+        throw Exception('ID de dirección inválido para actualización');
+      }
+
+      model = model.copyWith(updatedAt: DateTime.now());
+
+      final data = model.toUpdateMap();
+      await DatabaseHelper.instance
+          .update(tableName, data, 'id = ?', [model.id]);
+
+      final updated = await getById(model.id);
+      return updated ?? model;
+    } catch (e) {
+      throw Exception('Error al actualizar dirección: $e');
+    }
   }
 
   // Find addresses by neighborhood

@@ -27,11 +27,9 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
   @override
   void initState() {
     super.initState();
-
-    // Inicializamos el controlador
     controller = Get.put(ProviderFormController());
 
-    // Si estamos en modo edición, cargamos los datos del proveedor
+    // Cargar proveedor si estamos en modo edición
     if (widget.provider != null) {
       controller.loadProvider(widget.provider!);
     }
@@ -39,40 +37,35 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
 
   @override
   void dispose() {
+    controller.resetForm();
     Get.delete<ProviderFormController>();
     super.dispose();
   }
 
   void _handleCancel() {
+    controller.resetForm();
     if (mounted && Navigator.canPop(context)) {
       Navigator.of(context).pop();
     }
   }
 
+  // Llamar siempre al callback después del cierre
   void _handleSubmit() async {
-    try {
-      final isValid = controller.submitForm();
+    final isValid = controller.submitForm();
 
-      if (isValid) {
-        if (mounted && Navigator.canPop(context)) {
-          Navigator.of(context).pop();
-          widget.onSaveSuccess();
-        }
+    if (isValid) {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.of(context).pop();
       }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Ocurrió un error inesperado: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
+
+      widget.onSaveSuccess();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final bool isEditing = widget.provider != null;
 
     return RawKeyboardListener(
       focusNode: FocusNode()..requestFocus(),
@@ -106,6 +99,7 @@ class _AddProviderDialogState extends State<AddProviderDialog> {
               config: FormConfig.provider,
               onCancel: _handleCancel,
               onSubmit: _handleSubmit,
+              submitText: isEditing ? 'GUARDAR' : 'AGREGAR',
             ),
           ),
         ),

@@ -6,11 +6,15 @@ class ProviderProvider {
 
   // Basic CRUD operations
   Future<List<ProviderModel>> getAll() => _repository.getAll();
+
   Future<ProviderModel?> getById(int id) => _repository.getById(id);
+
   Future<ProviderModel> create(ProviderModel provider) =>
       _repository.create(provider);
+
   Future<ProviderModel> update(ProviderModel provider) =>
       _repository.update(provider);
+
   Future<void> delete(int id) => _repository.delete(id);
 
   // Search operations

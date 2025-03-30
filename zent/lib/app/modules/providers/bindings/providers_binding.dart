@@ -30,7 +30,6 @@ class ProvidersBinding extends Bindings {
       Get.lazyPut<StateService>(() => StateService());
     }
 
-    // Register controller
     Get.lazyPut<ProvidersController>(() => ProvidersController());
   }
 }
