@@ -192,7 +192,9 @@ class EmployeeDetailsController extends GetxController {
 
   Future<void> deleteFile(FileModel file) async {
     try {
+      _fileService.prueba(file);
       final confirmed = await _showDeleteConfirmationDialog(file.name);
+
       if (!confirmed) return;
 
       _showLoadingDialog('Eliminando archivo...');

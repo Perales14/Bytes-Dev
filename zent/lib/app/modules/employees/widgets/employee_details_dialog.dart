@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -631,7 +632,60 @@ class _EmployeeDetailsDialogState extends State<EmployeeDetailsDialog> {
                 ),
               ),
               ElevatedButton.icon(
-                onPressed: () => _showUploadFileDialog(context, controller),
+                onPressed: () {
+                  controller.formController.addNewFile().then(
+                    (value) async {
+                      try {
+                        print(
+                            'Lista de archivos: ${controller.formController.files.last.name}');
+                        controller.formController.files.value = [
+                          controller.formController.files.last
+                        ];
+
+                        // Subir archivo a Supabase
+                        final uploadResult = await controller.formController
+                            .uploadFilesToSupabase(
+                          [controller.formController.files.last],
+                          controller.employeeId.toString(),
+                        );
+
+                        // Solo añadir a la lista si la carga fue exitosa
+                        if (uploadResult.isNotEmpty) {
+                          controller.formController.saveFileReferences([
+                            uploadResult[0],
+                          ], controller.employeeId, 'employee');
+                          controller.files.add(
+                            FileModel.fromFileData(
+                              fileData: controller.formController.files.last,
+                              entityId: controller.employeeId,
+                              entityType: 'employee',
+                              url: uploadResult[0]['url'] ?? '',
+                              storagePath:
+                                  uploadResult[0]['storage_path'] ?? '',
+                            ),
+                          );
+
+                          Get.snackbar(
+                            'Éxito',
+                            'Archivo subido correctamente',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                        }
+                      } catch (e) {
+                        print('Error al subir archivo: $e');
+                        Get.snackbar(
+                          'Error',
+                          'No se pudo subir el archivo: ${e.toString().substring(0, min(100, e.toString().length))}',
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: theme.colorScheme.error,
+                          colorText: theme.colorScheme.onError,
+                          duration: const Duration(seconds: 5),
+                        );
+                      }
+                    },
+                  );
+                },
+                // onPressed: () => _showUploadFileDialog(context, controller),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.colorScheme.primary,
                   foregroundColor: Colors.white,

@@ -307,25 +307,6 @@ class EmployeeFormController extends BaseFormController {
 
   // Método para guardar referencias de archivos
 
-  Future<void> _saveFileReferences(
-      List<Map<String, dynamic>> fileData, int employeeId) async {
-    try {
-      // Crea un repositorio para archivos si no lo tienes ya
-      final fileRepository = Get.find<FileRepository>();
-
-      for (var file in fileData) {
-        // Convert Map to FileModel before passing to createFile
-        await fileRepository.saveFile({
-          ...file,
-          'entity_id': employeeId,
-          'entity_type': 'employee',
-        });
-      }
-    } catch (e) {
-      print('Error al guardar referencias de archivos: $e');
-    }
-  }
-
   Future<bool> saveEmployee() async {
     try {
       isLoading.value = true;
@@ -364,7 +345,7 @@ class EmployeeFormController extends BaseFormController {
 
         // Guarda las referencias de los archivos en la base de datos
         if (uploadedFiles.isNotEmpty) {
-          await _saveFileReferences(uploadedFiles, user.value.id);
+          await saveFileReferences(uploadedFiles, user.value.id, 'employee');
         }
       }
 
