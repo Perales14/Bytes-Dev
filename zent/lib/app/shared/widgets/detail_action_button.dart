@@ -157,7 +157,7 @@ class DetailActionButton extends StatelessWidget {
       case DetailActionType.edit:
         return 'Modificar';
       case DetailActionType.delete:
-        return 'Eliminar';
+        return 'Desactivar';
     }
   }
 
@@ -166,7 +166,7 @@ class DetailActionButton extends StatelessWidget {
       case DetailActionType.edit:
         return '¿Confirmar modificación?';
       case DetailActionType.delete:
-        return '¿Confirmar eliminación?';
+        return '¿Confirmar desactivación?';
     }
   }
 
@@ -175,7 +175,7 @@ class DetailActionButton extends StatelessWidget {
       case DetailActionType.edit:
         return '¿Está seguro que desea modificar este elemento?';
       case DetailActionType.delete:
-        return '¿Está seguro que desea eliminar este elemento? Esta acción no se puede deshacer.';
+        return '¿Está seguro que desea desactivar este elemento?';
     }
   }
 
@@ -184,7 +184,7 @@ class DetailActionButton extends StatelessWidget {
       case DetailActionType.edit:
         return 'Modificar';
       case DetailActionType.delete:
-        return 'Eliminar';
+        return 'Desactivar';
     }
   }
 }
