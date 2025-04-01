@@ -23,21 +23,15 @@ class ClientsView extends GetView<ClientsController> {
 
             // Contenido principal con grid de tarjetas
             Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (controller.hasError.value) {
-                  return _buildErrorState();
-                }
-
-                return ClientsCardsGrid(
-                  clients: controller.filteredClients(),
-                  onAddClient: () => _showAddClientDialog(context),
-                  controller: controller,
-                );
-              }),
+              child: controller.isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : controller.hasError.value
+                      ? _buildErrorState()
+                      : ClientsCardsGrid(
+                          clients: controller.filteredClients(),
+                          onAddClient: () => _showAddClientDialog(context),
+                          controller: controller,
+                        ),
             ),
           ],
         ),
