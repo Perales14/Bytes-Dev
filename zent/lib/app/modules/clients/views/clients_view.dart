@@ -23,21 +23,15 @@ class ClientsView extends GetView<ClientsController> {
 
             // Contenido principal con grid de tarjetas
             Expanded(
-              child: Obx(() {
-                if (controller.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (controller.hasError.value) {
-                  return _buildErrorState();
-                }
-
-                return ClientsCardsGrid(
-                  clients: controller.filteredClients(),
-                  onAddClient: () => _showAddClientDialog(context),
-                  controller: controller,
-                );
-              }),
+              child: controller.isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : controller.hasError.value
+                      ? _buildErrorState()
+                      : ClientsCardsGrid(
+                          clients: controller.filteredClients(),
+                          onAddClient: () => _showAddClientDialog(context),
+                          controller: controller,
+                        ),
             ),
           ],
         ),
@@ -48,33 +42,16 @@ class ClientsView extends GetView<ClientsController> {
   void _showAddClientDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierDismissible: true,
       barrierColor: Colors.black.withOpacity(0.5),
+      barrierDismissible: true,
       builder: (context) {
         return AddClientsDialog(
-          onSaveSuccess: () => controller.refreshData(),
+          onSaveSuccess: () {
+            // Llamar explícitamente a refreshData cuando se completa el guardado
+            Get.find<ClientsController>().refreshData();
+          },
         );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.business_outlined,
-            size: 48,
-            color: Get.theme.colorScheme.primary.withOpacity(0.5),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'No hay clientes registrados',
-            style: Get.textTheme.titleMedium,
-          ),
-        ],
-      ),
     );
   }
 

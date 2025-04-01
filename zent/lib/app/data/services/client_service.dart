@@ -49,4 +49,19 @@ class ClientService extends GetxService {
     return client.clientType != 'Empresa' ||
         (client.companyName != null && client.companyName!.isNotEmpty);
   }
+
+  Future<ClientModel> setClientInactive(int id) async {
+    try {
+      final client = await getClientById(id);
+      if (client == null) {
+        throw Exception('No se encontró el cliente con ID $id');
+      }
+
+      // Actualizar estado a inactivo (2) manteniendo el resto de propiedades
+      final updatedClient = client.copyWith(stateId: 2);
+      return await updateClient(updatedClient);
+    } catch (e) {
+      throw Exception('Error al desactivar el cliente: $e');
+    }
+  }
 }

@@ -1,29 +1,27 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import '../../../data/models/client_model.dart';
 import '../../../data/services/client_service.dart';
+import '../widgets/add_clients_dialog.dart';
 import '../widgets/client_details_dialog.dart';
 
+/// Controlador para administrar clientes
 class ClientsController extends GetxController {
-  // Lista reactiva de clientes
+  // Variables observables
   final clients = <ClientModel>[].obs;
   final filter = ''.obs;
-  final TextEditingController textController = TextEditingController();
-
-  // Estado de carga
   final isLoading = true.obs;
-
-  // Estado de error
   final hasError = false.obs;
   final errorMessage = ''.obs;
 
-  // Servicio
+  // Controladores UI
+  final TextEditingController textController = TextEditingController();
+
+  // Servicios
   final ClientService _clientService;
 
-  // Inyección de dependencia mediante constructor
+  /// Constructor con inyección de dependencias
   ClientsController({ClientService? clientService})
       : _clientService = clientService ?? Get.find<ClientService>();
 
@@ -31,9 +29,7 @@ class ClientsController extends GetxController {
   void onInit() {
     super.onInit();
     loadClients();
-    textController.addListener(() {
-      filter.value = textController.text;
-    });
+    textController.addListener(() => filter.value = textController.text);
   }
 
   @override
@@ -42,62 +38,46 @@ class ClientsController extends GetxController {
     super.onClose();
   }
 
+  /// Filtra la lista de clientes según el texto de búsqueda
   List<ClientModel> filteredClients() {
-    if (clients.isEmpty) {
-      return <ClientModel>[];
-    }
-
-    if (filter.value.isEmpty) {
+    if (clients.isEmpty || filter.value.isEmpty) {
       return clients;
     }
 
-    final filteredList = <ClientModel>[];
     final searchTerm = filter.value.toLowerCase();
-
-    for (var client in clients) {
-      if (client.fullName.toLowerCase().contains(searchTerm) ||
-          (client.companyName?.toLowerCase().contains(searchTerm) ?? false)) {
-        filteredList.add(client);
-      }
-    }
-
-    return filteredList;
+    return clients
+        .where((client) =>
+            client.fullName.toLowerCase().contains(searchTerm) ||
+            (client.companyName?.toLowerCase().contains(searchTerm) ?? false))
+        .toList();
   }
 
-  // Cargar clientes desde el servicio
+  /// Carga clientes activos desde el servicio
   void loadClients() async {
     try {
       isLoading(true);
       hasError(false);
-      final result = await _clientService.getAllClients();
+      errorMessage('');
+
+      final result = await _clientService.getActiveClients();
       clients.assignAll(result);
 
-      if (clients.isEmpty) {
-        if (kDebugMode) {
-          print('No se encontraron clientes en la base de datos');
-        }
-      } else {
-        if (kDebugMode) {
-          print('Clientes cargados correctamente: ${clients.length}');
-        }
+      if (kDebugMode && clients.isEmpty) {
+        print('No se encontraron clientes activos');
       }
     } catch (e) {
       hasError(true);
       errorMessage('Error al cargar clientes: $e');
-      if (kDebugMode) {
-        print('Error al cargar clientes: $e');
-      }
+      if (kDebugMode) print('Error al cargar clientes: $e');
     } finally {
       isLoading(false);
     }
   }
 
-  // Recargar datos
-  void refreshData() {
-    loadClients();
-  }
+  /// Recarga la lista de clientes
+  void refreshData() => loadClients();
 
-  // Mostrar detalles del cliente
+  /// Muestra el diálogo de detalles de un cliente
   void showClientDetails(int clientId) {
     try {
       final client = clients.firstWhere((c) => c.id == clientId);
@@ -106,27 +86,25 @@ class ClientsController extends GetxController {
         context: Get.context!,
         barrierDismissible: true,
         barrierColor: Colors.black.withOpacity(0.5),
-        builder: (context) {
-          return ClientDetailsDialog(
-            client: client,
-            onEditPressed: () {
-              Navigator.of(context).pop();
-              //Get.toNamed('/clients/$clientId/edit');
-            },
-          );
-        },
+        builder: (context) => ClientDetailsDialog(
+          client: client,
+          onEditPressed: () {
+            // Cerramos primero el diálogo actual
+            Navigator.of(context).pop();
+            // Programamos la apertura del diálogo de edición para el siguiente frame
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showEditClientDialog(clientId);
+            });
+          },
+          onClose: refreshData,
+        ),
       );
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'No se pudo encontrar la información del cliente',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
+      _showErrorSnackbar('No se pudo encontrar la información del cliente');
     }
   }
 
+  /// Obtiene un cliente por su ID
   ClientModel getClientById(int id) {
     try {
       return clients.firstWhere((client) => client.id == id);
@@ -135,6 +113,7 @@ class ClientsController extends GetxController {
     }
   }
 
+  /// Elimina un cliente del sistema
   Future<void> deleteClient(int id) async {
     try {
       await _clientService.deleteClient(id);
@@ -142,6 +121,47 @@ class ClientsController extends GetxController {
     } catch (e) {
       throw Exception('Error al eliminar el cliente: $e');
     }
-    return;
+  }
+
+  /// Desactiva un cliente (no lo elimina)
+  Future<void> setClientInactive(int id) async {
+    try {
+      await _clientService.setClientInactive(id);
+      refreshData();
+    } catch (e) {
+      throw Exception('Error al desactivar el cliente: $e');
+    }
+  }
+
+  /// Muestra el diálogo para editar un cliente
+  void showEditClientDialog(int clientId) {
+    try {
+      final client = getClientById(clientId);
+
+      showDialog(
+        context: Get.context!,
+        barrierDismissible: true,
+        barrierColor: Colors.black.withOpacity(0.5),
+        builder: (context) => AddClientsDialog(
+          client: client,
+          onSaveSuccess: refreshData,
+          isEditing: true,
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackbar(
+          'No se pudo encontrar la información del cliente para editar');
+    }
+  }
+
+  /// Muestra un snackbar de error
+  void _showErrorSnackbar(String message) {
+    Get.snackbar(
+      'Error',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Get.theme.colorScheme.error,
+      colorText: Get.theme.colorScheme.onError,
+    );
   }
 }

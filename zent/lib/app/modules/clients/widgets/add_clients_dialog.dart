@@ -5,15 +5,19 @@ import 'package:get/get.dart';
 import '../controllers/client_form_controller.dart';
 import '../../../shared/models/form_config.dart';
 import 'client_form.dart';
-
+import '../../../data/models/client_model.dart';
 import '../../../data/services/client_service.dart';
 import '../../../data/services/observation_service.dart';
 
 class AddClientsDialog extends StatefulWidget {
   final Function onSaveSuccess;
+  final ClientModel? client;
+  final bool isEditing;
 
   const AddClientsDialog({
     required this.onSaveSuccess,
+    this.client,
+    this.isEditing = false,
     super.key,
   });
 
@@ -38,6 +42,11 @@ class _AddClientsDialogState extends State<AddClientsDialog> {
 
     // Inicializamos el controlador
     controller = Get.put(ClientFormController());
+
+    // Si estamos en modo edición, cargamos los datos del cliente
+    if (widget.isEditing && widget.client != null) {
+      controller.loadClient(widget.client!);
+    }
   }
 
   @override
@@ -74,7 +83,6 @@ class _AddClientsDialogState extends State<AddClientsDialog> {
     final size = MediaQuery.of(context).size;
 
     return RawKeyboardListener(
-      // Escuchamos eventos de teclado para cerrar con Escape
       focusNode: FocusNode()..requestFocus(),
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent &&
@@ -105,7 +113,14 @@ class _AddClientsDialogState extends State<AddClientsDialog> {
             ),
             child: ClientForm(
               controller: controller,
-              config: FormConfig.client,
+              config: FormConfig(
+                title: FormConfig.client.title,
+                showObservations: !widget.isEditing,
+                observationsFlex: FormConfig.client.observationsFlex,
+                showFiles: FormConfig.client.showFiles,
+                primaryButtonText: FormConfig.client.primaryButtonText,
+                secondaryButtonText: FormConfig.client.secondaryButtonText,
+              ),
               onCancel: _handleCancel,
               onSubmit: _handleSubmit,
             ),
