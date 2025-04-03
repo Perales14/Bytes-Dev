@@ -164,18 +164,37 @@ class FileService extends GetxService {
     }
   }
 
+  void prueba(FileModel file) async {
+    // final a = await _supabase.storage
+    //     .from('employee-files')
+    //     .remove(['0_1743061226157_Link de archivos.txt']);
+    // // print('Buckets: ${a.last.name}');
+    // for (final bucket in a) {
+    //   print('Bucket: ${bucket.name}');
+    // }
+    final parts = file.storagePath.split('/');
+    // Asegurarnos que el storage path esté bien formateado
+    // final storagePath = file.storagePath.startsWith('/')
+    //     ? file.storagePath.substring(1)
+    //     : file.storagePath;
+    final bucket = parts[0];
+    final storageName = parts[1];
+
+    print('Bucket: $bucket, Storage Name: $storageName');
+  }
+
   // Delete file from storage and database
   Future<void> deleteFileCompletely(FileModel file) async {
     try {
       print('Eliminando archivo de storage: ${file.storagePath}');
+      final parts = file.storagePath.split('/');
+      final bucket = parts[0];
+      final storageName = parts[1];
 
-      // Asegurarnos que el storage path esté bien formateado
-      final storagePath = file.storagePath.startsWith('/')
-          ? file.storagePath.substring(1)
-          : file.storagePath;
+      print('Bucket: $bucket, Storage Name: $storageName');
 
       // Eliminar primero del storage
-      await _supabase.storage.from('files').remove([storagePath]);
+      await _supabase.storage.from(bucket).remove([storageName]);
       print('Archivo eliminado del storage');
 
       // Luego eliminar de la base de datos

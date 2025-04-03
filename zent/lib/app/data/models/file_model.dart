@@ -1,3 +1,4 @@
+import '../../shared/widgets/form/widgets/file_upload_panel.dart';
 import 'base_model.dart';
 
 class FileModel extends BaseModel {
@@ -81,6 +82,38 @@ class FileModel extends BaseModel {
       sent: map['sent'] == 1,
       createdAt: BaseModel.parseDateTime(map['created_at']) ?? DateTime.now(),
       updatedAt: BaseModel.parseDateTime(map['updated_at']) ?? DateTime.now(),
+    );
+  }
+
+  factory FileModel.fromFileData({
+    required FileData fileData,
+    required int entityId,
+    required String entityType,
+    String url = '',
+    String storagePath = '',
+  }) {
+    // Convertir el id de String a int si es posible
+    int idAsInt = 0;
+    try {
+      idAsInt = int.parse(fileData.id);
+    } catch (_) {
+      // Si no se puede convertir, se mantiene como 0
+    }
+
+    return FileModel(
+      id: idAsInt,
+      name: fileData.name,
+      // Convertir FileType a String
+      type: fileData.type.name,
+      url: url,
+      storagePath: storagePath,
+      uploadDate: fileData.uploadDate,
+      entityId: entityId,
+      entityType: entityType,
+      size: fileData.size,
+      sent: false,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:zent/app/shared/models/base_model.dart';
 import 'package:zent/app/shared/widgets/form/widgets/file_upload_panel.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart' as picker;
+import '../../data/repositories/file_repository.dart';
 import '../validators/validators.dart' as validators;
 
 /// Controlador base para formularios que implementa funcionalidad común.
@@ -141,6 +143,82 @@ abstract class BaseFormController extends GetxController {
       registrationDate: fechaRegistro,
       files: files,
     );
+  }
+
+  // nformación sobre los archivos subidos
+  ///
+  /// [filesToUpload] Lista de archivos para subir
+  /// [entityId] Identificador de la entidad asociada a los archivos
+  /// Retorna una lista de mapas con la información de los archivos subidos
+  Future<List<Map<String, dynamic>>> uploadFilesToSupabase(
+      List<FileData> filesToUpload, String entityId) async {
+    final supabase = Supabase.instance.client;
+    final List<Map<String, dynamic>> uploadedFiles = [];
+
+    for (var file in filesToUpload) {
+      if (file.path != null) {
+        try {
+          // Genera un nombre único para el archivo
+          final String fileName =
+              '${entityId}_${DateTime.now().millisecondsSinceEpoch}_${file.name}';
+
+          // Obtiene el archivo del sistema de archivos
+          final fileBytes = await File(file.path!).readAsBytes();
+
+          // Subir a Supabase Storage
+          final String storagePath =
+              await supabase.storage.from('employee-files').uploadBinary(
+                    fileName,
+                    fileBytes,
+                    fileOptions: const FileOptions(
+                      cacheControl: '3600',
+                      upsert: false,
+                    ),
+                  );
+
+          // Obtiene la URL pública
+          final String publicUrl =
+              supabase.storage.from('employee-files').getPublicUrl(fileName);
+
+          uploadedFiles.add({
+            'name': file.name,
+            'type': file.type.toString(),
+            'url': publicUrl,
+            'storage_path': storagePath,
+            'upload_date': DateTime.now().toIso8601String(),
+            'entity_id': entityId,
+            'size': file.size,
+          });
+        } catch (e) {
+          Get.snackbar(
+            'Error',
+            'No se pudo subir el archivo ${file.name}: $e',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
+      }
+    }
+
+    return uploadedFiles;
+  }
+
+  Future<void> saveFileReferences(
+      List<Map<String, dynamic>> fileData, int employeeId, String table) async {
+    try {
+      // Crea un repositorio para archivos si no lo tienes ya
+      final fileRepository = Get.find<FileRepository>();
+
+      for (var file in fileData) {
+        // Convert Map to FileModel before passing to createFile
+        await fileRepository.saveFile({
+          ...file,
+          'entity_id': employeeId,
+          'entity_type': table,
+        });
+      }
+    } catch (e) {
+      print('Error al guardar referencias de archivos: $e');
+    }
   }
 
   /// Procesa el envío del formulario
