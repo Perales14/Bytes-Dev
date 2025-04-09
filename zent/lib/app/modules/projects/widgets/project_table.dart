@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../../data/models/project_model.dart';
 
 class ProjectsTable extends StatelessWidget {
-  final List<Map<String, dynamic>> projects;
+  final List<ProjectModel> projects;
 
-  const ProjectsTable({super.key, required this.projects});
+  const ProjectsTable({
+    super.key,
+    required this.projects,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -21,12 +25,11 @@ class ProjectsTable extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: SizedBox(
               width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height *
-                  0.8, // Ajusta la altura según sea necesario
+              height: MediaQuery.of(context).size.height * 0.8,
               child: SingleChildScrollView(
-                scrollDirection: Axis.vertical, // Desplazamiento vertical
+                scrollDirection: Axis.vertical,
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal, // Desplazamiento horizontal
+                  scrollDirection: Axis.horizontal,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                         minWidth: MediaQuery.of(context).size.width),
@@ -52,26 +55,26 @@ class ProjectsTable extends StatelessWidget {
                         dividerThickness: 1.2,
                         columns: const [
                           DataColumn(label: Center(child: Text('Nombre'))),
-                          DataColumn(label: Center(child: Text('NSS'))),
-                          DataColumn(label: Center(child: Text('Email'))),
-                          DataColumn(label: Center(child: Text('Cargo'))),
+                          DataColumn(label: Center(child: Text('Cliente'))),
+                          DataColumn(label: Center(child: Text('Gerente'))),
+                          DataColumn(label: Center(child: Text('Inicio'))),
                           DataColumn(
-                              label: Center(child: Text('Departamento'))),
-                          DataColumn(label: Center(child: Text('Teléfono'))),
-                          DataColumn(label: Center(child: Text('Editar'))),
+                              label: Center(child: Text('Fin Estimado'))),
+                          DataColumn(label: Center(child: Text('Presupuesto'))),
+                          DataColumn(label: Center(child: Text('Estado'))),
+                          DataColumn(label: Center(child: Text('Acciones'))),
                         ],
-                        rows: projects.map((empleado) {
+                        rows: projects.map((project) {
                           return DataRow(
                             cells: [
+                              _buildCell(project.name),
+                              _buildCell(project.clientId.toString()),
+                              _buildCell(project.managerId.toString()),
+                              _buildCell(_formatDate(project.startDate)),
+                              _buildCell(_formatDate(project.estimatedEndDate)),
                               _buildCell(
-                                  empleado['nombre_completo'] ?? 'Sin nombre'),
-                              _buildCell(empleado['nss'] ?? 'Sin NSS'),
-                              _buildCell(empleado['email'] ?? 'Sin email'),
-                              _buildCell(empleado['cargo'] ?? 'Sin cargo'),
-                              _buildCell(empleado['departamento'] ??
-                                  'Sin departamento'),
-                              _buildCell(
-                                  empleado['telefono'] ?? 'Sin teléfono'),
+                                  _formatCurrency(project.estimatedBudget)),
+                              _buildCell(_getProjectStatus(project)),
                               DataCell(
                                 Center(
                                   child: IconButton(
@@ -106,5 +109,29 @@ class ProjectsTable extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'No definido';
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  String _formatCurrency(double? amount) {
+    if (amount == null) return 'No definido';
+    return '\$${amount.toStringAsFixed(2)}';
+  }
+
+  String _getProjectStatus(ProjectModel project) {
+    if (project.actualEndDate != null) return 'Completado';
+    if (project.startDate == null) return 'No iniciado';
+    if (_isOverdue(project)) return 'Atrasado';
+    return 'En progreso';
+  }
+
+  bool _isOverdue(ProjectModel project) {
+    if (project.estimatedEndDate == null || project.actualEndDate != null) {
+      return false;
+    }
+    return DateTime.now().isAfter(project.estimatedEndDate!);
   }
 }

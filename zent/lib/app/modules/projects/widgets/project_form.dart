@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../controllers/project_form_controller.dart';
 import '../../../shared/widgets/form/base_form.dart';
 import '../../../shared/widgets/form/widgets/dropdown_form.dart';
 import '../../../shared/widgets/form/widgets/file_upload_panel.dart';
-import '../../../shared/widgets/form/widgets/label_display.dart';
 import '../../../shared/widgets/form/widgets/text_field_form.dart';
-import '../../../shared/widgets/form/widgets/observations_field.dart';
+import 'utils/date_picker_form.dart';
 
 class ProjectForm extends BaseForm {
   const ProjectForm({
@@ -18,13 +16,12 @@ class ProjectForm extends BaseForm {
     super.key,
   });
 
-  ProjectFormController get employeeController =>
+  ProjectFormController get projectController =>
       controller as ProjectFormController;
 
   @override
   Widget buildFormContent(BuildContext context) {
     final theme = Theme.of(context);
-    final bool isCreating = employeeController.user.value.id == 0;
 
     return SingleChildScrollView(
       child: Padding(
@@ -33,239 +30,294 @@ class ProjectForm extends BaseForm {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildPersonalDataSection(theme),
+            _buildProjectDetailsSection(theme),
             const SizedBox(height: 20),
-            // Solo mostrar observaciones al crear un nuevo empleado
-            if (config.showObservations && isCreating)
-              _buildObservationsSection(theme),
+            _buildDatesAndBudgetSection(theme),
             const SizedBox(height: 20),
-            _buildCompanyDataSection(theme),
+            _buildDescriptionSection(theme),
             const SizedBox(height: 20),
-            // Solo mostrar archivos al crear un nuevo empleado
-            if (config.showFiles && isCreating) _buildFilesSection(theme),
+            _buildAddressToggleSection(theme),
+            Obx(() => projectController.showAddress.value
+                ? Column(
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildAddressSection(theme),
+                    ],
+                  )
+                : Container()),
+            if (config.showFiles) ...[
+              const SizedBox(height: 20),
+              _buildFilesSection(theme),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPersonalDataSection(ThemeData theme) {
+  Widget _buildProjectDetailsSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildSectionTitle(theme, 'Datos Personales'),
+        buildSectionTitle(theme, 'Detalles del Proyecto'),
         const SizedBox(height: 20),
-
-        // Nombre, Apellido Paterno, Apellido Materno
-        Row(
-          children: [
-            Expanded(
-              child: TextFieldForm(
-                label: 'Nombre',
-                controller: employeeController.nameController,
-                validator: employeeController.validateRequired,
-                onChanged: (value) =>
-                    employeeController.updateUser(name: value),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFieldForm(
-                label: 'Apellido Paterno',
-                controller: employeeController.fatherLastNameController,
-                validator: employeeController.validateRequired,
-                onChanged: (value) =>
-                    employeeController.updateUser(fatherLastName: value),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFieldForm(
-                label: 'Apellido Materno',
-                controller: employeeController.motherLastNameController,
-                onChanged: (value) =>
-                    employeeController.updateUser(motherLastName: value),
-              ),
-            ),
-          ],
+        TextFieldForm(
+          label: 'Nombre del Proyecto',
+          controller: projectController.nameController,
+          validator: projectController.validateName,
+          onChanged: (value) => projectController.updateProject(name: value),
         ),
         const SizedBox(height: 10),
-
-        // Correo, Teléfono, NSS
-        Row(
-          children: [
-            Expanded(
-              child: TextFieldForm(
-                label: 'Correo Electrónico',
-                controller: employeeController.emailController,
-                validator: employeeController.validateEmail,
-                onChanged: (value) =>
-                    employeeController.updateUser(email: value),
-                keyboardType: TextInputType.emailAddress,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFieldForm(
-                label: 'Teléfono',
-                controller: employeeController.phoneNumberController,
-                onChanged: (value) =>
-                    employeeController.updateUser(phoneNumber: value),
-                keyboardType: TextInputType.phone,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFieldForm(
-                label: 'NSS',
-                controller: employeeController.socialSecurityNumberController,
-                validator: employeeController.validateSocialSecurityNumber,
-                onChanged: (value) =>
-                    employeeController.updateUser(socialSecurityNumber: value),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-
-        // Contraseña y Confirmación de Contraseña
-        _buildPasswordSection(theme),
+        _buildProjectTeamRow(),
       ],
     );
   }
 
-  Widget _buildPasswordSection(ThemeData theme) {
-    return Obx(() => Row(
+  Widget _buildProjectTeamRow() {
+    return Obx(() {
+      final clients = projectController.clients
+          .map((client) => DropdownMenuItem(
+                value: client.id.toString(),
+                child: Text(client.companyName ?? client.fullName),
+              ))
+          .toList();
+
+      final managers = projectController.managers
+          .map((manager) => DropdownMenuItem(
+                value: manager.id.toString(),
+                child: Text('${manager.name} ${manager.fatherLastName}'),
+              ))
+          .toList();
+
+      final providers = projectController.providers
+          .map((provider) => DropdownMenuItem(
+                value: provider.id.toString(),
+                child: Text(provider.companyName),
+              ))
+          .toList();
+
+      return Column(
+        children: [
+          DropdownForm(
+            label: 'Cliente',
+            opciones: clients.map((item) => item.child.toString()).toList(),
+            value: projectController.project.value.clientId.toString(),
+            onChanged: (value) => projectController.updateProject(
+              clientId: int.tryParse(value ?? ''),
+            ),
+            validator: projectController.validateClientId,
+          ),
+          const SizedBox(height: 10),
+          DropdownForm(
+            label: 'Responsable',
+            opciones: managers.map((item) => item.child.toString()).toList(),
+            value: projectController.project.value.managerId.toString(),
+            onChanged: (value) => projectController.updateProject(
+              managerId: int.tryParse(value ?? ''),
+            ),
+            validator: projectController.validateManagerId,
+          ),
+          const SizedBox(height: 10),
+          DropdownForm(
+            label: 'Proveedor',
+            opciones: providers.map((item) => item.child.toString()).toList(),
+            value: projectController.project.value.providerId?.toString(),
+            onChanged: (value) => projectController.updateProject(
+              providerId: int.tryParse(value ?? ''),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildDatesAndBudgetSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildSectionTitle(theme, 'Fechas y Presupuesto'),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: DatePickerForm(
+                label: 'Fecha de Inicio',
+                selectedDate: projectController.startDate.value,
+                onDateSelected: (date) =>
+                    projectController.updateProject(startDate: date),
+                validator: (date) =>
+                    date == null ? 'La fecha de inicio es requerida' : null,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: DatePickerForm(
+                label: 'Fecha de Fin Estimada',
+                selectedDate: projectController.estimatedEndDate.value,
+                onDateSelected: (date) =>
+                    projectController.updateProject(estimatedEndDate: date),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
           children: [
             Expanded(
               child: TextFieldForm(
-                label: 'Contraseña',
-                obscureText: !employeeController.showPassword.value,
-                controller: employeeController.passwordController,
-                validator: employeeController.user.value.id > 0
-                    ? null
-                    : employeeController.validatePassword,
-                onChanged: (value) =>
-                    employeeController.updateUser(passwordHash: value),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    employeeController.showPassword.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    color: theme.colorScheme.secondary,
-                  ),
-                  onPressed: () =>
-                      employeeController.togglePasswordVisibility(),
+                label: 'Presupuesto Estimado',
+                controller: projectController.estimatedBudgetController,
+                onChanged: (value) => projectController.updateProject(
+                  estimatedBudget: double.tryParse(value),
                 ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: TextFieldForm(
-                label: 'Confirmar Contraseña',
-                obscureText: !employeeController.showPassword.value,
-                controller: employeeController.confirmPasswordController,
-                validator: employeeController.user.value.id > 0
-                    ? null
-                    : employeeController.validateConfirmPassword,
-                onChanged: employeeController.updateConfirmPassword,
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    employeeController.showPassword.value
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                    color: theme.colorScheme.secondary,
-                  ),
-                  onPressed: () =>
-                      employeeController.togglePasswordVisibility(),
+                label: 'Comisión (%)',
+                controller: projectController.commissionController,
+                onChanged: (value) => projectController.updateProject(
+                  commissionPercentage: double.tryParse(value),
                 ),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
-            Expanded(child: Container()),
           ],
-        ));
+        ),
+      ],
+    );
   }
 
-  Widget _buildObservationsSection(ThemeData theme) {
+  Widget _buildDescriptionSection(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildSectionTitle(theme, 'Observaciones'),
+        buildSectionTitle(theme, 'Descripción'),
         const SizedBox(height: 20),
-        SizedBox(
-          height: 150,
-          child: ObservationsField(
-            initialValue: employeeController.observationText.value,
-            onChanged: (value) => employeeController.updateObservation(value),
+        TextFieldForm(
+          label: 'Descripción del Proyecto',
+          controller: projectController.descriptionController,
+          onChanged: (value) =>
+              projectController.updateProject(description: value),
+          maxLines: 4,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddressToggleSection(ThemeData theme) {
+    return Obx(() => CheckboxListTile(
+          title: Text('Agregar dirección', style: theme.textTheme.titleMedium),
+          value: projectController.showAddress.value,
+          onChanged: (value) {
+            if (value != null) {
+              projectController.toggleAddress();
+            }
+          },
+          controlAffinity: ListTileControlAffinity.leading,
+        ));
+  }
+
+  Widget _buildAddressSection(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        buildSectionTitle(theme, 'Dirección'),
+        const SizedBox(height: 20),
+        _buildAddressStreetRow(),
+        const SizedBox(height: 10),
+        _buildAddressNeighborhoodRow(),
+        const SizedBox(height: 10),
+        _buildAddressStateRow(),
+      ],
+    );
+  }
+
+  Widget _buildAddressStreetRow() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: TextFieldForm(
+            label: 'Calle',
+            controller: projectController.streetController,
+            validator: (value) => projectController.showAddress.value
+                ? projectController.validateRequired(value)
+                : null,
+            onChanged: (value) =>
+                projectController.updateAddress(street: value),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 1,
+          child: TextFieldForm(
+            label: 'Número',
+            controller: projectController.streetNumberController,
+            validator: (value) => projectController.showAddress.value
+                ? projectController.validateRequired(value)
+                : null,
+            onChanged: (value) =>
+                projectController.updateAddress(streetNumber: value),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCompanyDataSection(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAddressNeighborhoodRow() {
+    return Row(
       children: [
-        buildSectionTitle(theme, 'Datos de la Empresa'),
-        const SizedBox(height: 20),
-
-        // Fecha de ingreso y tipo contrato
-        Row(
-          children: [
-            Expanded(
-              child: Obx(() => LabelDisplay(
-                    label: 'Fecha de Ingreso',
-                    value: employeeController.user.value.entryDate
-                        .toString()
-                        .split(' ')[0],
-                  )),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DropdownForm(
-                label: 'Tipo de Contrato',
-                opciones: employeeController.contractTypes,
-                value: employeeController.user.value.contractType,
-                onChanged: (value) =>
-                    employeeController.updateUser(contractType: value),
-                validator: employeeController.validateContractType,
-              ),
-            ),
-          ],
+        Expanded(
+          flex: 3,
+          child: TextFieldForm(
+            label: 'Colonia',
+            controller: projectController.neighborhoodController,
+            validator: (value) => projectController.showAddress.value
+                ? projectController.validateRequired(value)
+                : null,
+            onChanged: (value) =>
+                projectController.updateAddress(neighborhood: value),
+          ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 1,
+          child: TextFieldForm(
+            label: 'Código Postal',
+            controller: projectController.postalCodeController,
+            validator: projectController.validatePostalCode,
+            onChanged: (value) =>
+                projectController.updateAddress(postalCode: value),
+            keyboardType: TextInputType.number,
+          ),
+        ),
+      ],
+    );
+  }
 
-        // Salario y rol
-        Row(
-          children: [
-            Expanded(
-              child: TextFieldForm(
-                label: 'Salario',
-                controller: employeeController.salaryController,
-                keyboardType: TextInputType.number,
-                onChanged: (value) => employeeController.updateUser(
-                  salary: value.isEmpty ? null : double.tryParse(value),
-                ),
-                validator: employeeController.validateSalary,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Obx(() => DropdownForm(
-                    label: 'Rol',
-                    opciones: employeeController.roles,
-                    value: employeeController.getRoleName(
-                            employeeController.user.value.roleId) ??
-                        'Seleccione un rol',
-                    onChanged: (value) async => employeeController.updateUser(
-                      roleId: employeeController.getRoleId(value),
-                    ),
-                  )),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Container()),
-          ],
+  Widget _buildAddressStateRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: TextFieldForm(
+            label: 'Estado',
+            controller: projectController.stateController,
+            onChanged: (value) => projectController.updateAddress(state: value),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: TextFieldForm(
+            label: 'País',
+            controller: projectController.countryController,
+            onChanged: (value) =>
+                projectController.updateAddress(country: value),
+          ),
         ),
       ],
     );
@@ -280,9 +332,9 @@ class ProjectForm extends BaseForm {
         SizedBox(
           height: 200,
           child: FileUploadPanel(
-            files: employeeController.files,
-            onRemove: employeeController.removeFile,
-            onAdd: () => employeeController.addNewFile(),
+            files: projectController.files,
+            onRemove: projectController.removeFile,
+            onAdd: () => projectController.addNewFile(),
           ),
         ),
       ],

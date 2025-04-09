@@ -2,92 +2,61 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-
 import '../../../shared/models/form_config.dart';
-import '../../../data/services/user_service.dart';
-import '../../../data/services/role_service.dart';
-import '../../../data/services/file_service.dart';
 import '../controllers/project_form_controller.dart';
-import '../../../data/models/user_model.dart';
+import '../../../data/models/project_model.dart';
 import 'project_form.dart';
 
 class AddProjectDialog extends StatefulWidget {
   final Function onSaveSuccess;
-  final UserModel? employee;
+  final ProjectModel? project;
   final bool isEditing;
 
   const AddProjectDialog({
     required this.onSaveSuccess,
-    this.employee,
+    this.project,
     this.isEditing = false,
     super.key,
   });
 
   @override
-  State<AddProjectDialog> createState() => _AddEmployeeDialogState();
+  State<AddProjectDialog> createState() => _AddProjectDialogState();
 }
 
-class _AddEmployeeDialogState extends State<AddProjectDialog> {
+class _AddProjectDialogState extends State<AddProjectDialog> {
   late final ProjectFormController controller;
 
   @override
   void initState() {
     super.initState();
-
-    // Verificamos y registramos servicios si es necesario
-    if (!Get.isRegistered<UserService>()) {
-      Get.lazyPut(() => UserService());
-    }
-
-    if (!Get.isRegistered<RoleService>()) {
-      Get.lazyPut(() => RoleService());
-    }
-
-    if (!Get.isRegistered<FileService>()) {
-      Get.lazyPut(() => FileService());
-    }
-
-    // Inicializamos el controlador
     controller = Get.put(ProjectFormController());
 
-    // Si estamos en modo edición, cargamos los datos del empleado
-    if (widget.employee != null) {
-      controller.loadUser(widget.employee!);
+    if (widget.project != null) {
+      controller.loadProject(widget.project!);
     }
   }
 
   @override
   void dispose() {
-    // Asegurarse de eliminar el controlador al cerrar el diálogo
     Get.delete<ProjectFormController>();
     super.dispose();
   }
 
-  // Función que se ejecuta cuando el usuario cancela
   void _handleCancel() {
-    // Verificamos que el widget esté montado y podamos cerrar el diálogo
     if (mounted && Navigator.canPop(context)) {
       Navigator.of(context).pop();
     }
   }
 
-  // Función que se ejecuta cuando se intenta guardar el formulario
-  void _handleSubmit() async {
+  Future<void> _handleSubmit() async {
     try {
       final isValid = controller.submitForm();
-
-      if (isValid) {
-        // Ya no es necesario mostrar este snackbar aquí, ya que
-        // el controlador ya muestra un mensaje de éxito
-
-        // Cierra el diálogo y notifica al padre para refrescar datos
+      if (await isValid) {
         if (mounted && Navigator.canPop(context)) {
           Navigator.of(context).pop();
-          widget.onSaveSuccess();
         }
       }
     } catch (e) {
-      // Si ocurre un error no manejado, mostramos un mensaje
       Get.snackbar(
         'Error',
         'Ocurrió un error inesperado: $e',
@@ -139,15 +108,14 @@ class _AddEmployeeDialogState extends State<AddProjectDialog> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              return EmployeeForm(
+              return ProjectForm(
                 controller: controller,
                 config: FormConfig(
-                  title: widget.employee != null
-                      ? 'Editar Empleado'
-                      : 'Nuevo Empleado',
+                  title: widget.project != null
+                      ? 'Editar Proyecto'
+                      : 'Nuevo Proyecto',
                   primaryButtonText: 'Guardar',
                   secondaryButtonText: 'Cancelar',
-                  // No mostrar observaciones ni archivos en modo edición
                   showObservations: !widget.isEditing,
                   showFiles: !widget.isEditing,
                 ),

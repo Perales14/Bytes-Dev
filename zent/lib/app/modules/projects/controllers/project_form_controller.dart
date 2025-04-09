@@ -1,415 +1,417 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../data/models/project_model.dart';
+import '../../../data/models/address_model.dart';
+import '../../../data/models/client_model.dart';
 import '../../../data/models/user_model.dart';
+import '../../../data/models/provider_model.dart';
+import '../../../data/services/project_service.dart';
+import '../../../data/services/address_service.dart';
+import '../../../data/services/client_service.dart';
 import '../../../data/services/user_service.dart';
-import '../../../data/services/file_service.dart';
-import '../../../data/services/role_service.dart';
+import '../../../data/services/provider_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart' as validators;
-import 'projects_controller.dart';
 
 class ProjectFormController extends BaseFormController {
-  // Añadir isLoading property
-  final RxBool isLoading = false.obs;
+  final isLoading = false.obs;
+  final ProjectService _projectService = Get.find<ProjectService>();
+  final AddressService _addressService = Get.find<AddressService>();
+  final ClientService _clientService = Get.find<ClientService>();
+  final UserService _userService = Get.find<UserService>();
+  final ProviderService _providerService = Get.find<ProviderService>();
 
-  // Añadir referencia al EmployeesController
-  final ProjectsController _employeesController =
-      Get.find<ProjectsController>();
-
-  // Modelo del usuario que estamos editando
-  final Rx<UserModel> user = UserModel(
-    roleId: 2, // Por defecto es empleado
+  final Rx<ProjectModel> project = ProjectModel(
     name: '',
-    fatherLastName: '',
-    motherLastName: '',
-    email: '',
-    socialSecurityNumber: '',
-    passwordHash: '',
-    entryDate: DateTime.now(),
-    stateId: 1, // Activo por defecto
+    clientId: 0,
+    managerId: 0,
+    stateId: 1,
   ).obs;
 
-  // Services para operaciones de base de datos
-  final UserService _userService = Get.find<UserService>();
-  final FileService _fileService = Get.find<FileService>();
-  final RoleService _roleService = Get.find<RoleService>();
+  late AddressModel address;
+  final showAddress = false.obs;
 
-  // Controladores de texto persistentes
+  // Lists for dropdowns
+  final RxList<ClientModel> clients = <ClientModel>[].obs;
+  final RxList<UserModel> managers = <UserModel>[].obs;
+  final RxList<ProviderModel> providers = <ProviderModel>[].obs;
+
+  // Form controllers
   final nameController = TextEditingController();
-  final fatherLastNameController = TextEditingController();
-  final motherLastNameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneNumberController = TextEditingController();
-  final socialSecurityNumberController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
-  final salaryController = TextEditingController();
-  final departmentController = TextEditingController();
+  final descriptionController = TextEditingController();
+  final estimatedBudgetController = TextEditingController();
+  final commissionController = TextEditingController();
 
-  // Contraseña de confirmación
-  final RxString confirmPassword = ''.obs;
+  // Address controllers
+  final streetController = TextEditingController();
+  final streetNumberController = TextEditingController();
+  final neighborhoodController = TextEditingController();
+  final postalCodeController = TextEditingController();
+  final stateController = TextEditingController();
+  final countryController = TextEditingController();
 
-  // Observaciones (manejadas por separado ya que es una tabla polimorfa)
-  final observationText = ''.obs;
-
-  // Variables para controlar UI
-  @override
-  final showPassword = false.obs;
-
-  // Catálogos
-  late List<String> roles = ['Administrador'];
-  final List<String> contractTypes = [
-    'Temporal',
-    'Indefinido',
-    'Por Obra/Servicio'
-  ];
+  final startDate = Rxn<DateTime>();
+  final estimatedEndDate = Rxn<DateTime>();
 
   @override
-  Future<void> onInit() async {
+  void onInit() {
     super.onInit();
-    isLoading.value = true;
-
-    try {
-      // Obtener roles del servicio
-      final rolesList = await _roleService.getAllRoles();
-      roles = rolesList.map((role) => role.name).toList();
-      print('Roles: $roles');
-    } catch (e) {
-      print('Error al cargar roles: $e');
-    } finally {
-      isLoading.value = false;
-    }
-
-    resetForm();
+    _initializeControllers();
+    _loadDropdownData();
   }
 
   @override
   void onClose() {
-    // Liberar recursos de los controladores
-    nameController.dispose();
-    fatherLastNameController.dispose();
-    motherLastNameController.dispose();
-    emailController.dispose();
-    phoneNumberController.dispose();
-    socialSecurityNumberController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    salaryController.dispose();
-    departmentController.dispose();
+    _disposeControllers();
     super.onClose();
   }
 
-  // Inicializar o resetear formulario
-  @override
-  void resetForm() {
-    user.value = UserModel(
-      roleId: 1, // Por defecto es admin
-      name: '',
-      fatherLastName: '',
-      motherLastName: '',
-      email: '',
-      socialSecurityNumber: '',
-      passwordHash: '',
-      entryDate: DateTime.now(),
-      stateId: 1, // Activo por defecto
+  void _initializeControllers() {
+    nameController.text = project.value.name;
+    descriptionController.text = project.value.description ?? '';
+    estimatedBudgetController.text =
+        project.value.estimatedBudget?.toString() ?? '';
+    commissionController.text =
+        project.value.commissionPercentage?.toString() ?? '';
+
+    // Initialize address
+    address = AddressModel(
+      street: '',
+      streetNumber: '',
+      neighborhood: '',
+      postalCode: '',
+      state: '',
+      country: 'México',
     );
 
-    confirmPassword.value = '';
-    observationText.value = '';
-    showPassword.value = false;
-
-    // Inicializar los controladores con los valores iniciales
-    nameController.text = user.value.name;
-    fatherLastNameController.text = user.value.fatherLastName;
-    motherLastNameController.text = user.value.motherLastName ?? '';
-    emailController.text = user.value.email;
-    phoneNumberController.text = user.value.phoneNumber ?? '';
-    socialSecurityNumberController.text = user.value.socialSecurityNumber;
-    passwordController.text = user.value.passwordHash;
-    confirmPasswordController.text = confirmPassword.value;
-    salaryController.text = user.value.salary?.toString() ?? '';
-    departmentController.text = user.value.department ?? '';
-
-    formKey.currentState?.reset();
+    // Initialize address controllers
+    streetController.text = address.street;
+    streetNumberController.text = address.streetNumber;
+    neighborhoodController.text = address.neighborhood;
+    postalCodeController.text = address.postalCode;
+    stateController.text = address.state ?? '';
+    countryController.text = address.country ?? 'México';
   }
 
-  // Actualizar campos del modelo de usuario
-  void updateUser({
+  void _disposeControllers() {
+    nameController.dispose();
+    descriptionController.dispose();
+    estimatedBudgetController.dispose();
+    commissionController.dispose();
+    streetController.dispose();
+    streetNumberController.dispose();
+    neighborhoodController.dispose();
+    postalCodeController.dispose();
+    stateController.dispose();
+    countryController.dispose();
+  }
+
+  Future<void> _loadDropdownData() async {
+    try {
+      isLoading(true);
+
+      final clientsList = await _clientService.getAllClients();
+      final managersList = await _userService.getAllUsers();
+      final providersList = await _providerService.getAllProviders();
+
+      clients.assignAll(clientsList);
+      managers.assignAll(managersList);
+      providers.assignAll(providersList);
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al cargar datos: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  void loadProject(ProjectModel model) {
+    isLoading(true);
+    project.value = model;
+    _initializeControllers();
+
+    if (model.addressId != null) {
+      loadAddress(model.addressId!);
+      showAddress.value = true;
+    }
+
+    startDate.value = model.startDate;
+    estimatedEndDate.value = model.estimatedEndDate;
+    isLoading(false);
+  }
+
+  Future<void> loadAddress(int addressId) async {
+    try {
+      final addressModel = await _addressService.getAddressById(addressId);
+      if (addressModel != null) {
+        address = addressModel;
+        streetController.text = address.street;
+        streetNumberController.text = address.streetNumber;
+        neighborhoodController.text = address.neighborhood;
+        postalCodeController.text = address.postalCode;
+        stateController.text = address.state ?? '';
+        countryController.text = address.country ?? '';
+      }
+    } catch (e) {
+      // Silent error handling
+    }
+  }
+
+  void updateProject({
     String? name,
-    String? fatherLastName,
-    String? motherLastName,
-    String? email,
-    String? phoneNumber,
-    String? socialSecurityNumber,
-    String? passwordHash,
-    double? salary,
-    String? contractType,
-    String? department,
-    int? roleId,
-    DateTime? entryDate,
+    String? description,
+    int? clientId,
+    int? managerId,
+    int? providerId,
+    DateTime? startDate,
+    DateTime? estimatedEndDate,
+    double? estimatedBudget,
+    double? commissionPercentage,
+    int? addressId,
   }) {
-    user.update((val) {
+    project.update((val) {
       if (val != null) {
         if (name != null) val.name = name;
-        if (fatherLastName != null) val.fatherLastName = fatherLastName;
-        if (motherLastName != null) val.motherLastName = motherLastName;
-        if (email != null) val.email = email;
-        if (phoneNumber != null) val.phoneNumber = phoneNumber;
-        if (socialSecurityNumber != null) {
-          val.socialSecurityNumber = socialSecurityNumber;
-        }
-        if (passwordHash != null) val.passwordHash = passwordHash;
-        if (salary != null) val.salary = salary;
-        if (contractType != null) val.contractType = contractType;
-        if (department != null) val.department = department;
-        if (roleId != null) val.roleId = roleId;
-        if (entryDate != null) val.entryDate = entryDate;
-      }
-    });
-
-    // Trigger UI update and log values for debugging
-    update();
-    print('Usuario actualizado: ${user.value.toJson()}');
-  }
-
-  // Actualiza la confirmación de contraseña
-  void updateConfirmPassword(String value) {
-    confirmPassword.value = value;
-  }
-
-  // Actualizar texto de observación
-  void updateObservation(String value) {
-    observationText.value = value;
-  }
-
-  int getRoleId(String? roleName) {
-    if (roleName == null) return 0;
-    print('Rol Name: $roleName');
-    int roleId = 0;
-    roleId = roles.indexOf(roleName) + 1;
-    print('Rol ID: $roleId');
-    return roleId;
-  }
-
-  // Preparar el modelo para guardarlo
-  void prepareModelForSave() {
-    user.update((val) {
-      if (val != null) {
-        val.name = nameController.text;
-        val.fatherLastName = fatherLastNameController.text;
-        val.motherLastName = motherLastNameController.text.isEmpty
-            ? null
-            : motherLastNameController.text;
-        val.email = emailController.text;
-        val.phoneNumber = phoneNumberController.text.isEmpty
-            ? null
-            : phoneNumberController.text;
-        val.socialSecurityNumber = socialSecurityNumberController.text;
-
-        // Solo actualizar contraseña si estamos creando o si se cambió
-        if (val.id == 0 || passwordController.text != val.passwordHash) {
-          val.passwordHash = passwordController.text;
-        }
-
-        val.salary = salaryController.text.isEmpty
-            ? null
-            : double.tryParse(salaryController.text);
-
-        val.department = departmentController.text.isEmpty
-            ? null
-            : departmentController.text;
+        if (description != null) val.description = description;
+        if (clientId != null) val.clientId = clientId;
+        if (managerId != null) val.managerId = managerId;
+        if (providerId != null) val.providerId = providerId;
+        if (startDate != null) val.startDate = startDate;
+        if (estimatedEndDate != null) val.estimatedEndDate = estimatedEndDate;
+        if (estimatedBudget != null) val.estimatedBudget = estimatedBudget;
+        if (commissionPercentage != null)
+          val.commissionPercentage = commissionPercentage;
+        if (addressId != null) val.addressId = addressId;
       }
     });
   }
 
-  // Muestra/oculta la contraseña
-  @override
-  void togglePasswordVisibility() {
-    showPassword.value = !showPassword.value;
-  }
-
-  // Carga los datos de un usuario existente
-  void loadUser(UserModel model) {
-    isLoading.value = true;
-
-    user.value = model;
-    observationText.value = model.department ?? '';
-
-    // Actualizar también los controladores
-    nameController.text = model.name;
-    fatherLastNameController.text = model.fatherLastName;
-    motherLastNameController.text = model.motherLastName ?? '';
-    emailController.text = model.email;
-    phoneNumberController.text = model.phoneNumber ?? '';
-    socialSecurityNumberController.text = model.socialSecurityNumber;
-    passwordController.text = model.passwordHash;
-    salaryController.text = model.salary?.toString() ?? '';
-    departmentController.text = model.department ?? '';
-
-    update();
-    isLoading.value = false;
-  }
-
-  // VALIDACIONES
-
-  String? validatePassword(String? value) {
-    return validators.validatePassword(value);
-  }
-
-  String? validateSocialSecurityNumber(String? value) {
-    return validators.validateNSS(value);
-  }
-
-  String? validateContractType(String? value) {
-    return validators.validateInList(value, contractTypes,
-        fieldName: 'tipo de contrato');
-  }
-
-  String? validateSalary(String? value) {
-    return validators.validateSalary(value);
-  }
-
-  String? validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Este campo es requerido';
+  void updateAddress({
+    String? street,
+    String? streetNumber,
+    String? neighborhood,
+    String? postalCode,
+    String? state,
+    String? country,
+  }) {
+    try {
+      address = AddressModel(
+        id: address.id,
+        street: street ?? address.street,
+        streetNumber: streetNumber ?? address.streetNumber,
+        neighborhood: neighborhood ?? address.neighborhood,
+        postalCode: postalCode ?? address.postalCode,
+        state: state ?? address.state,
+        country: country ?? address.country,
+        createdAt: address.createdAt,
+        updatedAt: DateTime.now(),
+      );
+    } catch (e) {
+      // Silent error handling
     }
-    if (value != user.value.passwordHash) {
-      return 'Las contraseñas no coinciden';
+  }
+
+  void toggleAddress() {
+    showAddress.toggle();
+  }
+
+  // Validations
+  String? validateName(String? value) => validators.validateRequired(value);
+  String? validateClientId(String? value) => validators.validateRequired(value);
+  String? validateManagerId(String? value) =>
+      validators.validateRequired(value);
+  String? validatePostalCode(String? value) {
+    if (showAddress.value && (value == null || value.isEmpty)) {
+      return 'Código Postal Requerido';
+    }
+
+    if (showAddress.value && value != null && value.isNotEmpty) {
+      if (!RegExp(r'^\d{5}$').hasMatch(value)) {
+        return 'Código Postal Inválido';
+      }
     }
     return null;
   }
 
-  // GUARDAR EMPLEADO
+  bool _validateForm() {
+    if (!formKey.currentState!.validate()) return false;
 
-  @override
-  bool submitForm() {
-    if (validateForm()) {
-      try {
-        prepareModelForSave(); // Preparar el modelo antes de guardar
-        saveEmployee();
-        return true;
-      } catch (e) {
-        Get.snackbar(
-          'Error',
-          'Error al guardar empleado: $e',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return false;
-      }
-    }
-    return false;
-  }
-
-  // Método para guardar referencias de archivos
-
-  Future<bool> saveEmployee() async {
-    try {
-      isLoading.value = true;
-
-      if (!validateForm()) {
-        isLoading.value = false;
-        return false;
-      }
-
-      // Preparar datos del modelo para guardar
-      prepareModelForSave();
-
-      // Guardar observación si existe
-      if (observationText.value.isNotEmpty) {
-        user.update((val) {
-          if (val != null) {
-            val.department = observationText.value;
-          }
-        });
-      }
-
-      // Guardar o actualizar el usuario usando el servicio
-      final savedUser = user.value.id > 0
-          ? await _userService.updateEmployee(
-              user.value) // Reemplazar este metodo por updateEmployee
-          : await _userService.createEmployee(user.value);
-
-      // Guardar archivos si hay
-      if (files.isNotEmpty) {
-        // Implementación para guardar archivos
-        // upload
-
-        user.value.id = savedUser.id;
-        final uploadedFiles =
-            await uploadFilesToSupabase(files, user.value.id.toString());
-
-        // Guarda las referencias de los archivos en la base de datos
-        if (uploadedFiles.isNotEmpty) {
-          await saveFileReferences(uploadedFiles, user.value.id, 'employee');
-        }
-      }
-
-      if (savedUser.id > 0) {
-        Get.snackbar(
-          'Éxito',
-          user.value.id > 0
-              ? 'Empleado actualizado correctamente'
-              : 'Empleado creado correctamente',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Get.theme.colorScheme.surfaceContainerHighest,
-        );
-        isLoading.value = false;
-        return true;
-      } else {
-        Get.snackbar(
-          'Error',
-          'No se pudo guardar el empleado',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Get.theme.colorScheme.error,
-          colorText: Get.theme.colorScheme.onError,
-        );
-        isLoading.value = false;
-        return false;
-      }
-    } catch (e) {
-      isLoading.value = false;
-      Get.snackbar(
-        'Error',
-        'Error al guardar: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Get.theme.colorScheme.error,
-        colorText: Get.theme.colorScheme.onError,
-      );
-      return false;
-    }
-  }
-
-  // Método para obtener el nombre del rol delegando al EmployeesController
-  String? getRoleName(int roleId) {
-    return _employeesController.getRoleName(roleId);
-  }
-
-  bool validateForm() {
-    if (!formKey.currentState!.validate()) {
-      return false;
-    }
-
-    // Validar tipo contrato
-    if (user.value.contractType == null || user.value.contractType!.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Debe seleccionar un tipo de contrato',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return false;
-    }
-
-    // Validar contraseña y confirmación
-    if (user.value.id == 0 && // Solo para nuevos usuarios
-        user.value.passwordHash != confirmPassword.value) {
-      Get.snackbar(
-        'Error',
-        'Las contraseñas no coinciden',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+    if (startDate.value == null) {
+      Get.snackbar('Error', 'La fecha de inicio es requerida');
       return false;
     }
 
     return true;
+  }
+
+  bool _validateAddress() {
+    if (!showAddress.value) return true;
+
+    if (address.street.isEmpty) {
+      Get.snackbar('Error', 'La calle es requerida',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    if (address.streetNumber.isEmpty) {
+      Get.snackbar('Error', 'El número es requerido',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    if (address.neighborhood.isEmpty) {
+      Get.snackbar('Error', 'La colonia es requerida',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    if (address.postalCode.isEmpty) {
+      Get.snackbar('Error', 'El código postal es requerido',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    if (!RegExp(r'^\d{5}$').hasMatch(address.postalCode)) {
+      Get.snackbar('Error', 'Formato de código postal inválido (5 dígitos)',
+          snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+
+    return true;
+  }
+
+  void prepareModelForSave() {
+    final currentId = project.value.id;
+    final currentCreatedAt = project.value.createdAt;
+    final currentStateId = project.value.stateId;
+
+    project.value = ProjectModel(
+      id: currentId,
+      name: nameController.text,
+      description: descriptionController.text.isEmpty
+          ? null
+          : descriptionController.text,
+      clientId: project.value.clientId,
+      managerId: project.value.managerId,
+      providerId: project.value.providerId,
+      startDate: startDate.value,
+      estimatedEndDate: estimatedEndDate.value,
+      estimatedBudget: double.tryParse(estimatedBudgetController.text),
+      commissionPercentage: double.tryParse(commissionController.text),
+      addressId: project.value.addressId,
+      stateId: currentStateId,
+      createdAt: currentCreatedAt,
+      updatedAt: DateTime.now(),
+    );
+
+    if (showAddress.value) {
+      address = AddressModel(
+        id: address.id,
+        street: streetController.text,
+        streetNumber: streetNumberController.text,
+        neighborhood: neighborhoodController.text,
+        postalCode: postalCodeController.text,
+        state: stateController.text.isEmpty ? null : stateController.text,
+        country: countryController.text.isEmpty ? null : countryController.text,
+        createdAt: address.createdAt,
+        updatedAt: DateTime.now(),
+      );
+    }
+  }
+
+  @override
+  void resetForm() {
+    formKey.currentState?.reset();
+    project.value = ProjectModel(
+      name: '',
+      clientId: 0,
+      managerId: 0,
+      stateId: 1,
+    );
+    address = AddressModel(
+      street: '',
+      streetNumber: '',
+      neighborhood: '',
+      postalCode: '',
+      state: '',
+      country: 'México',
+    );
+    showAddress.value = false;
+    startDate.value = null;
+    estimatedEndDate.value = null;
+    _initializeControllers();
+  }
+
+  @override
+  bool submitForm() {
+    if (!_validateForm()) return false;
+
+    try {
+      prepareModelForSave();
+      _handleSubmit();
+      return true;
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al guardar: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> _handleSubmit() async {
+    try {
+      isLoading(true);
+
+      int? addressId;
+      if (showAddress.value && _validateAddress()) {
+        final savedAddress = address.id > 0
+            ? await _addressService.updateAddress(address)
+            : await _addressService.createAddress(address);
+
+        if (savedAddress.id > 0) {
+          addressId = savedAddress.id;
+          project.value = project.value.copyWith(addressId: addressId);
+        } else {
+          Get.snackbar(
+            'Error',
+            'Error al guardar dirección',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return false;
+        }
+      }
+
+      final savedProject = project.value.id > 0
+          ? await _projectService.updateProject(project.value)
+          : await _projectService.createProject(project.value);
+
+      if (savedProject.id > 0) {
+        if (files.isNotEmpty) {
+          project.value.id = savedProject.id;
+          final uploadedFiles =
+              await uploadFilesToSupabase(files, project.value.id.toString());
+          if (uploadedFiles.isNotEmpty) {
+            await saveFileReferences(
+                uploadedFiles, project.value.id, 'project');
+          }
+        }
+        return true;
+      }
+      return false;
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al guardar el proyecto: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    } finally {
+      isLoading(false);
+    }
   }
 }
