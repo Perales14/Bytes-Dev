@@ -74,7 +74,7 @@ flutter:
   assets:
   - .env
   - assets/images/Logo_Consultoria.png
-  - assets/logo_google.png
+  - assets/google_logo.png
   - assets/dibujos_login.png
   #   - images/a_dot_ham.jpeg
 

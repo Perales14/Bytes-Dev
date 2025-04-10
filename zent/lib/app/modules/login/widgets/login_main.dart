@@ -5,20 +5,23 @@ import 'login_buttons.dart';
 import 'login_textfield.dart';
 
 class LoginMain extends GetView<LoginController> {
-  const LoginMain({Key? key}) : super(key: key);
+  const LoginMain({super.key});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isSmallScreen = constraints.maxWidth < 600;
+        final bool isSmallScreen = constraints.maxWidth < 900;
+        final theme = Theme.of(context);
         return Row(
           children: [
-            if (!isSmallScreen)
-              _buildLeftColumn(context, constraints),
+            if (!isSmallScreen) _buildLeftColumn(context),
             Expanded(
               flex: 1,
-              child: _buildLoginContent(context, isSmallScreen),
+              child: Container(
+                color: Colors.white, // Lado derecho con fondo blanco
+                child: _buildLoginContent(context, isSmallScreen),
+              ),
             ),
           ],
         );
@@ -26,25 +29,38 @@ class LoginMain extends GetView<LoginController> {
     );
   }
 
-  Widget _buildLeftColumn(BuildContext context, BoxConstraints constraints) {
+  Widget _buildLeftColumn(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Expanded(
       flex: 1,
       child: Container(
-        color: Theme.of(context).colorScheme.primary,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        color: theme.colorScheme.primary,
+        child: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 32),
-              child: _buildLogo(context),
+            Positioned(
+              top: 120,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  'ZENT',
+                  style: theme.textTheme.displayLarge?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 4,
+                  ),
+                ),
+              ),
             ),
-            Container(
-              alignment: Alignment.bottomCenter,
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
               child: Image.asset(
                 'assets/dibujos_login.png',
-                fit: BoxFit.cover,
-                width: constraints.maxWidth * 0.4,
-                height: constraints.maxHeight * 0.6,
+                fit: BoxFit.contain,
+                alignment: Alignment.bottomCenter,
               ),
             ),
           ],
@@ -53,40 +69,36 @@ class LoginMain extends GetView<LoginController> {
     );
   }
 
-  Widget _buildLogo(BuildContext context) {
-    return Text(
-      'ZENT',
-      style: Theme.of(context).textTheme.displayLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: Colors.white,
-        letterSpacing: 4,
-      ),
-      textAlign: TextAlign.center,
-    );
-  }
-
   Widget _buildLoginContent(BuildContext context, bool isSmallScreen) {
+    final theme = Theme.of(context);
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 24 : 48,
-        vertical: 32,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (isSmallScreen) ...[
-            _buildLogo(context),
+            Text(
+              'ZENT',
+              style: theme.textTheme.displayMedium?.copyWith(
+                color: theme.colorScheme
+                    .primary, // Color contrastante para pantalla pequeña
+                fontWeight: FontWeight.bold,
+                letterSpacing: 4,
+              ),
+            ),
             const SizedBox(height: 32),
           ],
           Text(
             'BIENVENIDO DE NUEVO',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: theme.colorScheme.primary, // Ajustando para fondo blanco
             ),
             textAlign: TextAlign.center,
           ),
-          SizedBox(height: isSmallScreen ? 32 : 48),
+          const SizedBox(height: 48),
           LoginTextField(),
           const SizedBox(height: 32),
           LoginButtons(),
