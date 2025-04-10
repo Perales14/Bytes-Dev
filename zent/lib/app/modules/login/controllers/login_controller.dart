@@ -2,52 +2,75 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class LoginController extends GetxController {
-  final textController = TextEditingController();
-  final passwordController = TextEditingController();
-  final isPasswordVisible = false.obs;
-  final isEmailFocused = false.obs;
-  final isPasswordFocused = false.obs;
+  // Observable variables
+  final RxBool isPasswordVisible = false.obs;
+  final RxBool isEmailFocused = false.obs;
+  final RxBool isPasswordFocused = false.obs;
+  final RxBool isLoading = false.obs;
 
-  late FocusNode emailFocusNode;
-  late FocusNode passwordFocusNode;
+  // Controllers
+  late final TextEditingController emailController;
+  late final TextEditingController passwordController;
+  
+  // Focus nodes
+  late final FocusNode emailFocusNode;
+  late final FocusNode passwordFocusNode;
 
   @override
   void onInit() {
     super.onInit();
-    emailFocusNode = FocusNode();
-    passwordFocusNode = FocusNode();
+    _initializeControllers();
+    _initializeFocusNodes();
+  }
 
-    emailFocusNode.addListener(() {
-      isEmailFocused.value = emailFocusNode.hasFocus;
-    });
+  void _initializeControllers() {
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+  }
 
-    passwordFocusNode.addListener(() {
-      isPasswordFocused.value = passwordFocusNode.hasFocus;
-    });
+  void _initializeFocusNodes() {
+    emailFocusNode = FocusNode()..addListener(_onEmailFocusChange);
+    passwordFocusNode = FocusNode()..addListener(_onPasswordFocusChange);
+  }
+
+  void _onEmailFocusChange() => isEmailFocused.value = emailFocusNode.hasFocus;
+  void _onPasswordFocusChange() => isPasswordFocused.value = passwordFocusNode.hasFocus;
+
+  void togglePasswordVisibility() => isPasswordVisible.toggle();
+
+  Future<void> login() async {
+    if (_validateInputs()) {
+      isLoading.value = true;
+      try {
+        // Implementar lógica de login
+        await Future.delayed(const Duration(seconds: 2)); // Simulación
+      } finally {
+        isLoading.value = false;
+      }
+    }
+  }
+
+  Future<void> loginWithGoogle() async {
+    try {
+      isLoading.value = true;
+      // Implementar lógica de Google Sign-In
+      await Future.delayed(const Duration(seconds: 2)); // Simulación
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  bool _validateInputs() {
+    return emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
   }
 
   @override
   void onClose() {
-    textController.dispose();
+    emailController.dispose();
     passwordController.dispose();
     emailFocusNode.dispose();
     passwordFocusNode.dispose();
     super.onClose();
-  }
-
-  void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
-  }
-
-  void login() {
-    final email = textController.text;
-    print("Email: $email");
-    // Aquí va tu lógica de autenticación
-  }
-
-  void loginWithGoogle() {
-    print("Iniciando sesión con Google...");
-    // Aquí va la lógica de Google Sign-In
   }
 }
 

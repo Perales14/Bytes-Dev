@@ -9,11 +9,22 @@ class LoginView extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: MediaQuery.of(context).size.width > 800
-          ? LoginMain()
-          : SingleChildScrollView(
-              child: LoginMain(),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+                minWidth: constraints.maxWidth,
+              ),
+              child: IntrinsicHeight(
+                child: LoginMain(),
+              ),
             ),
+          );
+        },
+      ),
     );
   }
 }
