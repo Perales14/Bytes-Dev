@@ -5,6 +5,8 @@ import '../app/modules/employees/bindings/employees_binding.dart';
 import '../app/modules/employees/views/employees_view.dart';
 import '../app/modules/home/bindings/home_binding.dart';
 import '../app/modules/home/views/home_view.dart';
+import '../app/modules/login/bindings/login_binding.dart';
+import '../app/modules/login/views/login_view.dart';
 import '../app/modules/providers/bindings/providers_binding.dart';
 import '../app/modules/providers/views/providers_view.dart';
 // <<<<<<< HEAD:zent/lib/Core/routes/app_pages.dart
@@ -21,8 +23,13 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.HOME;
+  static const INITIAL = Routes.LOGIN;
   static final routes = [
+    GetPage(
+      name: _Paths.LOGIN,
+      page: () => const LoginView(),
+      binding: LoginBinding(),
+    ),
     GetPage(
       name: _Paths.HOME,
       page: () => const HomeView(),
