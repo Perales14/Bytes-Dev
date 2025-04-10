@@ -12,6 +12,8 @@ import '../../../data/services/user_service.dart';
 import '../../../data/services/provider_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart' as validators;
+import '../views/projects_view.dart';
+import 'projects_controller.dart';
 
 class ProjectFormController extends BaseFormController {
   final isLoading = false.obs;
@@ -109,11 +111,15 @@ class ProjectFormController extends BaseFormController {
   Future<void> _loadDropdownData() async {
     try {
       isLoading(true);
-
+      print('Loading dropdown data...');
       final clientsList = await _clientService.getAllClients();
-      final managersList = await _userService.getAllUsers();
+      final managersList = await _userService.getActiveEmployees();// getAllUsers();
       final providersList = await _providerService.getAllProviders();
-
+      print('clientes ${clientsList.map((e) => e.name)}');
+      print('managers ${managersList.map((e) => e.name)}');
+      print('providers ${providersList.map((e) => e.companyName)}');
+      // print('managers $managersList');
+      // print('providers $providersList');
       clients.assignAll(clientsList);
       managers.assignAll(managersList);
       providers.assignAll(providersList);
@@ -173,20 +179,54 @@ class ProjectFormController extends BaseFormController {
     int? addressId,
   }) {
     project.update((val) {
+      // print('Updating project: $startDate');
       if (val != null) {
-        if (name != null) val.name = name;
-        if (description != null) val.description = description;
-        if (clientId != null) val.clientId = clientId;
-        if (managerId != null) val.managerId = managerId;
-        if (providerId != null) val.providerId = providerId;
-        if (startDate != null) val.startDate = startDate;
-        if (estimatedEndDate != null) val.estimatedEndDate = estimatedEndDate;
-        if (estimatedBudget != null) val.estimatedBudget = estimatedBudget;
-        if (commissionPercentage != null)
+        if (name != null) {
+          val.name = name;
+          project.value.name = name;
+        } 
+        if (description != null) {
+          val.description = description;
+          project.value.description = description;
+        }
+        if (clientId != null) {
+          val.clientId = clientId;
+          project.value.clientId = clientId;
+        }
+        if (managerId != null) {
+          val.managerId = managerId;
+          project.value.managerId = managerId;
+        }
+        if (providerId != null) {
+          val.providerId = providerId;
+          project.value.providerId = providerId;
+        }
+        if (startDate != null) {
+          val.startDate = startDate;
+          project.value.startDate = startDate;
+          this.startDate.value = startDate;
+        }
+        if (estimatedEndDate != null) {
+          val.estimatedEndDate = estimatedEndDate;
+          project.value.estimatedEndDate = estimatedEndDate;
+          this.estimatedEndDate.value = estimatedEndDate;
+        }
+        if (estimatedBudget != null) {
+          val.estimatedBudget = estimatedBudget;
+          project.value.estimatedBudget = estimatedBudget;
+        }
+        if (commissionPercentage != null) {
           val.commissionPercentage = commissionPercentage;
-        if (addressId != null) val.addressId = addressId;
+          project.value.commissionPercentage = commissionPercentage;
+        }
+        if (addressId != null) {
+          val.addressId = addressId;
+          project.value.addressId = addressId;
+        }
       }
     });
+    // print('FECHA: ');
+    // print(project.value.startDate);
   }
 
   void updateAddress({
@@ -246,6 +286,22 @@ class ProjectFormController extends BaseFormController {
 
     return true;
   }
+
+  //cambio de starDate a startDate
+  // void onStartDateChanged(DateTime? date) {
+  //   if (date != null) {
+  //     startDate.value = date;
+  //     updateProject(startDate: date);
+  //   }
+  // }
+
+  // //cambio del estimatedEndDate a estimatedEndDate
+  // void onEstimatedEndDateChanged(DateTime? date) {
+  //   if (date != null) {
+  //     estimatedEndDate.value = date;
+  //     updateProject(estimatedEndDate: date);
+  //   }
+  // }
 
   bool _validateAddress() {
     if (!showAddress.value) return true;
@@ -352,6 +408,7 @@ class ProjectFormController extends BaseFormController {
     try {
       prepareModelForSave();
       _handleSubmit();
+      refresh();
       return true;
     } catch (e) {
       Get.snackbar(
@@ -385,7 +442,14 @@ class ProjectFormController extends BaseFormController {
           return false;
         }
       }
-
+      if (project.value.clientId == 0) {
+        Get.snackbar(
+          'Error',
+          'El cliente es requerido',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return false;
+      }
       final savedProject = project.value.id > 0
           ? await _projectService.updateProject(project.value)
           : await _projectService.createProject(project.value);
@@ -400,6 +464,22 @@ class ProjectFormController extends BaseFormController {
                 uploadedFiles, project.value.id, 'project');
           }
         }
+        Get.snackbar(
+          'Éxito',
+          'Proyecto guardado correctamente',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        // resetForm();
+        // Get.back(result: true);
+        // Refresh the project list
+      Get.find<ProjectsController>().refreshData();
+
+
+        // final projectsview = Get.find<ProjectsView>();
+        // projectsview.controller.refreshData();
+        // project.refresh();
+
+
         return true;
       }
       return false;

@@ -78,7 +78,7 @@ class ProjectForm extends BaseForm {
       final clients = projectController.clients
           .map((client) => DropdownMenuItem(
                 value: client.id.toString(),
-                child: Text(client.companyName ?? client.fullName),
+                child: Text(client.name),
               ))
           .toList();
 
@@ -95,36 +95,99 @@ class ProjectForm extends BaseForm {
                 child: Text(provider.companyName),
               ))
           .toList();
+      // final a = projectController.project != null ? 1 : 0;
+      final client = ''.obs;
+      final manager = ''.obs;
+      final provider = ''.obs;
+      if (projectController.project.value.clientId != null) {
+        print('ID del cliente: ${projectController.project.value.clientId}');
+        client.value = projectController.project.value.clientId.toString();
+        manager.value = projectController.project.value.managerId.toString();
+        provider.value = projectController.project.value.providerId.toString();
+        // client.value = projectController.clients
+        //     .firstWhere((client) => client.id == projectController.project.value.clientId);
+        // manager = projectController.managers.firstWhere((manager) => manager.id == projectController.project.value.managerId);
+        // provider = projectController.providers.firstWhere((provider) => provider.id == projectController.project.value.providerId);
+      } else {
+        print('NO hay ID de cliente');
+        if( projectController.clients.isNotEmpty) {
+          client.value = projectController.clients[0].id.toString();
+        }
+        if( projectController.managers.isNotEmpty) {
+          manager.value = projectController.managers[0].id.toString();
+        }
+        if( projectController.providers.isNotEmpty) {
+          provider.value = projectController.providers[0].id.toString();
+        }
 
+      }
       return Column(
         children: [
           DropdownForm(
             label: 'Cliente',
-            opciones: clients.map((item) => item.child.toString()).toList(),
-            value: projectController.project.value.clientId.toString(),
-            onChanged: (value) => projectController.updateProject(
-              clientId: int.tryParse(value ?? ''),
-            ),
+            opciones: clients.map((item) => item.child.toString().substring(6,item.child.toString().length-2)).toList(),
+            value:  client.value, //projectController.clients[0].toString(), //projectController.project.value.clientId.toString(),
+            onChanged: (value) {
+              // print(projectController.project.value.clientId.toString());
+              // print('Cliente seleccionado: $value');
+              int idcliente = 0;
+              for (var i = 0; i < projectController.clients.length; i++) {
+                if (projectController.clients[i].name == value) {
+                  idcliente = int.parse(projectController.clients[i].id.toString());
+                  print('ID del cliente: $idcliente');
+                  break;
+                }
+              }
+              projectController.updateProject(
+                clientId: idcliente,// int.tryParse(value ?? ''),
+              );
+
+            },
+            // onChanged: (value) => projectController.updateProject(
+            //   clientId: int.tryParse(value ?? ''),
+            // ),
             validator: projectController.validateClientId,
           ),
           const SizedBox(height: 10),
           DropdownForm(
             label: 'Responsable',
-            opciones: managers.map((item) => item.child.toString()).toList(),
+            opciones: managers.map((item) => item.child.toString().substring(6,item.child.toString().length-2)).toList(),
             value: projectController.project.value.managerId.toString(),
-            onChanged: (value) => projectController.updateProject(
-              managerId: int.tryParse(value ?? ''),
-            ),
+            onChanged: (value) {
+              int idresponsable = 0;
+              // print(value);
+              // print(projectController.managers[0].fullName);
+              for (var i = 0; i < projectController.managers.length; i++) {
+                if (projectController.managers[i].fullName.contains(value.toString())) {
+                  idresponsable = int.parse(projectController.managers[i].id.toString());
+                  print('ID del responsable: $idresponsable');
+                  break;
+                }
+              }
+              projectController.updateProject(
+                managerId: idresponsable,// int.tryParse(value ?? ''),
+              );
+            },
             validator: projectController.validateManagerId,
           ),
           const SizedBox(height: 10),
           DropdownForm(
             label: 'Proveedor',
-            opciones: providers.map((item) => item.child.toString()).toList(),
+            opciones: providers.map((item) => item.child.toString().substring(6,item.child.toString().length-2)).toList(),
             value: projectController.project.value.providerId?.toString(),
-            onChanged: (value) => projectController.updateProject(
-              providerId: int.tryParse(value ?? ''),
-            ),
+            onChanged: (value) {
+              int idproveedor = 0;
+              for (var i = 0; i < projectController.providers.length; i++) {
+                if (projectController.providers[i].companyName == value) {
+                  idproveedor = int.parse(projectController.providers[i].id.toString());
+                  print('ID del proveedor: $idproveedor');
+                  break;
+                }
+              }
+              projectController.updateProject(
+                providerId: idproveedor,// int.tryParse(value ?? ''),
+              );
+            },
           ),
         ],
       );
@@ -137,29 +200,34 @@ class ProjectForm extends BaseForm {
       children: [
         buildSectionTitle(theme, 'Fechas y Presupuesto'),
         const SizedBox(height: 20),
-        Row(
+        Obx(() => Row(
           children: [
             Expanded(
               child: DatePickerForm(
-                label: 'Fecha de Inicio',
-                selectedDate: projectController.startDate.value,
-                onDateSelected: (date) =>
-                    projectController.updateProject(startDate: date),
-                validator: (date) =>
-                    date == null ? 'La fecha de inicio es requerida' : null,
+          label: 'Fecha de Inicio',
+          selectedDate: projectController.startDate.value,
+          onDateSelected: (date)
+              => projectController.updateProject(startDate: date),
+          validator: (date) =>
+              date == null ? 'La fecha de inicio es requerida' : null,
               ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: DatePickerForm(
-                label: 'Fecha de Fin Estimada',
-                selectedDate: projectController.estimatedEndDate.value,
-                onDateSelected: (date) =>
-                    projectController.updateProject(estimatedEndDate: date),
-              ),
+          label: 'Fecha de Fin Estimada',
+          selectedDate: projectController.estimatedEndDate.value,
+          onDateSelected: (date) {
+            // print('Antes de cambiar fecha: ${projectController.estimatedEndDate.value}');
+            projectController.updateProject(estimatedEndDate: date);
+            // print('Después de cambiar fecha: ${projectController.estimatedEndDate.value}');
+          },),
+          // =>
+          //     projectController.updateProject(estimatedEndDate: date),
+          //     ),
             ),
           ],
-        ),
+        )),
         const SizedBox(height: 10),
         Row(
           children: [

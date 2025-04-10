@@ -32,6 +32,12 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
     controller = Get.put(ProjectFormController());
 
     if (widget.project != null) {
+      print('7iygu');
+      print(widget.project!.clientId);
+      print(widget.project!.managerId);
+      print(widget.project!.providerId);
+
+
       controller.loadProject(widget.project!);
     }
   }

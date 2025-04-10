@@ -41,9 +41,9 @@ class _ClientDetailsDialogState extends State<ClientDetailsDialog> {
   @override
   void dispose() {
     _newObservationController.dispose();
-    if (widget.onClose != null) {
-      widget.onClose!();
-    }
+    // if (widget.onClose != null) {
+    //   widget.onClose!();
+    // }
     super.dispose();
   }
 
