@@ -8,9 +8,17 @@ class LoginTextField extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
+
+    // Calcula un ancho adaptativo con límites mínimo y máximo
+    final adaptiveWidth = size.width < 600
+        ? size.width * 0.85 // En pantallas pequeñas, 85% del ancho
+        : size.width < 1200
+            ? size.width * 0.4 // En pantallas medianas, 40% del ancho
+            : 500.0; // En pantallas grandes, máximo 500px
 
     return SizedBox(
-      width: 300, // Ancho controlado para los campos
+      width: adaptiveWidth,
       child: Column(
         children: [
           // Campo de Email
@@ -19,8 +27,9 @@ class LoginTextField extends GetView<LoginController> {
               controller: controller.emailController,
               focusNode: controller.emailFocusNode,
               style: TextStyle(
-                  color: theme
-                      .colorScheme.onSurface), // Color oscuro para fondo blanco
+                color: theme.colorScheme.onSurface,
+                fontSize: size.width > 1200 ? 18 : 16,
+              ),
               decoration: InputDecoration(
                 labelText: 'Email',
                 filled: true,
@@ -40,11 +49,12 @@ class LoginTextField extends GetView<LoginController> {
                   color: controller.isEmailFocused.value
                       ? theme.colorScheme.primary
                       : theme.colorScheme.primary.withOpacity(0.7),
+                  fontSize: size.width > 1200 ? 18 : 16,
                 ),
               ),
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: size.width > 1200 ? 30 : 20),
           // Campo de Password
           Obx(
             () => TextField(
@@ -52,8 +62,9 @@ class LoginTextField extends GetView<LoginController> {
               focusNode: controller.passwordFocusNode,
               obscureText: !controller.isPasswordVisible.value,
               style: TextStyle(
-                  color: theme
-                      .colorScheme.onSurface), // Color oscuro para fondo blanco
+                color: theme.colorScheme.onSurface,
+                fontSize: size.width > 1200 ? 18 : 16,
+              ),
               decoration: InputDecoration(
                 labelText: 'Password',
                 filled: true,
@@ -73,6 +84,7 @@ class LoginTextField extends GetView<LoginController> {
                   color: controller.isPasswordFocused.value
                       ? theme.colorScheme.primary
                       : theme.colorScheme.primary.withOpacity(0.7),
+                  fontSize: size.width > 1200 ? 18 : 16,
                 ),
                 suffixIcon: IconButton(
                   icon: Icon(
@@ -80,6 +92,7 @@ class LoginTextField extends GetView<LoginController> {
                         ? Icons.visibility
                         : Icons.visibility_off,
                     color: theme.colorScheme.primary.withOpacity(0.7),
+                    size: size.width > 1200 ? 24 : 20,
                   ),
                   onPressed: controller.togglePasswordVisibility,
                 ),
