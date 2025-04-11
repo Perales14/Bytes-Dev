@@ -59,9 +59,9 @@ class SidebarController extends GetxController {
         routeName: '/projects',
       ),
       SidebarItem(
-        icon: Icons.edit_document,
-        label: 'Documentos',
-        routeName: '/documents',
+        icon: Icons.analytics,
+        label: 'Login',
+        routeName: '/login',
       ),
     ];
 

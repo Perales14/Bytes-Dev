@@ -21,7 +21,7 @@ class ClientsView extends GetView<ClientsController> {
             children: [
             const SizedBox(height: 28),
 
-            // Contenido principal con grid de tarjetas
+            // Contenido principal con grid de tarjetas dentro de un Obx
             Expanded(
               child: Obx(
               () => controller.isLoading.value
