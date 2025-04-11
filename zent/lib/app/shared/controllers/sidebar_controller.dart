@@ -61,7 +61,7 @@ class SidebarController extends GetxController {
       SidebarItem(
         icon: Icons.description_rounded,
         label: 'Documentos',
-        routeName: '/home',
+        routeName: '/documents',
       ),
     ];
 
