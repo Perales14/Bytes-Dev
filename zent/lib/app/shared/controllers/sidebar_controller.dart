@@ -54,14 +54,14 @@ class SidebarController extends GetxController {
         routeName: '/providers',
       ),
       SidebarItem(
+        icon: Icons.business_center_rounded,
+        label: 'Proyectos',
+        routeName: '/projects',
+      ),
+      SidebarItem(
         icon: Icons.analytics,
         label: 'Login',
         routeName: '/login',
-      ),
-      SidebarItem(
-        icon: Icons.edit_document,
-        label: 'Documentos',
-        routeName: '/documents',
       ),
     ];
 

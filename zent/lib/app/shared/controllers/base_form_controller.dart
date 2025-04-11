@@ -93,17 +93,17 @@ abstract class BaseFormController extends GetxController {
     }
   }
 
-  /// Determina el tipo de archivo basado en su extensión
-  FileType _getFileTypeFromExtension(String extension) {
-    extension = extension.toLowerCase();
-    if (extension == 'pdf') return FileType.pdf;
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].contains(extension)) {
-      return FileType.image;
-    }
-    if (['doc', 'docx'].contains(extension)) return FileType.word;
-    if (['xls', 'xlsx'].contains(extension)) return FileType.excel;
-    return FileType.other;
-  }
+  // Determina el tipo de archivo basado en su extensión
+  // FileType _getFileTypeFromExtension(String extension) {
+  //   extension = extension.toLowerCase();
+  //   if (extension == 'pdf') return FileType.pdf;
+  //   if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].contains(extension)) {
+  //     return FileType.image;
+  //   }
+  //   if (['doc', 'docx'].contains(extension)) return FileType.word;
+  //   if (['xls', 'xlsx'].contains(extension)) return FileType.excel;
+  //   return FileType.other;
+  // }
 
   /// Agrega un archivo a la lista
   void addFile(FileData file) {

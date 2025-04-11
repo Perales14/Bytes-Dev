@@ -35,6 +35,15 @@ class ProjectService extends GetxService {
   Future<List<ProjectModel>> searchProjectsByName(String term) =>
       _provider.searchByName(term);
 
+  // Set project as inactive
+  Future<void> setProjectInactive(int id) async {
+    final project = await getProjectById(id);
+    if (project != null) {
+      project.stateId = 0; // Assuming 0 is the inactive state
+      await updateProject(project);
+    }
+  }
+
   // Business logic methods
 
   // Check if project is in progress
