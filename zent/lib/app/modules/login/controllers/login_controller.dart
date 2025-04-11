@@ -11,7 +11,7 @@ class LoginController extends GetxController {
   // Controllers
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
-  
+
   // Focus nodes
   late final FocusNode emailFocusNode;
   late final FocusNode passwordFocusNode;
@@ -34,7 +34,8 @@ class LoginController extends GetxController {
   }
 
   void _onEmailFocusChange() => isEmailFocused.value = emailFocusNode.hasFocus;
-  void _onPasswordFocusChange() => isPasswordFocused.value = passwordFocusNode.hasFocus;
+  void _onPasswordFocusChange() =>
+      isPasswordFocused.value = passwordFocusNode.hasFocus;
 
   void togglePasswordVisibility() => isPasswordVisible.toggle();
 
@@ -43,7 +44,8 @@ class LoginController extends GetxController {
       isLoading.value = true;
       try {
         // Implementar lógica de login
-        await Future.delayed(const Duration(seconds: 2)); // Simulación
+        await Future.delayed(const Duration(seconds: 2));
+        Get.offAllNamed('/home');
       } finally {
         isLoading.value = false;
       }
@@ -61,7 +63,8 @@ class LoginController extends GetxController {
   }
 
   bool _validateInputs() {
-    return emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+    return emailController.text.isNotEmpty &&
+        passwordController.text.isNotEmpty;
   }
 
   @override
@@ -73,4 +76,3 @@ class LoginController extends GetxController {
     super.onClose();
   }
 }
-

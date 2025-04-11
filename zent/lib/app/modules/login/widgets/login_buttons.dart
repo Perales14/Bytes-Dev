@@ -61,49 +61,50 @@ class LoginButtons extends GetView<LoginController> {
                 )),
           ),
           SizedBox(height: size.width > 1200 ? 24 : 16),
+          // Botón de Google pero creo que no va al caso, igual no se debe de borrar nunca
           // Botón de Google
-          SizedBox(
-            width: double.infinity,
-            height: buttonHeight,
-            child: Obx(() => OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(
-                        color: theme.colorScheme.primary,
-                        width: size.width > 1200 ? 2.0 : 1.5),
-                    backgroundColor: Colors.white,
-                    foregroundColor: theme.colorScheme.primary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(buttonHeight / 2),
-                    ),
-                  ),
-                  icon: controller.isLoading.value
-                      ? SizedBox(
-                          width: 28,
-                          height: 28,
-                          child: CircularProgressIndicator(
-                            color: theme.colorScheme.primary,
-                            strokeWidth: 3,
-                          ),
-                        )
-                      : Image.asset(
-                          'assets/google_logo.png',
-                          height: size.width > 1200 ? 30 : 24,
-                          width: size.width > 1200 ? 30 : 24,
-                        ),
-                  label: Text(
-                    'Log in with Google',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w500,
-                      fontSize: fontSize,
-                    ),
-                  ),
-                  onPressed: controller.isLoading.value
-                      ? null
-                      : controller.loginWithGoogle,
-                )),
-          ),
+          // SizedBox(
+          //   width: double.infinity,
+          //   height: buttonHeight,
+          //   child: Obx(() => OutlinedButton.icon(
+          //         style: OutlinedButton.styleFrom(
+          //           side: BorderSide(
+          //               color: theme.colorScheme.primary,
+          //               width: size.width > 1200 ? 2.0 : 1.5),
+          //           backgroundColor: Colors.white,
+          //           foregroundColor: theme.colorScheme.primary,
+          //           elevation: 0,
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(buttonHeight / 2),
+          //           ),
+          //         ),
+          //         icon: controller.isLoading.value
+          //             ? SizedBox(
+          //                 width: 28,
+          //                 height: 28,
+          //                 child: CircularProgressIndicator(
+          //                   color: theme.colorScheme.primary,
+          //                   strokeWidth: 3,
+          //                 ),
+          //               )
+          //             : Image.asset(
+          //                 'assets/google_logo.png',
+          //                 height: size.width > 1200 ? 30 : 24,
+          //                 width: size.width > 1200 ? 30 : 24,
+          //               ),
+          //         label: Text(
+          //           'Log in with Google',
+          //           style: TextStyle(
+          //             color: theme.colorScheme.primary,
+          //             fontWeight: FontWeight.w500,
+          //             fontSize: fontSize,
+          //           ),
+          //         ),
+          //         onPressed: controller.isLoading.value
+          //             ? null
+          //             : controller.loginWithGoogle,
+          //       )),
+          // ),
         ],
       ),
     );
