@@ -46,8 +46,8 @@ class ProjectModel extends BaseModel {
 
   @override
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = {
+      // 'id': id,
       'name': name,
       'description': description,
       'client_id': clientId,
@@ -71,6 +71,11 @@ class ProjectModel extends BaseModel {
       'created_at': BaseModel.formatDateTime(createdAt),
       'updated_at': BaseModel.formatDateTime(updatedAt),
     };
+    if (id > 0) {
+      map['id'] = id;
+    }
+
+    return map;
   }
 
   @override

@@ -18,20 +18,22 @@ class ClientsView extends GetView<ClientsController> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+            children: [
             const SizedBox(height: 28),
 
-            // Contenido principal con grid de tarjetas
+            // Contenido principal con grid de tarjetas dentro de un Obx
             Expanded(
-              child: controller.isLoading.value
-                  ? const Center(child: CircularProgressIndicator())
-                  : controller.hasError.value
-                      ? _buildErrorState()
-                      : ClientsCardsGrid(
-                          clients: controller.filteredClients(),
-                          onAddClient: () => _showAddClientDialog(context),
-                          controller: controller,
-                        ),
+              child: Obx(
+              () => controller.isLoading.value
+                ? const Center(child: CircularProgressIndicator())
+                : controller.hasError.value
+                  ? _buildErrorState()
+                  : ClientsCardsGrid(
+                    clients: controller.filteredClients(),
+                    onAddClient: () => _showAddClientDialog(context),
+                    controller: controller,
+                    ),
+              ),
             ),
           ],
         ),
