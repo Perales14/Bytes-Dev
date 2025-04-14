@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:window_manager/window_manager.dart';
-import 'app/shared/controllers/sidebar_controller.dart';
+import 'app/data/services/session_service.dart';
 import 'app/shared/controllers/theme_controller.dart';
 import 'core/bindings/app_bindings.dart';
 import 'core/theme/app_theme.dart';
@@ -18,15 +18,14 @@ void main() async {
 
   await GetStorage.init();
 
+  // Inicializa AppBindings para registrar todos los servicios antes de crear la app
+  AppBindings().dependencies();
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
-
-  // Initialize controllers
-  final ThemeController themeController = Get.put(ThemeController());
-  final SidebarController sidebarController = Get.put(SidebarController());
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -34,11 +33,11 @@ class MyApp extends StatelessWidget {
           title: 'Zent',
           initialRoute: AppPages.INITIAL,
           getPages: AppPages.routes,
-          initialBinding: AppBindings(),
+          // No necesitamos initialBinding porque ya inicializamos las dependencias en main()
           debugShowCheckedModeBanner: false,
           theme: lightTheme,
           darkTheme: darkTheme,
-          themeMode: themeController.theme.value,
+          themeMode: Get.find<ThemeController>().theme.value,
         ));
   }
 }

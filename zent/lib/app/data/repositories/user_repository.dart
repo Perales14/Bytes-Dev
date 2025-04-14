@@ -165,4 +165,82 @@ class UserRepository extends BaseRepository<UserModel> {
       throw Exception('Error al actualizar empleado: $e');
     }
   }
+
+  /// Valida credenciales de usuario con información detallada sobre el error
+  ///
+  /// [email] Email del usuario
+  /// [passwordHash] Hash de la contraseña para comparar
+  /// [debugMode] Si es true, incluye información adicional de depuración en el resultado
+  /// Returns: Mapa con información de la validación: {success, message, exists, validPassword, user}
+  Future<Map<String, dynamic>> validateCredentials(
+      String email, String passwordHash,
+      {bool debugMode = false}) async {
+    try {
+      // Verificar si el usuario existe por email
+      final user = await findByEmail(email);
+
+      if (user == null) {
+        return {
+          'success': false,
+          'message': 'Usuario no encontrado',
+          'exists': false,
+          'validPassword': false,
+          'user': null
+        };
+      }
+
+      // Si está en modo debug, incluir información para depuración
+      if (debugMode) {
+        print('Valor de passwordHash proporcionado: $passwordHash');
+        print('Valor de passwordHash almacenado: ${user.passwordHash}');
+        print('¿Son iguales? ${user.passwordHash == passwordHash}');
+      }
+
+      // Verificar si la contraseña es correcta - comparación directa
+      if (user.passwordHash == passwordHash) {
+        return {
+          'success': true,
+          'message': 'Autenticación exitosa',
+          'exists': true,
+          'validPassword': true,
+          'user': user
+        };
+      }
+
+      // Si la contraseña no coincide, probamos con el método directo
+      final userAuth = await authenticate(email, passwordHash);
+      if (userAuth != null) {
+        return {
+          'success': true,
+          'message': 'Autenticación exitosa',
+          'exists': true,
+          'validPassword': true,
+          'user': userAuth
+        };
+      }
+
+      // Si ningún método funcionó, la contraseña es incorrecta
+      return {
+        'success': false,
+        'message': 'Contraseña incorrecta',
+        'exists': true,
+        'validPassword': false,
+        'user': null,
+        'debug': debugMode
+            ? {
+                'storedHash': user.passwordHash,
+                'providedHash': passwordHash,
+              }
+            : null,
+      };
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error de autenticación: $e',
+        'exists': false,
+        'validPassword': false,
+        'user': null
+      };
+    }
+  }
 }

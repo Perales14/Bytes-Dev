@@ -40,17 +40,28 @@ class LoginTextField extends GetView<LoginController> {
                 ),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(
-                      color: theme.colorScheme.primary.withOpacity(0.6)),
+                      color: controller.hasEmailError.value
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary.withOpacity(0.6)),
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.colorScheme.primary),
+                  borderSide: BorderSide(
+                      color: controller.hasEmailError.value
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary),
                 ),
                 labelStyle: TextStyle(
                   color: controller.isEmailFocused.value
-                      ? theme.colorScheme.primary
+                      ? controller.hasEmailError.value
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary
                       : theme.colorScheme.primary.withOpacity(0.7),
                   fontSize: size.width > 1200 ? 18 : 16,
                 ),
+                // Mostrar mensaje de error si existe
+                errorText: controller.hasEmailError.value
+                    ? controller.emailErrorText.value
+                    : null,
               ),
             ),
           ),
@@ -75,23 +86,36 @@ class LoginTextField extends GetView<LoginController> {
                 ),
                 enabledBorder: UnderlineInputBorder(
                   borderSide: BorderSide(
-                      color: theme.colorScheme.primary.withOpacity(0.6)),
+                      color: controller.hasPasswordError.value
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary.withOpacity(0.6)),
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: theme.colorScheme.primary),
+                  borderSide: BorderSide(
+                      color: controller.hasPasswordError.value
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary),
                 ),
                 labelStyle: TextStyle(
                   color: controller.isPasswordFocused.value
-                      ? theme.colorScheme.primary
+                      ? controller.hasPasswordError.value
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary
                       : theme.colorScheme.primary.withOpacity(0.7),
                   fontSize: size.width > 1200 ? 18 : 16,
                 ),
+                // Mostrar mensaje de error si existe
+                errorText: controller.hasPasswordError.value
+                    ? controller.passwordErrorText.value
+                    : null,
                 suffixIcon: IconButton(
                   icon: Icon(
                     controller.isPasswordVisible.value
                         ? Icons.visibility
                         : Icons.visibility_off,
-                    color: theme.colorScheme.primary.withOpacity(0.7),
+                    color: controller.hasPasswordError.value
+                        ? theme.colorScheme.error.withOpacity(0.7)
+                        : theme.colorScheme.primary.withOpacity(0.7),
                     size: size.width > 1200 ? 24 : 20,
                   ),
                   onPressed: controller.togglePasswordVisibility,

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/sidebar_controller.dart';
+import '../../models/sidebar_item.dart';
 import 'sidebar_button.dart';
 import 'sidebar_user_header.dart';
+import '../../../data/services/session_service.dart';
 
 class Sidebar extends GetView<SidebarController> {
   const Sidebar({super.key});
@@ -12,6 +14,22 @@ class Sidebar extends GetView<SidebarController> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    // Obtener el servicio de sesión de forma segura
+    String userName = 'Usuario';
+    String userRole = '';
+
+    try {
+      final sessionService = Get.find<SessionService>();
+      if (sessionService.isAuthenticated &&
+          sessionService.currentUser != null) {
+        userName = sessionService.currentUser?.fullName ?? 'Usuario';
+        userRole = sessionService.userRole;
+      }
+    } catch (e) {
+      // Si hay un error al obtener el servicio o los datos, usar valores predeterminados
+      print('Error al acceder a SessionService: $e');
+    }
 
     return Obx(() {
       // Use a condition to check if sidebar is visible enough to show content
@@ -44,13 +62,14 @@ class Sidebar extends GetView<SidebarController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Usuario
-                          const Padding(
-                            padding: EdgeInsets.only(top: 18.0),
+                          // Información del usuario
+                          Padding(
+                            padding: const EdgeInsets.only(top: 18.0),
                             child: SidebarUserHeader(
-                              userName: 'Juan Marín', // Datos de prueba
-                              userRole: 'Admin',
-                              userImageUrl: null,
+                              userName: userName,
+                              userRole: userRole,
+                              userImageUrl:
+                                  null, // Se puede implementar después
                             ),
                           ),
 
@@ -63,71 +82,72 @@ class Sidebar extends GetView<SidebarController> {
                               style: theme.textTheme.headlineMedium,
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 24,
                           ),
+
                           // Botones dinámicos (según el rol)
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: controller.visibleSidebarItems
-                                  .map((item) => Column(
-                                        children: [
-                                          SidebarButton(
-                                            item: item,
-                                            isSelected: Get.currentRoute ==
-                                                item.routeName,
-                                            onPressed: () {
-                                              Get.toNamed(item.routeName);
-                                              // Close drawer after navigation on mobile
-                                              if (MediaQuery.of(context)
-                                                      .size
-                                                      .width <
-                                                  600) {
-                                                Navigator.pop(context);
-                                              }
-                                            },
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ))
-                                  .toList(),
-                            ),
+                            child: Obx(() => Column(
+                                  children: controller.visibleSidebarItems
+                                      .map((item) => Column(
+                                            children: [
+                                              SidebarButton(
+                                                item: item,
+                                                isSelected:
+                                                    controller.isRouteActive(
+                                                        item.routeName),
+                                                onPressed: () {
+                                                  controller.navigateTo(
+                                                      item.routeName);
+                                                  // Close drawer after navigation on mobile
+                                                  if (MediaQuery.of(context)
+                                                          .size
+                                                          .width <
+                                                      600) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                          ))
+                                      .toList(),
+                                )),
                           ),
 
                           const Spacer(),
 
+                          // Botones estáticos (siempre visibles)
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: controller.staticSidebarItems
-                                  .map((item) => Column(
-                                        children: [
-                                          SidebarButton(
-                                            item: item,
-                                            isSelected: Get.currentRoute ==
-                                                item.routeName,
-                                            onPressed: () {
-                                              if (item.label ==
-                                                  'Cerrar Sesión') {
-                                                Get.offAllNamed('/');
-                                              } else {
-                                                Get.toNamed(item.routeName);
-                                              }
-                                              // Close drawer after action on mobile
-                                              if (MediaQuery.of(context)
-                                                      .size
-                                                      .width <
-                                                  600) {
-                                                Navigator.pop(context);
-                                              }
-                                            },
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ))
-                                  .toList(),
-                            ),
+                            child: Obx(() => Column(
+                                  children: controller.staticSidebarItems
+                                      .map((item) => Column(
+                                            children: [
+                                              SidebarButton(
+                                                item: item,
+                                                isSelected:
+                                                    controller.isRouteActive(
+                                                        item.routeName),
+                                                onPressed: () {
+                                                  controller.navigateTo(
+                                                      item.routeName);
+                                                  // Close drawer after action on mobile
+                                                  if (MediaQuery.of(context)
+                                                          .size
+                                                          .width <
+                                                      600) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                          ))
+                                      .toList(),
+                                )),
                           ),
 
                           // Logo

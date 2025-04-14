@@ -52,6 +52,18 @@ class UserService extends GetxService {
       _provider.findByEmail(email);
   Future<UserModel?> authenticate(String email, String passwordHash) =>
       _provider.authenticate(email, passwordHash);
+
+  /// Valida las credenciales del usuario con detalles de los posibles errores
+  ///
+  /// [email] Email del usuario
+  /// [passwordHash] Hash de la contraseña
+  /// [debugMode] Si es true, incluye información adicional de depuración en el resultado
+  /// Returns un mapa con la información detallada del resultado de validación
+  Future<Map<String, dynamic>> validateCredentials(
+          String email, String passwordHash,
+          {bool debugMode = false}) =>
+      _provider.validateCredentials(email, passwordHash, debugMode: debugMode);
+
   Future<bool> isSocialSecurityNumberAvailable(String ssn) =>
       _provider.existsSocialSecurityNumber(ssn).then((exists) => !exists);
 }
