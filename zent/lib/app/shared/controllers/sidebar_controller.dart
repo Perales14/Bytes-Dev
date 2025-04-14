@@ -8,8 +8,8 @@ import 'package:zent/app/shared/models/sidebar_item.dart';
 /// Gestiona los elementos visibles según el rol del usuario y controla
 /// la navegación entre diferentes rutas de la aplicación.
 class SidebarController extends GetxController {
-  // Servicios
-  late final SessionService _sessionService;
+  // Evita posibles errores de inicialización usando un getter para SessionService
+  SessionService get _sessionService => Get.find<SessionService>();
 
   /// Lista observable de elementos del sidebar según el rol del usuario
   final RxList<SidebarItem> _visibleSidebarItems = <SidebarItem>[].obs;
@@ -30,10 +30,8 @@ class SidebarController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // Intentar obtener la instancia de SessionService de forma segura
+    // Cargar los elementos del sidebar de forma segura
     try {
-      _sessionService = Get.find<SessionService>();
-      // Cargar los elementos del sidebar al iniciar
       _loadDefaultSidebarItems();
 
       // Si hay un usuario autenticado, actualizar elementos según el rol
@@ -43,7 +41,7 @@ class SidebarController extends GetxController {
       }
     } catch (e) {
       // Si SessionService no está disponible, cargamos elementos por defecto
-      print('SessionService no disponible: $e');
+      print('Error al cargar elementos del sidebar: $e');
       _loadDefaultSidebarItems();
     }
   }
@@ -95,7 +93,7 @@ class SidebarController extends GetxController {
       SidebarItem(
         icon: Icons.logout,
         label: 'Cerrar Sesión',
-        routeName: '/logout', // Cambiar a una ruta especial para logout
+        routeName: '/logout',
         isStatic: true,
       ),
     ];
@@ -294,14 +292,100 @@ class SidebarController extends GetxController {
   /// Maneja el proceso de cierre de sesión
   void _handleLogout() async {
     try {
-      await _sessionService.logout();
-      Get.offAllNamed('/login');
+      // Obtener el tema actual para personalizar el diálogo
+      final theme = Get.theme;
+      final isDark = theme.brightness == Brightness.dark;
+
+      // Colores adaptados al tema para mejor contraste
+      final Color primaryColor = theme.colorScheme.primary;
+      final Color backgroundColor = isDark
+          ? theme.colorScheme.surface.withOpacity(0.9)
+          : theme.colorScheme.surface;
+      final Color textColor =
+          isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
+      final Color cancelButtonColor =
+          isDark ? Colors.grey.shade700 : Colors.grey.shade300;
+
+      // Mostrar diálogo de confirmación personalizado
+      final bool? confirmLogout = await Get.dialog<bool>(
+        AlertDialog(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: primaryColor.withOpacity(0.5), width: 1),
+          ),
+          title: Text(
+            'Cerrar Sesión',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            '¿Estás seguro que deseas cerrar tu sesión?',
+            style: TextStyle(color: textColor),
+          ),
+          actions: [
+            // Botón Cancelar
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              style: TextButton.styleFrom(
+                backgroundColor: cancelButtonColor,
+                foregroundColor: textColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            // Botón Cerrar Sesión
+            ElevatedButton(
+              onPressed: () => Get.back(result: true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: theme.colorScheme.onPrimary,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              child: Text(
+                'Cerrar Sesión',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+          titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
+        ),
+      );
+
+      // Si el usuario no confirmó, cancelar la operación
+      if (confirmLogout != true) return;
+
+      // Navega a la pantalla de splash en modo de cierre de sesión
+      Get.offAllNamed('/splash', arguments: {'loggingOut': true});
     } catch (e) {
       print('Error al cerrar sesión: $e');
+      // Snackbar de error con estilo adaptativo
+      final theme = Get.theme;
       Get.snackbar(
         'Error',
-        'Ocurrió un error al cerrar sesión',
+        'Ocurrió un error al cerrar sesión. Intenta nuevamente.',
         snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: theme.colorScheme.error,
+        colorText: theme.colorScheme.onError,
+        duration: const Duration(seconds: 4),
+        borderRadius: 8,
+        margin: const EdgeInsets.all(12),
+        icon: const Icon(Icons.error_outline, color: Colors.white),
       );
     }
   }

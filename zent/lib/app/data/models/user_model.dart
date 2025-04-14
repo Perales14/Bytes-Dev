@@ -1,5 +1,6 @@
 import 'base_model.dart';
 
+/// Modelo que representa un usuario en el sistema
 class UserModel extends BaseModel {
   int roleId;
   int? specialtyId;
@@ -38,14 +39,13 @@ class UserModel extends BaseModel {
     super.updatedAt,
   });
 
-  // Computed property to get full name
+  /// Obtiene el nombre completo del usuario
   String get fullName =>
       '$name $fatherLastName${motherLastName != null ? ' $motherLastName' : ''}';
 
   @override
   Map<String, dynamic> toMap() {
     final map = {
-      // 'id': id,
       'role_id': roleId,
       'specialty_id': specialtyId,
       'name': name,
@@ -100,7 +100,7 @@ class UserModel extends BaseModel {
     );
   }
 
-  // Factory constructor to create from Map
+  /// Constructor de fábrica para crear desde un mapa JSON
   factory UserModel.fromJson(Map<String, dynamic> map) {
     return UserModel(
       id: map['id'] ?? 0,
@@ -128,7 +128,7 @@ class UserModel extends BaseModel {
     );
   }
 
-  // Method to clone the object with modifications
+  /// Crea una copia con modificaciones opcionales
   UserModel copyWith({
     int? id,
     int? roleId,

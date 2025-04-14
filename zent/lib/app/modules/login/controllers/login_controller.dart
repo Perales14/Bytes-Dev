@@ -1,18 +1,20 @@
+// Controlador que gestiona la lógica de autenticación
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
+import '../../../../routes/app_pages.dart';
 import '../../../data/services/user_service.dart';
 import '../../../data/services/session_service.dart';
 import '../../../shared/controllers/sidebar_controller.dart';
 
 class LoginController extends GetxController {
-  // Services
+  // Servicios
   final UserService _userService = Get.find<UserService>();
   final SessionService _sessionService = Get.find<SessionService>();
 
-  // Observable variables
+  // Variables observables para UI
   final RxBool isPasswordVisible = false.obs;
   final RxBool isEmailFocused = false.obs;
   final RxBool isPasswordFocused = false.obs;
@@ -22,11 +24,11 @@ class LoginController extends GetxController {
   final RxString emailErrorText = ''.obs;
   final RxString passwordErrorText = ''.obs;
 
-  // Controllers
+  // Controladores para campos de texto
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
 
-  // Focus nodes
+  // Nodos de foco para campos de texto
   late final FocusNode emailFocusNode;
   late final FocusNode passwordFocusNode;
 
@@ -36,147 +38,143 @@ class LoginController extends GetxController {
     _initializeControllers();
     _initializeFocusNodes();
 
-    // Si ya hay una sesión activa, redirigir a la pantalla principal
+    // Verificar si ya hay sesión activa
     if (_sessionService.isAuthenticated) {
-      Get.offAllNamed('/home');
+      Get.offAllNamed(Routes.HOME);
     }
   }
 
+  // Inicializar controladores de texto
   void _initializeControllers() {
     emailController = TextEditingController();
     passwordController = TextEditingController();
   }
 
+  // Inicializar nodos de foco
   void _initializeFocusNodes() {
     emailFocusNode = FocusNode()..addListener(_onEmailFocusChange);
     passwordFocusNode = FocusNode()..addListener(_onPasswordFocusChange);
   }
 
+  // Actualizar estado de foco del email
   void _onEmailFocusChange() => isEmailFocused.value = emailFocusNode.hasFocus;
+
+  // Actualizar estado de foco de la contraseña
   void _onPasswordFocusChange() =>
       isPasswordFocused.value = passwordFocusNode.hasFocus;
 
+  // Alternar visibilidad de la contraseña
   void togglePasswordVisibility() => isPasswordVisible.toggle();
 
-  /// Convierte la contraseña en varias formas de hash para mayor compatibilidad
+  // Genera diferentes variantes de hash para mayor compatibilidad
   List<String> _generatePasswordHashes(String password) {
-    // Lista para almacenar los diferentes formatos de hash
     List<String> hashes = [];
 
-    // MD5 hash (actual)
+    // Variantes comunes de hash
     hashes.add(md5.convert(utf8.encode(password)).toString());
-
-    // MD5 hash con texto en minúsculas (por si la base de datos almacenó así)
     hashes.add(md5.convert(utf8.encode(password.toLowerCase())).toString());
-
-    // Contraseña sin procesar (por si el hash se genera al guardar, no al comparar)
-    hashes.add(password);
-
-    // Otras variantes comunes
+    hashes.add(password); // Contraseña sin procesar
     hashes.add(sha1.convert(utf8.encode(password)).toString());
     hashes.add(sha256.convert(utf8.encode(password)).toString());
 
     return hashes;
   }
 
-  /// Método principal para iniciar sesión con validación detallada
+  // Método principal para realizar login
   Future<void> login() async {
-    // Restablecer mensajes de error previos
+    // Limpiar errores previos
     _resetErrors();
 
-    // Validar campos vacíos
-    if (!_validateInputs()) {
-      return;
-    }
+    // Validar campos antes de procesar
+    if (!_validateInputs()) return;
 
     isLoading.value = true;
     try {
       final email = emailController.text.trim();
       final password = passwordController.text;
 
-      // Intentar validar con el hash MD5 estándar primero
+      // Intentar con hash MD5 primero (más común)
       final standardHash = md5.convert(utf8.encode(password)).toString();
       var result = await _userService.validateCredentials(email, standardHash,
           debugMode: true);
 
-      // Si falla y el usuario existe, intentar con otros formatos de hash
+      // Si falla y el usuario existe, probar con otros formatos
       if (!result['success'] && result['exists']) {
-        print(
-            "Primer intento de autenticación fallido. Probando otros formatos de hash...");
-
-        // Obtener todos los posibles formatos de hash
         final allHashes = _generatePasswordHashes(password);
 
-        // Intentar con cada hash
+        // Probar cada formato de hash
         for (final hash in allHashes) {
-          if (hash == standardHash)
-            continue; // Saltar el hash estándar que ya probamos
+          if (hash == standardHash) continue; // Saltar el ya probado
 
-          print("Probando con formato alternativo: ${hash.substring(0, 5)}...");
           result = await _userService.validateCredentials(email, hash);
-
-          // Si encontramos coincidencia, salir del bucle
-          if (result['success']) {
-            print("Autenticación exitosa con formato alternativo");
-            break;
-          }
+          if (result['success']) break;
         }
       }
 
-      // Manejar el resultado final
+      // Procesar resultado final
       if (!result['success']) {
-        // Mostrar errores específicos
-        if (!result['exists']) {
-          hasEmailError.value = true;
-          emailErrorText.value = 'Usuario no encontrado';
-        } else if (!result['validPassword']) {
-          hasPasswordError.value = true;
-          passwordErrorText.value = 'Contraseña incorrecta';
-
-          // Mostrar más información de depuración en la consola
-          if (result.containsKey('debug')) {
-            print('Datos de depuración: ${result['debug']}');
-          }
-        }
+        _handleAuthenticationError(result);
         return;
       }
 
-      // Iniciar sesión si todo es correcto
-      await _sessionService.login(result['user']);
-
-      // Actualizar elementos del sidebar según el rol del usuario
-      final sidebarController = Get.find<SidebarController>();
-      sidebarController
-          .updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
-
-      // Navegar a la pantalla principal
-      Get.offAllNamed('/home');
+      // Autenticación exitosa
+      await _handleSuccessfulLogin(result);
     } catch (e) {
-      print('Error durante autenticación: $e');
-      Get.snackbar(
-        'Error de autenticación',
-        'Ha ocurrido un error al iniciar sesión. Por favor intenta nuevamente.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      _showErrorSnackbar('Error de autenticación',
+          'Ha ocurrido un error al iniciar sesión. Por favor intenta nuevamente.');
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Método para iniciar sesión con Google (Placeholder)
+  // Maneja errores de autenticación
+  void _handleAuthenticationError(Map<String, dynamic> result) {
+    if (!result['exists']) {
+      hasEmailError.value = true;
+      emailErrorText.value = 'Usuario no encontrado';
+    } else if (!result['validPassword']) {
+      hasPasswordError.value = true;
+      passwordErrorText.value = 'Contraseña incorrecta';
+    }
+  }
+
+  // Procesa un login exitoso
+  Future<void> _handleSuccessfulLogin(Map<String, dynamic> result) async {
+    // Guardar sesión
+    await _sessionService.login(result['user']);
+
+    // Actualizar sidebar según el rol
+    final sidebarController = Get.find<SidebarController>();
+    sidebarController
+        .updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
+
+    // Navegar a través de la pantalla de splash (con argumento de login exitoso)
+    Get.offAllNamed('/splash', arguments: {'loginSuccess': true});
+  }
+
+  // Muestra snackbar de error
+  void _showErrorSnackbar(String title, String message) {
+    Get.snackbar(
+      title,
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.red,
+      colorText: Colors.white,
+    );
+  }
+
+  // Método placeholder para login con Google
   Future<void> loginWithGoogle() async {
     try {
       isLoading.value = true;
-      // Implementar lógica de Google Sign-In
-      await Future.delayed(const Duration(seconds: 2)); // Simulación
+      // Implementación futura
+      await Future.delayed(const Duration(seconds: 2));
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Valida que los campos no estén vacíos
+  // Valida los campos de email y contraseña
   bool _validateInputs() {
     bool isValid = true;
 
@@ -201,7 +199,7 @@ class LoginController extends GetxController {
     return isValid;
   }
 
-  /// Restablecer mensajes de error
+  // Restablece mensajes de error
   void _resetErrors() {
     hasEmailError.value = false;
     hasPasswordError.value = false;
@@ -211,6 +209,7 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
+    // Liberar recursos
     emailController.dispose();
     passwordController.dispose();
     emailFocusNode.dispose();

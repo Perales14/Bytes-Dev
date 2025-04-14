@@ -11,6 +11,8 @@ import '../app/modules/login/bindings/login_binding.dart';
 import '../app/modules/login/views/login_view.dart';
 import '../app/modules/providers/bindings/providers_binding.dart';
 import '../app/modules/providers/views/providers_view.dart';
+import '../app/modules/splash/bindings/splash_binding.dart';
+import '../app/modules/splash/views/splash_view.dart';
 import '../app/data/services/session_service.dart';
 import 'route_guard.dart';
 
@@ -19,9 +21,16 @@ part 'app_routes.dart';
 class AppPages {
   AppPages._();
 
-  static const INITIAL = Routes.LOGIN;
+  // Cambiar la ruta inicial a SPLASH
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
+    // Ruta de Splash (nueva)
+    GetPage(
+      name: _Paths.SPLASH,
+      page: () => const SplashView(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: _Paths.LOGIN,
       page: () => const LoginView(),
