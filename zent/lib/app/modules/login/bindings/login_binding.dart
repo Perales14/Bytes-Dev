@@ -1,4 +1,3 @@
-// Binding para inyección de dependencias del módulo de login
 import 'package:get/get.dart';
 import '../controllers/login_controller.dart';
 import '../../../data/services/session_service.dart';
@@ -8,7 +7,7 @@ import '../../../shared/controllers/theme_controller.dart';
 class LoginBinding extends Bindings {
   @override
   void dependencies() {
-    // Asegurar que los servicios necesarios estén disponibles
+    // Servicios
     if (!Get.isRegistered<SessionService>()) {
       Get.put(SessionService(), permanent: true);
     }
@@ -17,10 +16,9 @@ class LoginBinding extends Bindings {
       Get.lazyPut(() => UserService(), fenix: true);
     }
 
-    // Registrar controladores
+    // Controladores
     Get.lazyPut<LoginController>(() => LoginController());
 
-    // Asegurar que ThemeController esté disponible
     if (!Get.isRegistered<ThemeController>()) {
       Get.lazyPut<ThemeController>(() => ThemeController(), fenix: true);
     }

@@ -5,14 +5,14 @@ import '../providers/user_provider.dart';
 class UserService extends GetxService {
   final UserProvider _provider = UserProvider();
 
-  // Basic user operations
+  // Operaciones básicas de usuario
   Future<List<UserModel>> getAllUsers() => _provider.getAll();
   Future<UserModel?> getUserById(int id) => _provider.getById(id);
   Future<UserModel> createUser(UserModel user) => _provider.create(user);
   Future<UserModel> updateUser(UserModel user) => _provider.update(user);
   Future<void> deleteUser(int id) => _provider.delete(id);
 
-  // Employee operations
+  // Operaciones de empleados
   Future<List<UserModel>> getEmployees() => _provider.getEmployees();
   Future<List<UserModel>> getAllEmployees() => _provider.getAllEmployees();
   Future<List<UserModel>> getActiveEmployees() =>
@@ -32,8 +32,6 @@ class UserService extends GetxService {
       if (employee == null) {
         throw Exception('No se encontró el empleado con ID $id');
       }
-
-      // Actualizar estado a inactivo (2) manteniendo el resto de propiedades
       final updatedEmployee = employee.copyWith(stateId: 2);
       return await updateEmployee(updatedEmployee);
     } catch (e) {
@@ -41,24 +39,18 @@ class UserService extends GetxService {
     }
   }
 
-  // Role and specialty operations
+  // Operaciones de roles y especialidades
   Future<List<UserModel>> getUsersByRole(int roleId) =>
       _provider.getByRole(roleId);
   Future<List<UserModel>> getUsersBySpecialty(int specialtyId) =>
       _provider.getBySpecialty(specialtyId);
 
-  // Authentication and validation
+  // Autenticación y validación
   Future<UserModel?> findUserByEmail(String email) =>
       _provider.findByEmail(email);
   Future<UserModel?> authenticate(String email, String passwordHash) =>
       _provider.authenticate(email, passwordHash);
 
-  /// Valida las credenciales del usuario con detalles de los posibles errores
-  ///
-  /// [email] Email del usuario
-  /// [passwordHash] Hash de la contraseña
-  /// [debugMode] Si es true, incluye información adicional de depuración en el resultado
-  /// Returns un mapa con la información detallada del resultado de validación
   Future<Map<String, dynamic>> validateCredentials(
           String email, String passwordHash,
           {bool debugMode = false}) =>

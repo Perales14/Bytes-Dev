@@ -15,7 +15,7 @@ class Sidebar extends GetView<SidebarController> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Obtener el servicio de sesión de forma segura
+    // Obtener datos del usuario
     String userName = 'Usuario';
     String userRole = '';
 
@@ -27,18 +27,16 @@ class Sidebar extends GetView<SidebarController> {
         userRole = sessionService.userRole;
       }
     } catch (e) {
-      // Si hay un error al obtener el servicio o los datos, usar valores predeterminados
       print('Error al acceder a SessionService: $e');
     }
 
     return Obx(() {
-      // Use a condition to check if sidebar is visible enough to show content
       final bool showContent = controller.isOpen.value;
 
       return Container(
         height: double.infinity,
         width: controller.isOpen.value ? 212 : 0,
-        clipBehavior: Clip.hardEdge, // Add clipping to prevent overflow
+        clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           border: Border(
@@ -46,7 +44,7 @@ class Sidebar extends GetView<SidebarController> {
               color: isDark
                   ? Colors.white.withOpacity(0.2)
                   : Colors.black.withOpacity(0.2),
-              width: controller.isOpen.value ? 1 : 0, // Hide border when closed
+              width: controller.isOpen.value ? 1 : 0,
             ),
           ),
         ),
@@ -62,18 +60,17 @@ class Sidebar extends GetView<SidebarController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Información del usuario
+                          // Cabecera de usuario
                           Padding(
                             padding: const EdgeInsets.only(top: 18.0),
                             child: SidebarUserHeader(
                               userName: userName,
                               userRole: userRole,
-                              userImageUrl:
-                                  null, // Se puede implementar después
+                              userImageUrl: null,
                             ),
                           ),
 
-                          // Título "Dashboards"
+                          // Título Dashboards
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12.0, vertical: 8.0),
@@ -82,11 +79,9 @@ class Sidebar extends GetView<SidebarController> {
                               style: theme.textTheme.headlineMedium,
                             ),
                           ),
-                          const SizedBox(
-                            height: 24,
-                          ),
+                          const SizedBox(height: 24),
 
-                          // Botones dinámicos (según el rol)
+                          // Elementos dinámicos
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Obx(() => Column(
@@ -101,7 +96,6 @@ class Sidebar extends GetView<SidebarController> {
                                                 onPressed: () {
                                                   controller.navigateTo(
                                                       item.routeName);
-                                                  // Close drawer after navigation on mobile
                                                   if (MediaQuery.of(context)
                                                           .size
                                                           .width <
@@ -119,7 +113,7 @@ class Sidebar extends GetView<SidebarController> {
 
                           const Spacer(),
 
-                          // Botones estáticos (siempre visibles)
+                          // Elementos estáticos
                           Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Obx(() => Column(
@@ -134,7 +128,6 @@ class Sidebar extends GetView<SidebarController> {
                                                 onPressed: () {
                                                   controller.navigateTo(
                                                       item.routeName);
-                                                  // Close drawer after action on mobile
                                                   if (MediaQuery.of(context)
                                                           .size
                                                           .width <
@@ -166,7 +159,7 @@ class Sidebar extends GetView<SidebarController> {
                     ),
                   ),
                 )
-              : const SizedBox(), // Empty box when sidebar is closed
+              : const SizedBox(),
         ),
       );
     });

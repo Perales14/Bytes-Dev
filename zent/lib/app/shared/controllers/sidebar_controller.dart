@@ -3,50 +3,33 @@ import 'package:get/get.dart';
 import 'package:zent/app/data/services/session_service.dart';
 import 'package:zent/app/shared/models/sidebar_item.dart';
 
-/// Controlador para manejar el estado y comportamiento de la barra lateral.
-///
-/// Gestiona los elementos visibles según el rol del usuario y controla
-/// la navegación entre diferentes rutas de la aplicación.
 class SidebarController extends GetxController {
-  // Evita posibles errores de inicialización usando un getter para SessionService
   SessionService get _sessionService => Get.find<SessionService>();
 
-  /// Lista observable de elementos del sidebar según el rol del usuario
   final RxList<SidebarItem> _visibleSidebarItems = <SidebarItem>[].obs;
-
-  /// Lista observable de elementos estáticos (siempre visibles)
   final RxList<SidebarItem> _staticSidebarItems = <SidebarItem>[].obs;
-
-  /// Estado observable de apertura/cierre del sidebar
   final RxBool isOpen = true.obs;
 
-  /// Obtiene los elementos visibles del sidebar
   List<SidebarItem> get visibleSidebarItems => _visibleSidebarItems;
-
-  /// Obtiene los elementos estáticos del sidebar (parte inferior)
   List<SidebarItem> get staticSidebarItems => _staticSidebarItems;
 
   @override
   void onInit() {
     super.onInit();
 
-    // Cargar los elementos del sidebar de forma segura
     try {
       _loadDefaultSidebarItems();
 
-      // Si hay un usuario autenticado, actualizar elementos según el rol
       if (_sessionService.isAuthenticated &&
           _sessionService.currentUser != null) {
         updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
       }
     } catch (e) {
-      // Si SessionService no está disponible, cargamos elementos por defecto
       print('Error al cargar elementos del sidebar: $e');
       _loadDefaultSidebarItems();
     }
   }
 
-  /// Carga los elementos predeterminados del sidebar
   void _loadDefaultSidebarItems() {
     // Elementos dinámicos según el rol
     _visibleSidebarItems.value = [
@@ -82,7 +65,7 @@ class SidebarController extends GetxController {
       ),
     ];
 
-    // Elementos estáticos (siempre visibles en la parte inferior)
+    // Elementos estáticos
     _staticSidebarItems.value = [
       SidebarItem(
         icon: Icons.settings,
@@ -99,9 +82,6 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Actualiza los elementos del sidebar según el rol del usuario por ID
-  ///
-  /// [roleId] - El ID del rol del usuario
   void updateSidebarItemsByRoleId(int roleId) {
     switch (roleId) {
       case SessionService.ROLE_ADMIN:
@@ -119,12 +99,9 @@ class SidebarController extends GetxController {
       default:
         _loadDefaultSidebarItems();
     }
-    update(); // Notifica a los widgets que escuchan sobre el cambio
+    update();
   }
 
-  /// Actualiza los elementos del sidebar según el rol del usuario por nombre
-  ///
-  /// [role] - El nombre del rol del usuario
   void updateSidebarItemsByRole(String role) {
     switch (role.toLowerCase()) {
       case 'administrador':
@@ -142,10 +119,9 @@ class SidebarController extends GetxController {
       default:
         _loadDefaultSidebarItems();
     }
-    update(); // Notifica a los widgets que escuchan sobre el cambio
+    update();
   }
 
-  /// Elementos del sidebar para Administradores
   void _loadAdminSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -186,7 +162,6 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Elementos del sidebar para Promotores
   void _loadPromotorSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -212,7 +187,6 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Elementos del sidebar para Captadores de campo
   void _loadCaptadorSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -238,7 +212,6 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Elementos del sidebar para Recursos Humanos
   void _loadRRHHSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -269,34 +242,23 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Verifica si una ruta está activa actualmente
-  ///
-  /// [routeName] - Nombre de la ruta a verificar
-  /// Returns: true si la ruta está activa, false en caso contrario
   bool isRouteActive(String routeName) {
     return Get.currentRoute == routeName;
   }
 
-  /// Navega a una ruta específica
-  ///
-  /// [routeName] - Nombre de la ruta a navegar
   void navigateTo(String routeName) {
     if (routeName == '/logout') {
-      // Cerrar sesión usando el servicio de sesión
       _handleLogout();
     } else {
       Get.toNamed(routeName);
     }
   }
 
-  /// Maneja el proceso de cierre de sesión
   void _handleLogout() async {
     try {
-      // Obtener el tema actual para personalizar el diálogo
       final theme = Get.theme;
       final isDark = theme.brightness == Brightness.dark;
 
-      // Colores adaptados al tema para mejor contraste
       final Color primaryColor = theme.colorScheme.primary;
       final Color backgroundColor = isDark
           ? theme.colorScheme.surface.withOpacity(0.9)
@@ -306,7 +268,6 @@ class SidebarController extends GetxController {
       final Color cancelButtonColor =
           isDark ? Colors.grey.shade700 : Colors.grey.shade300;
 
-      // Mostrar diálogo de confirmación personalizado
       final bool? confirmLogout = await Get.dialog<bool>(
         AlertDialog(
           backgroundColor: backgroundColor,
@@ -326,7 +287,6 @@ class SidebarController extends GetxController {
             style: TextStyle(color: textColor),
           ),
           actions: [
-            // Botón Cancelar
             TextButton(
               onPressed: () => Get.back(result: false),
               style: TextButton.styleFrom(
@@ -341,7 +301,6 @@ class SidebarController extends GetxController {
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
             ),
-            // Botón Cerrar Sesión
             ElevatedButton(
               onPressed: () => Get.back(result: true),
               style: ElevatedButton.styleFrom(
@@ -367,14 +326,11 @@ class SidebarController extends GetxController {
         ),
       );
 
-      // Si el usuario no confirmó, cancelar la operación
       if (confirmLogout != true) return;
 
-      // Navega a la pantalla de splash en modo de cierre de sesión
       Get.offAllNamed('/splash', arguments: {'loggingOut': true});
     } catch (e) {
       print('Error al cerrar sesión: $e');
-      // Snackbar de error con estilo adaptativo
       final theme = Get.theme;
       Get.snackbar(
         'Error',
@@ -390,7 +346,6 @@ class SidebarController extends GetxController {
     }
   }
 
-  /// Alterna la visibilidad del sidebar
   void toggleSidebar() {
     isOpen.value = !isOpen.value;
   }

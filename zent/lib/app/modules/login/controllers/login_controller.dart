@@ -1,4 +1,3 @@
-// Controlador que gestiona la lógica de autenticación
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:crypto/crypto.dart';
@@ -24,11 +23,9 @@ class LoginController extends GetxController {
   final RxString emailErrorText = ''.obs;
   final RxString passwordErrorText = ''.obs;
 
-  // Controladores para campos de texto
+  // Controladores y nodos de foco
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
-
-  // Nodos de foco para campos de texto
   late final FocusNode emailFocusNode;
   late final FocusNode passwordFocusNode;
 
@@ -38,54 +35,40 @@ class LoginController extends GetxController {
     _initializeControllers();
     _initializeFocusNodes();
 
-    // Verificar si ya hay sesión activa
     if (_sessionService.isAuthenticated) {
       Get.offAllNamed(Routes.HOME);
     }
   }
 
-  // Inicializar controladores de texto
   void _initializeControllers() {
     emailController = TextEditingController();
     passwordController = TextEditingController();
   }
 
-  // Inicializar nodos de foco
   void _initializeFocusNodes() {
     emailFocusNode = FocusNode()..addListener(_onEmailFocusChange);
     passwordFocusNode = FocusNode()..addListener(_onPasswordFocusChange);
   }
 
-  // Actualizar estado de foco del email
   void _onEmailFocusChange() => isEmailFocused.value = emailFocusNode.hasFocus;
-
-  // Actualizar estado de foco de la contraseña
   void _onPasswordFocusChange() =>
       isPasswordFocused.value = passwordFocusNode.hasFocus;
-
-  // Alternar visibilidad de la contraseña
   void togglePasswordVisibility() => isPasswordVisible.toggle();
 
   // Genera diferentes variantes de hash para mayor compatibilidad
   List<String> _generatePasswordHashes(String password) {
     List<String> hashes = [];
-
-    // Variantes comunes de hash
     hashes.add(md5.convert(utf8.encode(password)).toString());
     hashes.add(md5.convert(utf8.encode(password.toLowerCase())).toString());
     hashes.add(password); // Contraseña sin procesar
     hashes.add(sha1.convert(utf8.encode(password)).toString());
     hashes.add(sha256.convert(utf8.encode(password)).toString());
-
     return hashes;
   }
 
   // Método principal para realizar login
   Future<void> login() async {
-    // Limpiar errores previos
     _resetErrors();
-
-    // Validar campos antes de procesar
     if (!_validateInputs()) return;
 
     isLoading.value = true;
@@ -93,31 +76,27 @@ class LoginController extends GetxController {
       final email = emailController.text.trim();
       final password = passwordController.text;
 
-      // Intentar con hash MD5 primero (más común)
+      // Intentar con hash MD5 primero
       final standardHash = md5.convert(utf8.encode(password)).toString();
       var result = await _userService.validateCredentials(email, standardHash,
           debugMode: true);
 
-      // Si falla y el usuario existe, probar con otros formatos
+      // Si falla, probar con otros formatos
       if (!result['success'] && result['exists']) {
         final allHashes = _generatePasswordHashes(password);
 
-        // Probar cada formato de hash
         for (final hash in allHashes) {
-          if (hash == standardHash) continue; // Saltar el ya probado
-
+          if (hash == standardHash) continue;
           result = await _userService.validateCredentials(email, hash);
           if (result['success']) break;
         }
       }
 
-      // Procesar resultado final
       if (!result['success']) {
         _handleAuthenticationError(result);
         return;
       }
 
-      // Autenticación exitosa
       await _handleSuccessfulLogin(result);
     } catch (e) {
       _showErrorSnackbar('Error de autenticación',
@@ -127,7 +106,6 @@ class LoginController extends GetxController {
     }
   }
 
-  // Maneja errores de autenticación
   void _handleAuthenticationError(Map<String, dynamic> result) {
     if (!result['exists']) {
       hasEmailError.value = true;
@@ -138,21 +116,16 @@ class LoginController extends GetxController {
     }
   }
 
-  // Procesa un login exitoso
   Future<void> _handleSuccessfulLogin(Map<String, dynamic> result) async {
-    // Guardar sesión
     await _sessionService.login(result['user']);
 
-    // Actualizar sidebar según el rol
     final sidebarController = Get.find<SidebarController>();
     sidebarController
         .updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
 
-    // Navegar a través de la pantalla de splash (con argumento de login exitoso)
     Get.offAllNamed('/splash', arguments: {'loginSuccess': true});
   }
 
-  // Muestra snackbar de error
   void _showErrorSnackbar(String title, String message) {
     Get.snackbar(
       title,
@@ -163,22 +136,18 @@ class LoginController extends GetxController {
     );
   }
 
-  // Método placeholder para login con Google
   Future<void> loginWithGoogle() async {
     try {
       isLoading.value = true;
-      // Implementación futura
       await Future.delayed(const Duration(seconds: 2));
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Valida los campos de email y contraseña
   bool _validateInputs() {
     bool isValid = true;
 
-    // Validar email
     if (emailController.text.trim().isEmpty) {
       hasEmailError.value = true;
       emailErrorText.value = 'El email es requerido';
@@ -189,7 +158,6 @@ class LoginController extends GetxController {
       isValid = false;
     }
 
-    // Validar contraseña
     if (passwordController.text.isEmpty) {
       hasPasswordError.value = true;
       passwordErrorText.value = 'La contraseña es requerida';
@@ -199,7 +167,6 @@ class LoginController extends GetxController {
     return isValid;
   }
 
-  // Restablece mensajes de error
   void _resetErrors() {
     hasEmailError.value = false;
     hasPasswordError.value = false;
@@ -209,7 +176,6 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // Liberar recursos
     emailController.dispose();
     passwordController.dispose();
     emailFocusNode.dispose();

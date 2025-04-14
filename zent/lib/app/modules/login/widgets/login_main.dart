@@ -1,4 +1,3 @@
-// Componente principal de la pantalla de login con layout adaptativo
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/modules/login/controllers/login_controller.dart';
@@ -12,7 +11,6 @@ class LoginMain extends GetView<LoginController> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Determinar si estamos en pantalla pequeña (móvil)
         final bool isSmallScreen = constraints.maxWidth < 600;
 
         return Row(
@@ -39,7 +37,6 @@ class LoginMain extends GetView<LoginController> {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
-    // Ajustes responsivos para el título
     final titleFontSize = size.width > 1200 ? 60.0 : 48.0;
     final titleLetterSpacing = size.width > 1200 ? 6.0 : 4.0;
     final topPadding = size.height > 800 ? 160.0 : 120.0;
@@ -91,7 +88,6 @@ class LoginMain extends GetView<LoginController> {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
-    // Ajustes responsivos
     final titleFontSize =
         size.width > 1200 ? 26.0 : (size.width > 600 ? 22.0 : 18.0);
     final verticalSpacing =
@@ -104,7 +100,7 @@ class LoginMain extends GetView<LoginController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Solo mostrar título ZENT en pantallas pequeñas (donde no se ve el panel izquierdo)
+          // Solo mostrar título ZENT en pantallas pequeñas
           if (isSmallScreen) ...[
             _buildMobileHeader(theme, size),
             SizedBox(height: size.width > 600 ? 40.0 : 32.0),

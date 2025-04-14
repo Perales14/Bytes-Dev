@@ -1,4 +1,3 @@
-// Splash screen mostrada durante la inicialización de la app y cierre de sesión
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/splash_controller.dart';
@@ -41,7 +40,7 @@ class SplashView extends GetView<SplashController> {
 
                 const SizedBox(height: 24),
 
-                // Texto animado para mostrar el estado de carga según el modo
+                // Texto animado para mostrar el estado de carga
                 Text(
                   controller.loadingMessage.value,
                   style: theme.textTheme.bodyLarge?.copyWith(

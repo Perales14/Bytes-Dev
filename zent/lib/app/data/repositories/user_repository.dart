@@ -78,23 +78,56 @@ class UserRepository extends BaseRepository<UserModel> {
     }
   }
 
-  // Find user by email
+  // Find user by email (case-insensitive)
   Future<UserModel?> findByEmail(String email) async {
     try {
-      final results = await query('email = ?', [email]);
+      // Convertir el email a minúsculas para comparación
+      final String normalizedEmail = email.toLowerCase();
+
+      print('Buscando usuario con email normalizado: $normalizedEmail');
+
+      // Mejor usar consulta SQL directa para el email
+      final results = await query('LOWER(email) = LOWER(?)', [email]);
+
+      if (results.isEmpty) {
+        print('No se encontró ningún usuario con email: $normalizedEmail');
+
+        // Buscar todos los usuarios para verificar si hay problemas
+        final allUsers = await getAll();
+        print('Usuarios en la base de datos: ${allUsers.length}');
+        for (var user in allUsers) {
+          print('Usuario: ${user.email} (ID: ${user.id})');
+        }
+      } else {
+        print('Usuario encontrado con email: ${results.first.email}');
+      }
+
       return results.isNotEmpty ? results.first : null;
     } catch (e) {
+      print('Error al buscar usuario por email: $e');
       throw Exception('Error finding user by email: $e');
     }
   }
 
-  // Authenticate user
+  // Authenticate user (case-insensitive email)
   Future<UserModel?> authenticate(String email, String passwordHash) async {
     try {
-      final results =
-          await query('email = ? AND password_hash = ?', [email, passwordHash]);
+      // Mejor usar consulta SQL directa con LOWER para comparación insensible a mayúsculas
+      print('Intentando autenticar con email: $email');
+
+      final results = await query(
+          'LOWER(email) = LOWER(?) AND password_hash = ? AND state_id = 1',
+          [email, passwordHash]);
+
+      if (results.isEmpty) {
+        print('Autenticación fallida para: $email');
+      } else {
+        print('Autenticación exitosa para: $email');
+      }
+
       return results.isNotEmpty ? results.first : null;
     } catch (e) {
+      print('Error en autenticación: $e');
       throw Exception('Authentication error: $e');
     }
   }
@@ -176,10 +209,18 @@ class UserRepository extends BaseRepository<UserModel> {
       String email, String passwordHash,
       {bool debugMode = false}) async {
     try {
+      // Imprimir información para depuración
+      print('Validando credenciales para email: $email');
+
+      // Normalizar email
+      final normalizedEmail = email.toLowerCase();
+      print('Email normalizado: $normalizedEmail');
+
       // Verificar si el usuario existe por email
-      final user = await findByEmail(email);
+      final user = await findByEmail(normalizedEmail);
 
       if (user == null) {
+        print('Usuario no encontrado para email: $normalizedEmail');
         return {
           'success': false,
           'message': 'Usuario no encontrado',
@@ -189,8 +230,27 @@ class UserRepository extends BaseRepository<UserModel> {
         };
       }
 
+      print(
+          'Usuario encontrado: ${user.email} (ID: ${user.id}, Estado: ${user.stateId})');
+
+      // Verificar si el usuario está activo
+      if (user.stateId != 1) {
+        print('Usuario inactivo: ${user.email}');
+        return {
+          'success': false,
+          'message': 'Usuario inactivo',
+          'exists': true,
+          'validPassword': false,
+          'userActive': false,
+          'user': null
+        };
+      }
+
       // Si está en modo debug, incluir información para depuración
       if (debugMode) {
+        print('Email proporcionado: $email');
+        print('Email normalizado: $normalizedEmail');
+        print('Email almacenado: ${user.email}');
         print('Valor de passwordHash proporcionado: $passwordHash');
         print('Valor de passwordHash almacenado: ${user.passwordHash}');
         print('¿Son iguales? ${user.passwordHash == passwordHash}');
@@ -198,33 +258,43 @@ class UserRepository extends BaseRepository<UserModel> {
 
       // Verificar si la contraseña es correcta - comparación directa
       if (user.passwordHash == passwordHash) {
+        print('Autenticación exitosa por comparación directa');
         return {
           'success': true,
           'message': 'Autenticación exitosa',
           'exists': true,
           'validPassword': true,
+          'userActive': true,
           'user': user
         };
       }
 
-      // Si la contraseña no coincide, probamos con el método directo
-      final userAuth = await authenticate(email, passwordHash);
-      if (userAuth != null) {
+      // Si la contraseña no coincide, probamos con diferentes variantes
+      // Esta parte permanece igual para mantener la compatibilidad con diferentes formatos de hash
+      final userAuth = await authenticate(normalizedEmail, passwordHash);
+      if (userAuth != null && userAuth.stateId == 1) {
+        print('Autenticación exitosa por método authenticate');
         return {
           'success': true,
           'message': 'Autenticación exitosa',
           'exists': true,
           'validPassword': true,
+          'userActive': true,
           'user': userAuth
         };
       }
 
-      // Si ningún método funcionó, la contraseña es incorrecta
+      print('Contraseña incorrecta para usuario: ${user.email}');
+
+      // Si ningún método funcionó, la contraseña es incorrecta o el usuario no está activo
       return {
         'success': false,
-        'message': 'Contraseña incorrecta',
+        'message': userAuth != null && userAuth.stateId != 1
+            ? 'Usuario inactivo'
+            : 'Contraseña incorrecta',
         'exists': true,
-        'validPassword': false,
+        'validPassword': userAuth != null,
+        'userActive': userAuth != null ? userAuth.stateId == 1 : false,
         'user': null,
         'debug': debugMode
             ? {
@@ -234,11 +304,13 @@ class UserRepository extends BaseRepository<UserModel> {
             : null,
       };
     } catch (e) {
+      print('Error en validateCredentials: $e');
       return {
         'success': false,
         'message': 'Error de autenticación: $e',
         'exists': false,
         'validPassword': false,
+        'userActive': false,
         'user': null
       };
     }
