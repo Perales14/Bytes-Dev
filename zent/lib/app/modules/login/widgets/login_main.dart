@@ -12,15 +12,18 @@ class LoginMain extends GetView<LoginController> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final bool isSmallScreen = constraints.maxWidth < 600;
-        final theme = Theme.of(context);
+
         return Row(
           children: [
-            if (!isSmallScreen) _buildLeftColumn(context, constraints),
+            // Panel izquierdo (solo visible en pantallas medianas y grandes)
+            if (!isSmallScreen) _buildLeftPanel(context, constraints),
+
+            // Panel derecho (formulario de login)
             Expanded(
               flex: 1,
               child: Container(
-                color: Colors.white, // Lado derecho con fondo blanco
-                child: _buildLoginContent(context, isSmallScreen, constraints),
+                color: Colors.white,
+                child: _buildLoginForm(context, isSmallScreen, constraints),
               ),
             ),
           ],
@@ -29,11 +32,11 @@ class LoginMain extends GetView<LoginController> {
     );
   }
 
-  Widget _buildLeftColumn(BuildContext context, BoxConstraints constraints) {
+  // Panel izquierdo con imagen y logo
+  Widget _buildLeftPanel(BuildContext context, BoxConstraints constraints) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
-    // Ajustar el tamaño del título según el tamaño de la pantalla
     final titleFontSize = size.width > 1200 ? 60.0 : 48.0;
     final titleLetterSpacing = size.width > 1200 ? 6.0 : 4.0;
     final topPadding = size.height > 800 ? 160.0 : 120.0;
@@ -41,13 +44,12 @@ class LoginMain extends GetView<LoginController> {
     return Expanded(
       flex: 1,
       child: Container(
-        color: theme.colorScheme
-            .primary, // Usando el color primary para el lado izquierdo
+        color: theme.colorScheme.primary,
         child: Stack(
           children: [
-            // Título ZENT centrado verticalmente entre el borde superior y la imagen
+            // Título ZENT centrado en la parte superior
             Positioned(
-              top: topPadding, // Posición ajustada según altura de pantalla
+              top: topPadding,
               left: 0,
               right: 0,
               child: Center(
@@ -62,7 +64,8 @@ class LoginMain extends GetView<LoginController> {
                 ),
               ),
             ),
-            // La imagen estará pegada al fondo y ocupará el mayor espacio posible
+
+            // Imagen inferior que ocupa el espacio restante
             Positioned(
               bottom: 0,
               left: 0,
@@ -79,12 +82,12 @@ class LoginMain extends GetView<LoginController> {
     );
   }
 
-  Widget _buildLoginContent(
+  // Formulario de login (panel derecho)
+  Widget _buildLoginForm(
       BuildContext context, bool isSmallScreen, BoxConstraints constraints) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
-    // Ajustar el espaciado y tamaño del texto según el tamaño de la pantalla
     final titleFontSize =
         size.width > 1200 ? 26.0 : (size.width > 600 ? 22.0 : 18.0);
     final verticalSpacing =
@@ -97,18 +100,13 @@ class LoginMain extends GetView<LoginController> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Solo mostrar título ZENT en pantallas pequeñas
           if (isSmallScreen) ...[
-            Text(
-              'ZENT',
-              style: theme.textTheme.displayMedium?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 4,
-                fontSize: size.width > 600 ? 48.0 : 36.0,
-              ),
-            ),
+            _buildMobileHeader(theme, size),
             SizedBox(height: size.width > 600 ? 40.0 : 32.0),
           ],
+
+          // Título de bienvenida
           Text(
             'BIENVENIDO DE NUEVO',
             style: theme.textTheme.headlineSmall?.copyWith(
@@ -118,11 +116,30 @@ class LoginMain extends GetView<LoginController> {
             ),
             textAlign: TextAlign.center,
           ),
+
           SizedBox(height: verticalSpacing),
-          LoginTextField(),
+
+          // Campos de texto (email y contraseña)
+          const LoginTextField(),
+
           SizedBox(height: size.width > 1200 ? 40.0 : 32.0),
-          LoginButtons(),
+
+          // Botones de acción
+          const LoginButtons(),
         ],
+      ),
+    );
+  }
+
+  // Encabezado para vista móvil
+  Widget _buildMobileHeader(ThemeData theme, Size size) {
+    return Text(
+      'ZENT',
+      style: theme.textTheme.displayMedium?.copyWith(
+        color: theme.colorScheme.primary,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 4,
+        fontSize: size.width > 600 ? 48.0 : 36.0,
       ),
     );
   }

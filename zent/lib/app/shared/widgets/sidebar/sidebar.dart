@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/sidebar_controller.dart';
+import '../../models/sidebar_item.dart';
 import 'sidebar_button.dart';
 import 'sidebar_user_header.dart';
+import '../../../data/services/session_service.dart';
 
 class Sidebar extends GetView<SidebarController> {
   const Sidebar({super.key});
@@ -13,14 +15,28 @@ class Sidebar extends GetView<SidebarController> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    // Obtener datos del usuario
+    String userName = 'Usuario';
+    String userRole = '';
+
+    try {
+      final sessionService = Get.find<SessionService>();
+      if (sessionService.isAuthenticated &&
+          sessionService.currentUser != null) {
+        userName = sessionService.currentUser?.fullName ?? 'Usuario';
+        userRole = sessionService.userRole;
+      }
+    } catch (e) {
+      print('Error al acceder a SessionService: $e');
+    }
+
     return Obx(() {
-      // Use a condition to check if sidebar is visible enough to show content
       final bool showContent = controller.isOpen.value;
 
       return Container(
         height: double.infinity,
         width: controller.isOpen.value ? 212 : 0,
-        clipBehavior: Clip.hardEdge, // Add clipping to prevent overflow
+        clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           border: Border(
@@ -28,7 +44,7 @@ class Sidebar extends GetView<SidebarController> {
               color: isDark
                   ? Colors.white.withOpacity(0.2)
                   : Colors.black.withOpacity(0.2),
-              width: controller.isOpen.value ? 1 : 0, // Hide border when closed
+              width: controller.isOpen.value ? 1 : 0,
             ),
           ),
         ),
@@ -44,17 +60,17 @@ class Sidebar extends GetView<SidebarController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Usuario
-                          const Padding(
-                            padding: EdgeInsets.only(top: 18.0),
+                          // Cabecera de usuario
+                          Padding(
+                            padding: const EdgeInsets.only(top: 18.0),
                             child: SidebarUserHeader(
-                              userName: 'Juan Marín', // Datos de prueba
-                              userRole: 'Admin',
+                              userName: userName,
+                              userRole: userRole,
                               userImageUrl: null,
                             ),
                           ),
 
-                          // Título "Dashboards"
+                          // Título Dashboards
                           Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12.0, vertical: 8.0),
@@ -63,71 +79,68 @@ class Sidebar extends GetView<SidebarController> {
                               style: theme.textTheme.headlineMedium,
                             ),
                           ),
-                          SizedBox(
-                            height: 24,
-                          ),
-                          // Botones dinámicos (según el rol)
+                          const SizedBox(height: 24),
+
+                          // Elementos dinámicos
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: controller.visibleSidebarItems
-                                  .map((item) => Column(
-                                        children: [
-                                          SidebarButton(
-                                            item: item,
-                                            isSelected: Get.currentRoute ==
-                                                item.routeName,
-                                            onPressed: () {
-                                              Get.toNamed(item.routeName);
-                                              // Close drawer after navigation on mobile
-                                              if (MediaQuery.of(context)
-                                                      .size
-                                                      .width <
-                                                  600) {
-                                                Navigator.pop(context);
-                                              }
-                                            },
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ))
-                                  .toList(),
-                            ),
+                            child: Obx(() => Column(
+                                  children: controller.visibleSidebarItems
+                                      .map((item) => Column(
+                                            children: [
+                                              SidebarButton(
+                                                item: item,
+                                                isSelected:
+                                                    controller.isRouteActive(
+                                                        item.routeName),
+                                                onPressed: () {
+                                                  controller.navigateTo(
+                                                      item.routeName);
+                                                  if (MediaQuery.of(context)
+                                                          .size
+                                                          .width <
+                                                      600) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                          ))
+                                      .toList(),
+                                )),
                           ),
 
                           const Spacer(),
 
+                          // Elementos estáticos
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              children: controller.staticSidebarItems
-                                  .map((item) => Column(
-                                        children: [
-                                          SidebarButton(
-                                            item: item,
-                                            isSelected: Get.currentRoute ==
-                                                item.routeName,
-                                            onPressed: () {
-                                              if (item.label ==
-                                                  'Cerrar Sesión') {
-                                                Get.offAllNamed('/');
-                                              } else {
-                                                Get.toNamed(item.routeName);
-                                              }
-                                              // Close drawer after action on mobile
-                                              if (MediaQuery.of(context)
-                                                      .size
-                                                      .width <
-                                                  600) {
-                                                Navigator.pop(context);
-                                              }
-                                            },
-                                          ),
-                                          const SizedBox(height: 16),
-                                        ],
-                                      ))
-                                  .toList(),
-                            ),
+                            child: Obx(() => Column(
+                                  children: controller.staticSidebarItems
+                                      .map((item) => Column(
+                                            children: [
+                                              SidebarButton(
+                                                item: item,
+                                                isSelected:
+                                                    controller.isRouteActive(
+                                                        item.routeName),
+                                                onPressed: () {
+                                                  controller.navigateTo(
+                                                      item.routeName);
+                                                  if (MediaQuery.of(context)
+                                                          .size
+                                                          .width <
+                                                      600) {
+                                                    Navigator.pop(context);
+                                                  }
+                                                },
+                                              ),
+                                              const SizedBox(height: 16),
+                                            ],
+                                          ))
+                                      .toList(),
+                                )),
                           ),
 
                           // Logo
@@ -146,7 +159,7 @@ class Sidebar extends GetView<SidebarController> {
                     ),
                   ),
                 )
-              : const SizedBox(), // Empty box when sidebar is closed
+              : const SizedBox(),
         ),
       );
     });

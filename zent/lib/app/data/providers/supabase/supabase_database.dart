@@ -75,10 +75,44 @@ class SupabaseDatabase {
       await initialize();
       var query = _client.from(table).select();
 
-      if (where.isNotEmpty && whereArgs.isNotEmpty) {
+      // Consulta raw para una expresión más compleja
+      if (where.contains('LOWER')) {
+        print('Usando consulta insensible a mayúsculas/minúsculas');
+
+        // Para el caso específico LOWER(email) = LOWER(?)
+        if (where.contains('LOWER(email)') && whereArgs.length == 1) {
+          final value = whereArgs[0].toString().toLowerCase();
+          // Usa ilike para comparación insensible a mayúsculas/minúsculas
+          query = query.ilike('email', value);
+          print('Buscando email con valor: $value usando ilike');
+        } else {
+          // Para otros casos de LOWER, usar una aproximación
+          final conditions = where.split(' AND ');
+          for (int i = 0; i < conditions.length && i < whereArgs.length; i++) {
+            final condition = conditions[i].trim();
+
+            if (condition.contains('LOWER') && condition.contains('=')) {
+              // Extraer nombre del campo
+              final fieldMatch =
+                  RegExp(r'LOWER\((\w+)\)').firstMatch(condition);
+              if (fieldMatch != null && fieldMatch.groupCount >= 1) {
+                final fieldName = fieldMatch
+                    .group(1); // por ejemplo, extrae 'email' de LOWER(email)
+                if (fieldName != null) {
+                  final value = whereArgs[i].toString().toLowerCase();
+                  query = query.ilike(fieldName, value);
+                  print('Buscando $fieldName con valor: $value usando ilike');
+                }
+              }
+            }
+          }
+        }
+      }
+      // Manejo normal para consultas estándar
+      else if (where.isNotEmpty && whereArgs.isNotEmpty) {
         final conditions = where.split(' AND ');
 
-        for (int i = 0; i < conditions.length; i++) {
+        for (int i = 0; i < conditions.length && i < whereArgs.length; i++) {
           final condition = conditions[i].trim();
           final parts = condition.split(' ');
 
@@ -107,19 +141,32 @@ class SupabaseDatabase {
                 query = query.neq(field, value);
                 break;
               case 'LIKE':
-                query = query.like(field, '%$value%');
+                query = query.like(
+                    field,
+                    value.toString().contains('%')
+                        ? value.toString()
+                        : '%$value%');
+                break;
+              case 'ILIKE':
+                query = query.ilike(
+                    field,
+                    value.toString().contains('%')
+                        ? value.toString()
+                        : '%$value%');
                 break;
               default:
-                throw Exception('Unsupported operator: $operator');
+                throw Exception('Operador no soportado: $operator');
             }
           }
         }
       }
 
       final response = await query;
+      print('Consulta ejecutada. Resultados: ${response.length}');
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      throw Exception('Query error: $e');
+      print('Error en query: $e');
+      throw Exception('Error en consulta: $e');
     }
   }
 }

@@ -44,4 +44,10 @@ class UserProvider {
   // Authentication
   Future<UserModel?> authenticate(String email, String passwordHash) =>
       _repository.authenticate(email, passwordHash);
+
+  /// Valida las credenciales del usuario proporcionando información detallada
+  Future<Map<String, dynamic>> validateCredentials(
+          String email, String passwordHash, {bool debugMode = false}) =>
+      _repository.validateCredentials(email, passwordHash,
+          debugMode: debugMode);
 }

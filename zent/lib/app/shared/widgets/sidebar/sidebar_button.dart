@@ -1,7 +1,7 @@
-// shared/widgets/sidebar/sidebar_button.dart
 import 'package:flutter/material.dart';
 import 'package:zent/app/shared/models/sidebar_item.dart';
 
+/// Widget que representa un botón en la barra lateral
 class SidebarButton extends StatelessWidget {
   final SidebarItem item;
   final bool isSelected;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Cabecera de usuario para la barra lateral
 class SidebarUserHeader extends StatelessWidget {
   final String userName;
   final String? userRole;
