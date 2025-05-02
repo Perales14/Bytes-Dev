@@ -47,6 +47,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   window_manager: ^0.4.3
   file_picker: ^9.2.1
+  fl_chart: ^0.71.0
 
 dev_dependencies:
   flutter_test:
