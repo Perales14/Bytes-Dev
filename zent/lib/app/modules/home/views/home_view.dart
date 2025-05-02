@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 import '../../../shared/widgets/main_layout.dart';
+import '../../../data/models/project_model.dart';
 import '../controllers/home_controller.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -28,6 +30,8 @@ class HomeView extends GetView<HomeController> {
               ),
               const SizedBox(height: 24),
               _buildStatisticsSection(),
+              const SizedBox(height: 24),
+              _buildRecentProjectsSection(),
             ],
           ),
         ),
@@ -116,6 +120,95 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
             ],
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildRecentProjectsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Proyectos Recientes',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => controller.refreshData(),
+              tooltip: 'Refrescar datos',
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          
+          if (controller.recentProjects.isEmpty) {
+            return Center(
+              child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.folder_off, size: 48, color: Colors.grey),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No hay proyectos recientes',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => controller.refreshData(), 
+                      child: const Text('Intentar nuevamente'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+          
+          return Container(
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(255, 49, 63, 85),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 2,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: controller.recentProjects.length,
+              separatorBuilder: (context, index) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                return _RecentProjectCard(
+                  project: controller.recentProjects[index],
+                );
+              },
+            ),
           );
         }),
       ],
@@ -314,6 +407,150 @@ class _LegendItem extends StatelessWidget {
         const SizedBox(width: 8),
         Text('$label ($value)'),
       ],
+    );
+  }
+}
+
+class _RecentProjectCard extends StatelessWidget {
+  final ProjectModel project;
+
+  const _RecentProjectCard({
+    required this.project,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    // Determinar color según estado
+    Color statusColor;
+    String statusText;
+    IconData statusIcon;
+    
+    switch(project.stateId) {
+      case 1: // Planificación
+        statusColor = Colors.orange;
+        statusText = 'En Planificación';
+        statusIcon = Icons.pending_actions;
+        break;
+      case 2: // Ejecución
+        statusColor = Colors.green;
+        statusText = 'En Ejecución';
+        statusIcon = Icons.play_circle;
+        break;
+      case 3: // Terminado
+        statusColor = Colors.blue;
+        statusText = 'Terminado';
+        statusIcon = Icons.check_circle;
+        break;
+      default:
+        // Verificar si está atrasado
+        if (project.estimatedEndDate != null && 
+            DateTime.now().isAfter(project.estimatedEndDate!) &&
+            project.actualEndDate == null) {
+          statusColor = Colors.red;
+          statusText = 'Atrasado';
+          statusIcon = Icons.warning;
+        } else {
+          statusColor = Colors.grey;
+          statusText = 'Desconocido';
+          statusIcon = Icons.help;
+        }
+    }
+    
+    // Formatear fecha
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    final startDate = project.startDate != null 
+        ? dateFormat.format(project.startDate!)
+        : 'No definida';
+    
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: theme.dividerColor.withOpacity(0.2)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    project.name,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: statusColor),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(statusIcon, size: 16, color: statusColor),
+                      const SizedBox(width: 4),
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              project.description ?? 'Sin descripción',
+              style: theme.textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Inicio: $startDate',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+                if (project.estimatedBudget != null)
+                  Row(
+                    children: [
+                      const Icon(Icons.attach_money, size: 16, color: Colors.grey),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Presupuesto: \$${project.estimatedBudget?.toStringAsFixed(2)}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
