@@ -22,7 +22,7 @@ class SessionService extends GetxService {
   // Getters
   bool get isAuthenticated => _isAuthenticated.value;
   UserModel? get currentUser => _currentUser.value;
-  
+
   // Exponer Rx para reactividad
   RxBool get rxIsAuthenticated => _isAuthenticated;
   Rx<UserModel?> get rxCurrentUser => _currentUser;

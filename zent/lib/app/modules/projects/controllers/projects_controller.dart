@@ -19,9 +19,13 @@ class ProjectsController extends GetxController {
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
 
-  // Cachés para nombres de clientes y managers
+  // Cachés reactivos para nombres de clientes y managers
   final RxMap<int, String> clientNames = <int, String>{}.obs;
   final RxMap<int, String> managerNames = <int, String>{}.obs;
+
+  // Controlar si las cachés están completamente cargadas
+  final RxBool areClientNamesLoaded = false.obs;
+  final RxBool areManagerNamesLoaded = false.obs;
 
   final textController = TextEditingController();
 
@@ -46,6 +50,12 @@ class ProjectsController extends GetxController {
     try {
       isLoading(true);
       hasError(false);
+      areClientNamesLoaded(false);
+      areManagerNamesLoaded(false);
+
+      // Limpia las cachés para evitar datos obsoletos
+      clientNames.clear();
+      managerNames.clear();
 
       // Carga proyectos según rol del usuario
       if (_sessionService.hasRole(SessionService.ROLE_ADMIN)) {
@@ -66,11 +76,13 @@ class ProjectsController extends GetxController {
         projects.assignAll(await _projectService.getAllProjects());
       }
 
-      // Cargar información de clientes y managers
-      for (var project in projects) {
-        loadClientNameIfNeeded(project.clientId);
-        loadManagerNameIfNeeded(project.managerId);
-      }
+      // Extraer IDs únicos de clientes y managers para cargar eficientemente
+      final Set<int> clientIds = projects.map((p) => p.clientId).toSet();
+      final Set<int> managerIds = projects.map((p) => p.managerId).toSet();
+
+      // Cargar todos los nombres en paralelo para mejor rendimiento
+      await Future.wait(
+          [_loadAllClientNames(clientIds), _loadAllManagerNames(managerIds)]);
     } catch (e) {
       hasError(true);
       errorMessage('Error al cargar proyectos: $e');
@@ -79,37 +91,76 @@ class ProjectsController extends GetxController {
     }
   }
 
-  // Cargar el nombre del cliente si no está en caché
-  Future<void> loadClientNameIfNeeded(int clientId) async {
-    if (!clientNames.containsKey(clientId)) {
-      clientNames[clientId] = 'Cargando...';
-      try {
-        final client = await _clientService.getClientById(clientId);
-        if (client != null) {
-          clientNames[clientId] = client.fullName;
-        } else {
-          clientNames[clientId] = 'Cliente #$clientId';
-        }
-      } catch (e) {
-        clientNames[clientId] = 'Cliente #$clientId';
+  // Cargar todos los nombres de clientes de una vez
+  Future<void> _loadAllClientNames(Set<int> clientIds) async {
+    try {
+      // Inicializar todos con "Cargando..."
+      for (var id in clientIds) {
+        clientNames[id] = 'Cargando...';
       }
+
+      // Obtener todos los clientes de una vez para evitar múltiples llamadas
+      final allClients = await _clientService.getAllClients();
+
+      // Actualizar el caché con nombres completos
+      for (var client in allClients) {
+        if (clientIds.contains(client.id)) {
+          clientNames[client.id] = '${client.name} ${client.fatherLastName}';
+        }
+      }
+
+      // Verificar si quedaron algunos sin cargar y ponerles un valor por defecto
+      for (var id in clientIds) {
+        if (clientNames[id] == 'Cargando...') {
+          clientNames[id] = 'Cliente #$id';
+        }
+      }
+
+      areClientNamesLoaded(true);
+    } catch (e) {
+      print('Error cargando nombres de clientes: $e');
+      // En caso de error, establecer valores por defecto
+      for (var id in clientIds) {
+        clientNames[id] = 'Cliente #$id';
+      }
+      areClientNamesLoaded(true);
     }
   }
 
-  // Cargar el nombre del manager si no está en caché
-  Future<void> loadManagerNameIfNeeded(int managerId) async {
-    if (!managerNames.containsKey(managerId)) {
-      managerNames[managerId] = 'Cargando...';
-      try {
-        final manager = await _userService.getUserById(managerId);
-        if (manager != null) {
-          managerNames[managerId] = manager.fullName;
-        } else {
-          managerNames[managerId] = 'Manager #$managerId';
-        }
-      } catch (e) {
-        managerNames[managerId] = 'Manager #$managerId';
+  // Cargar todos los nombres de managers de una vez
+  Future<void> _loadAllManagerNames(Set<int> managerIds) async {
+    try {
+      // Inicializar todos con "Cargando..."
+      for (var id in managerIds) {
+        managerNames[id] = 'Cargando...';
       }
+
+      // Obtener todos los empleados de una vez
+      final allManagers = await _userService.getAllEmployees();
+
+      // Actualizar el caché con nombres completos
+      for (var manager in allManagers) {
+        if (managerIds.contains(manager.id)) {
+          managerNames[manager.id] =
+              '${manager.name} ${manager.fatherLastName}';
+        }
+      }
+
+      // Verificar si quedaron algunos sin cargar y ponerles un valor por defecto
+      for (var id in managerIds) {
+        if (managerNames[id] == 'Cargando...') {
+          managerNames[id] = 'Manager #$id';
+        }
+      }
+
+      areManagerNamesLoaded(true);
+    } catch (e) {
+      print('Error cargando nombres de managers: $e');
+      // En caso de error, establecer valores por defecto
+      for (var id in managerIds) {
+        managerNames[id] = 'Manager #$id';
+      }
+      areManagerNamesLoaded(true);
     }
   }
 

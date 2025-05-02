@@ -27,8 +27,10 @@ class SidebarController extends GetxController {
       _updateSidebarIfAuthenticated();
 
       // Escuchar cambios en el estado de autenticación y el usuario actual
-      ever(_sessionService.rxIsAuthenticated, (_) => _updateSidebarIfAuthenticated());
-      ever(_sessionService.rxCurrentUser, (_) => _updateSidebarIfAuthenticated());
+      ever(_sessionService.rxIsAuthenticated,
+          (_) => _updateSidebarIfAuthenticated());
+      ever(_sessionService.rxCurrentUser,
+          (_) => _updateSidebarIfAuthenticated());
     } catch (e) {
       if (kDebugMode) {
         print('Error al inicializar SidebarController: $e');
@@ -38,7 +40,8 @@ class SidebarController extends GetxController {
   }
 
   void _updateSidebarIfAuthenticated() {
-    if (_sessionService.isAuthenticated && _sessionService.currentUser != null) {
+    if (_sessionService.isAuthenticated &&
+        _sessionService.currentUser != null) {
       updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
     } else {
       _loadDefaultSidebarItems();

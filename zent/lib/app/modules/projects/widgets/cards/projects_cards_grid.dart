@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/project_model.dart';
-import '../../../../data/services/client_service.dart';
-import '../../../../data/services/user_service.dart';
+import '../../../projects/controllers/projects_controller.dart';
 import '../../models/project_card_data.dart';
 import 'add_project_card.dart';
 import 'project_card.dart';
@@ -24,8 +23,7 @@ class ProjectsCardsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final clientService = Get.find<ClientService>();
-    final userService = Get.find<UserService>();
+    final projectsController = Get.find<ProjectsController>();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -56,43 +54,43 @@ class ProjectsCardsGrid extends StatelessWidget {
             }
 
             final project = projects[index - 1];
-            String clientName = 'Cliente #${project.clientId}';
-            String managerName = 'Gestor #${project.managerId}';
 
-            clientService.getClientById(project.clientId).then((client) {
-              if (client != null) clientName = client.fullName;
-            });
+            // Utilizamos Obx para reaccionar a cambios en los nombres
+            return Obx(() {
+              // Obtener nombres de clientes y responsables del controlador
+              String clientName =
+                  projectsController.getClientName(project.clientId);
+              String managerName =
+                  projectsController.getManagerName(project.managerId);
 
-            userService.getUserById(project.managerId).then((user) {
-              if (user != null) managerName = user.fullName;
-            });
-
-            return ProjectCard(
-              data: ProjectCardData(
-                name: project.name,
-                description: project.description ?? 'Sin descripción',
-                status: _getProjectStatus(project),
-                statusColor: _getStatusColor(context, project),
-                clientName: clientName,
-                managerName: managerName,
-                metrics: [
-                  ProjectMetric(
-                    icon: Icons.task_alt_outlined,
-                    label: 'Progreso',
-                    value: _getCompletionPercentage(project),
-                    tooltip: 'Porcentaje de avance',
-                  ),
-                  if (project.estimatedBudget != null)
+              return ProjectCard(
+                data: ProjectCardData(
+                  name: project.name,
+                  description: project.description ?? 'Sin descripción',
+                  status: _getProjectStatus(project),
+                  statusColor: _getStatusColor(context, project),
+                  clientName: clientName,
+                  managerName: managerName,
+                  metrics: [
                     ProjectMetric(
-                      icon: Icons.monetization_on_outlined,
-                      label: 'Presupuesto',
-                      value: '\$${project.estimatedBudget?.toStringAsFixed(2)}',
-                      tooltip: 'Presupuesto estimado',
+                      icon: Icons.task_alt_outlined,
+                      label: 'Progreso',
+                      value: _getCompletionPercentage(project),
+                      tooltip: 'Porcentaje de avance',
                     ),
-                ],
-                onTap: () => onEditProject(project.id),
-              ),
-            );
+                    if (project.estimatedBudget != null)
+                      ProjectMetric(
+                        icon: Icons.monetization_on_outlined,
+                        label: 'Presupuesto',
+                        value:
+                            '\$${project.estimatedBudget?.toStringAsFixed(2)}',
+                        tooltip: 'Presupuesto estimado',
+                      ),
+                  ],
+                  onTap: () => onEditProject(project.id),
+                ),
+              );
+            });
           },
         );
       },
