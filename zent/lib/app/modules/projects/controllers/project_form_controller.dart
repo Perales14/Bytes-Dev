@@ -14,6 +14,7 @@ import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart' as validators;
 import '../views/projects_view.dart';
 import 'projects_controller.dart';
+import '../../../data/services/session_service.dart';
 
 class ProjectFormController extends BaseFormController {
   final isLoading = false.obs;
@@ -22,6 +23,7 @@ class ProjectFormController extends BaseFormController {
   final ClientService _clientService = Get.find<ClientService>();
   final UserService _userService = Get.find<UserService>();
   final ProviderService _providerService = Get.find<ProviderService>();
+  final SessionService _sessionService = Get.find<SessionService>();
 
   final Rx<ProjectModel> project = ProjectModel(
     name: '',
@@ -113,7 +115,8 @@ class ProjectFormController extends BaseFormController {
       isLoading(true);
       print('Loading dropdown data...');
       final clientsList = await _clientService.getAllClients();
-      final managersList = await _userService.getActiveEmployees();// getAllUsers();
+      final managersList =
+          await _userService.getActiveEmployees(); // getAllUsers();
       final providersList = await _providerService.getAllProviders();
       print('clientes ${clientsList.map((e) => e.name)}');
       print('managers ${managersList.map((e) => e.name)}');
@@ -123,6 +126,15 @@ class ProjectFormController extends BaseFormController {
       clients.assignAll(clientsList);
       managers.assignAll(managersList);
       providers.assignAll(providersList);
+
+      // Si es promotor, pre-selecciona su ID como manager
+      if (_sessionService.hasRole(SessionService.ROLE_PROMOTOR) &&
+          _sessionService.currentUser != null) {
+        final currentUser = _sessionService.currentUser!;
+        project.update((val) {
+          val?.managerId = currentUser.id;
+        });
+      }
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -184,7 +196,7 @@ class ProjectFormController extends BaseFormController {
         if (name != null) {
           val.name = name;
           project.value.name = name;
-        } 
+        }
         if (description != null) {
           val.description = description;
           project.value.description = description;
@@ -472,13 +484,11 @@ class ProjectFormController extends BaseFormController {
         // resetForm();
         // Get.back(result: true);
         // Refresh the project list
-      Get.find<ProjectsController>().refreshData();
-
+        Get.find<ProjectsController>().refreshData();
 
         // final projectsview = Get.find<ProjectsView>();
         // projectsview.controller.refreshData();
         // project.refresh();
-
 
         return true;
       }

@@ -1,10 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:zent/app/data/services/session_service.dart';
 import 'package:zent/app/shared/models/sidebar_item.dart';
+import 'package:zent/app/shared/widgets/dialogs/confirmation_dialog.dart';
 
 class SidebarController extends GetxController {
-  SessionService get _sessionService => Get.find<SessionService>();
+  final SessionService _sessionService = Get.find<SessionService>();
 
   final RxList<SidebarItem> _visibleSidebarItems = <SidebarItem>[].obs;
   final RxList<SidebarItem> _staticSidebarItems = <SidebarItem>[].obs;
@@ -18,14 +20,27 @@ class SidebarController extends GetxController {
     super.onInit();
 
     try {
+      // Inicializar con los elementos por defecto
       _loadDefaultSidebarItems();
 
-      if (_sessionService.isAuthenticated &&
-          _sessionService.currentUser != null) {
-        updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
-      }
+      // Si hay un usuario autenticado, actualizar basado en su rol
+      _updateSidebarIfAuthenticated();
+
+      // Escuchar cambios en el estado de autenticación y el usuario actual
+      ever(_sessionService.rxIsAuthenticated, (_) => _updateSidebarIfAuthenticated());
+      ever(_sessionService.rxCurrentUser, (_) => _updateSidebarIfAuthenticated());
     } catch (e) {
-      print('Error al cargar elementos del sidebar: $e');
+      if (kDebugMode) {
+        print('Error al inicializar SidebarController: $e');
+      }
+      _loadDefaultSidebarItems();
+    }
+  }
+
+  void _updateSidebarIfAuthenticated() {
+    if (_sessionService.isAuthenticated && _sessionService.currentUser != null) {
+      updateSidebarItemsByRoleId(_sessionService.currentUser!.roleId);
+    } else {
       _loadDefaultSidebarItems();
     }
   }
@@ -256,81 +271,20 @@ class SidebarController extends GetxController {
 
   void _handleLogout() async {
     try {
-      final theme = Get.theme;
-      final isDark = theme.brightness == Brightness.dark;
-
-      final Color primaryColor = theme.colorScheme.primary;
-      final Color backgroundColor = isDark
-          ? theme.colorScheme.surface.withOpacity(0.9)
-          : theme.colorScheme.surface;
-      final Color textColor =
-          isDark ? theme.colorScheme.onSurface : theme.colorScheme.onSurface;
-      final Color cancelButtonColor =
-          isDark ? Colors.grey.shade700 : Colors.grey.shade300;
-
-      final bool? confirmLogout = await Get.dialog<bool>(
-        AlertDialog(
-          backgroundColor: backgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: primaryColor.withOpacity(0.5), width: 1),
-          ),
-          title: Text(
-            'Cerrar Sesión',
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            '¿Estás seguro que deseas cerrar tu sesión?',
-            style: TextStyle(color: textColor),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(result: false),
-              style: TextButton.styleFrom(
-                backgroundColor: cancelButtonColor,
-                foregroundColor: textColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Cancelar',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Get.back(result: true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: theme.colorScheme.onPrimary,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              ),
-              child: Text(
-                'Cerrar Sesión',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-          actionsPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
-          titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 10),
-        ),
+      final bool? confirmLogout = await ConfirmationDialog.show(
+        title: 'Cerrar Sesión',
+        message: '¿Estás seguro que deseas cerrar tu sesión?',
+        cancelButtonText: 'Cancelar',
+        confirmButtonText: 'Cerrar Sesión',
       );
 
       if (confirmLogout != true) return;
 
       Get.offAllNamed('/splash', arguments: {'loggingOut': true});
     } catch (e) {
-      print('Error al cerrar sesión: $e');
+      if (kDebugMode) {
+        print('Error al cerrar sesión: $e');
+      }
       final theme = Get.theme;
       Get.snackbar(
         'Error',

@@ -5,6 +5,7 @@ import '../../../data/services/client_service.dart';
 import '../../../data/services/provider_service.dart';
 import '../../../data/services/user_service.dart';
 import '../../../data/services/file_service.dart';
+import '../../../data/services/session_service.dart';
 import '../controllers/projects_controller.dart';
 
 class ProjectsBinding extends Bindings {
@@ -28,6 +29,11 @@ class ProjectsBinding extends Bindings {
 
     if (!Get.isRegistered<UserService>()) {
       Get.lazyPut<UserService>(() => UserService(), fenix: true);
+    }
+
+    // Verificamos que SessionService esté disponible (debería estarlo ya que es permanente)
+    if (!Get.isRegistered<SessionService>()) {
+      Get.put<SessionService>(SessionService(), permanent: true);
     }
 
     // Controllers

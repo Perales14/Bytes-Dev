@@ -4,12 +4,14 @@ import '../../../data/models/project_model.dart';
 import '../../../data/services/project_service.dart';
 import '../../../data/services/client_service.dart';
 import '../../../data/services/user_service.dart';
+import '../../../data/services/session_service.dart';
 import '../widgets/add_project_dialog.dart';
 
 class ProjectsController extends GetxController {
   final ProjectService _projectService = Get.find<ProjectService>();
   final ClientService _clientService = Get.find<ClientService>();
   final UserService _userService = Get.find<UserService>();
+  final SessionService _sessionService = Get.find<SessionService>();
 
   final RxList<ProjectModel> projects = <ProjectModel>[].obs;
   final RxString filter = ''.obs;
@@ -44,7 +46,25 @@ class ProjectsController extends GetxController {
     try {
       isLoading(true);
       hasError(false);
-      projects.assignAll(await _projectService.getAllProjects());
+
+      // Carga proyectos según rol del usuario
+      if (_sessionService.hasRole(SessionService.ROLE_ADMIN)) {
+        // Administradores ven todos los proyectos
+        projects.assignAll(await _projectService.getAllProjects());
+      } else if (_sessionService.hasRole(SessionService.ROLE_PROMOTOR)) {
+        // Promotores solo ven sus proyectos asignados (donde son managers)
+        if (_sessionService.currentUser != null) {
+          int userId = _sessionService.currentUser!.id;
+          projects
+              .assignAll(await _projectService.getProjectsByManager(userId));
+        } else {
+          projects.clear();
+        }
+      } else {
+        // Para otros roles, mostrar proyectos según permisos específicos
+        // Por defecto, usar todos los proyectos
+        projects.assignAll(await _projectService.getAllProjects());
+      }
 
       // Cargar información de clientes y managers
       for (var project in projects) {

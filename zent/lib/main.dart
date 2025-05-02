@@ -11,14 +11,12 @@ import 'core/theme/app_theme.dart';
 import 'routes/app_pages.dart';
 
 void main() async {
-  // Asegúrate que Flutter esté inicializado
   WidgetsFlutterBinding.ensureInitialized();
 
   await windowManager.setTitle("Home");
 
   await GetStorage.init();
 
-  // Inicializa AppBindings para registrar todos los servicios antes de crear la app
   AppBindings().dependencies();
 
   runApp(MyApp());
@@ -33,7 +31,6 @@ class MyApp extends StatelessWidget {
           title: 'Zent',
           initialRoute: AppPages.INITIAL,
           getPages: AppPages.routes,
-          // No necesitamos initialBinding porque ya inicializamos las dependencias en main()
           debugShowCheckedModeBanner: false,
           theme: lightTheme,
           darkTheme: darkTheme,
