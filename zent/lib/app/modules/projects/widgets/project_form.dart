@@ -104,26 +104,29 @@ class ProjectForm extends BaseForm {
 
       // Buscar y obtener el nombre del cliente seleccionado
       if (projectController.project.value.clientId > 0) {
-        final selectedClient = projectController.clients
-            .firstWhereOrNull((c) => c.id == projectController.project.value.clientId);
+        final selectedClient = projectController.clients.firstWhereOrNull(
+            (c) => c.id == projectController.project.value.clientId);
         if (selectedClient != null) {
-          clientName = '${selectedClient.name} ${selectedClient.fatherLastName}';
+          clientName =
+              '${selectedClient.name} ${selectedClient.fatherLastName}';
         }
       }
 
       // Buscar y obtener el nombre del responsable seleccionado
       if (projectController.project.value.managerId > 0) {
-        final selectedManager = projectController.managers
-            .firstWhereOrNull((m) => m.id == projectController.project.value.managerId);
+        final selectedManager = projectController.managers.firstWhereOrNull(
+            (m) => m.id == projectController.project.value.managerId);
         if (selectedManager != null) {
-          managerName = '${selectedManager.name} ${selectedManager.fatherLastName}';
+          managerName =
+              '${selectedManager.name} ${selectedManager.fatherLastName}';
         }
       }
 
       // Buscar y obtener el nombre del proveedor seleccionado
-      if (projectController.project.value.providerId != null && projectController.project.value.providerId! > 0) {
-        final selectedProvider = projectController.providers
-            .firstWhereOrNull((p) => p.id == projectController.project.value.providerId);
+      if (projectController.project.value.providerId != null &&
+          projectController.project.value.providerId! > 0) {
+        final selectedProvider = projectController.providers.firstWhereOrNull(
+            (p) => p.id == projectController.project.value.providerId);
         if (selectedProvider != null) {
           providerName = selectedProvider.companyName;
         }
@@ -134,13 +137,16 @@ class ProjectForm extends BaseForm {
           // Dropdown para seleccionar cliente
           DropdownForm(
             label: 'Cliente',
-            opciones: projectController.clients.map((c) => '${c.name} ${c.fatherLastName}').toList(),
+            opciones: projectController.clients
+                .map((c) => '${c.name} ${c.fatherLastName}')
+                .toList(),
             value: clientName.isNotEmpty ? clientName : null,
             onChanged: (value) {
               if (value != null) {
                 // Buscar el id del cliente por su nombre completo
-                final selectedClient = projectController.clients.firstWhereOrNull(
-                    (c) => '${c.name} ${c.fatherLastName}' == value);
+                final selectedClient = projectController.clients
+                    .firstWhereOrNull(
+                        (c) => '${c.name} ${c.fatherLastName}' == value);
                 if (selectedClient != null) {
                   projectController.updateProject(clientId: selectedClient.id);
                 }
@@ -149,38 +155,44 @@ class ProjectForm extends BaseForm {
             validator: projectController.validateClientId,
           ),
           const SizedBox(height: 10),
-          
+
           // Dropdown para seleccionar responsable
           DropdownForm(
             label: 'Responsable',
-            opciones: projectController.managers.map((m) => '${m.name} ${m.fatherLastName}').toList(),
+            opciones: projectController.managers
+                .map((m) => '${m.name} ${m.fatherLastName}')
+                .toList(),
             value: managerName.isNotEmpty ? managerName : null,
             onChanged: (value) {
               if (value != null) {
                 // Buscar el id del responsable por su nombre completo
-                final selectedManager = projectController.managers.firstWhereOrNull(
-                    (m) => '${m.name} ${m.fatherLastName}' == value);
+                final selectedManager = projectController.managers
+                    .firstWhereOrNull(
+                        (m) => '${m.name} ${m.fatherLastName}' == value);
                 if (selectedManager != null) {
-                  projectController.updateProject(managerId: selectedManager.id);
+                  projectController.updateProject(
+                      managerId: selectedManager.id);
                 }
               }
             },
             validator: projectController.validateManagerId,
           ),
           const SizedBox(height: 10),
-          
+
           // Dropdown para seleccionar proveedor
           DropdownForm(
             label: 'Proveedor',
-            opciones: projectController.providers.map((p) => p.companyName).toList(),
+            opciones:
+                projectController.providers.map((p) => p.companyName).toList(),
             value: providerName.isNotEmpty ? providerName : null,
             onChanged: (value) {
               if (value != null) {
                 // Buscar el id del proveedor por su nombre
-                final selectedProvider = projectController.providers.firstWhereOrNull(
-                    (p) => p.companyName == value);
+                final selectedProvider = projectController.providers
+                    .firstWhereOrNull((p) => p.companyName == value);
                 if (selectedProvider != null) {
-                  projectController.updateProject(providerId: selectedProvider.id);
+                  projectController.updateProject(
+                      providerId: selectedProvider.id);
                 }
               }
             },
@@ -197,33 +209,34 @@ class ProjectForm extends BaseForm {
         buildSectionTitle(theme, 'Fechas y Presupuesto'),
         const SizedBox(height: 20),
         Obx(() => Row(
-          children: [
-            Expanded(
-              child: DatePickerForm(
-          label: 'Fecha de Inicio',
-          selectedDate: projectController.startDate.value,
-          onDateSelected: (date)
-              => projectController.updateProject(startDate: date),
-          validator: (date) =>
-              date == null ? 'La fecha de inicio es requerida' : null,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: DatePickerForm(
-          label: 'Fecha de Fin Estimada',
-          selectedDate: projectController.estimatedEndDate.value,
-          onDateSelected: (date) {
-            // print('Antes de cambiar fecha: ${projectController.estimatedEndDate.value}');
-            projectController.updateProject(estimatedEndDate: date);
-            // print('Después de cambiar fecha: ${projectController.estimatedEndDate.value}');
-          },),
-          // =>
-          //     projectController.updateProject(estimatedEndDate: date),
-          //     ),
-            ),
-          ],
-        )),
+              children: [
+                Expanded(
+                  child: DatePickerForm(
+                    label: 'Fecha de Inicio',
+                    selectedDate: projectController.startDate.value,
+                    onDateSelected: (date) =>
+                        projectController.updateProject(startDate: date),
+                    validator: (date) =>
+                        date == null ? 'La fecha de inicio es requerida' : null,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: DatePickerForm(
+                    label: 'Fecha de Fin Estimada',
+                    selectedDate: projectController.estimatedEndDate.value,
+                    onDateSelected: (date) {
+                      // print('Antes de cambiar fecha: ${projectController.estimatedEndDate.value}');
+                      projectController.updateProject(estimatedEndDate: date);
+                      // print('Después de cambiar fecha: ${projectController.estimatedEndDate.value}');
+                    },
+                  ),
+                  // =>
+                  //     projectController.updateProject(estimatedEndDate: date),
+                  //     ),
+                ),
+              ],
+            )),
         const SizedBox(height: 10),
         Row(
           children: [
