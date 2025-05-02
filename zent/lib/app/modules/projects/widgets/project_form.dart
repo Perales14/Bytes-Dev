@@ -75,10 +75,11 @@ class ProjectForm extends BaseForm {
 
   Widget _buildProjectTeamRow() {
     return Obx(() {
+      // Preparación de las listas de opciones para los dropdowns
       final clients = projectController.clients
           .map((client) => DropdownMenuItem(
                 value: client.id.toString(),
-                child: Text(client.name),
+                child: Text('${client.name} ${client.fatherLastName}'),
               ))
           .toList();
 
@@ -95,98 +96,93 @@ class ProjectForm extends BaseForm {
                 child: Text(provider.companyName),
               ))
           .toList();
-      // final a = projectController.project != null ? 1 : 0;
-      final client = ''.obs;
-      final manager = ''.obs;
-      final provider = ''.obs;
-      if (projectController.project.value.clientId != null) {
-        print('ID del cliente: ${projectController.project.value.clientId}');
-        client.value = projectController.project.value.clientId.toString();
-        manager.value = projectController.project.value.managerId.toString();
-        provider.value = projectController.project.value.providerId.toString();
-        // client.value = projectController.clients
-        //     .firstWhere((client) => client.id == projectController.project.value.clientId);
-        // manager = projectController.managers.firstWhere((manager) => manager.id == projectController.project.value.managerId);
-        // provider = projectController.providers.firstWhere((provider) => provider.id == projectController.project.value.providerId);
-      } else {
-        print('NO hay ID de cliente');
-        if( projectController.clients.isNotEmpty) {
-          client.value = projectController.clients[0].id.toString();
-        }
-        if( projectController.managers.isNotEmpty) {
-          manager.value = projectController.managers[0].id.toString();
-        }
-        if( projectController.providers.isNotEmpty) {
-          provider.value = projectController.providers[0].id.toString();
-        }
 
+      // Obtener los nombres actuales para mostrar como valores seleccionados
+      String clientName = '';
+      String managerName = '';
+      String providerName = '';
+
+      // Buscar y obtener el nombre del cliente seleccionado
+      if (projectController.project.value.clientId > 0) {
+        final selectedClient = projectController.clients
+            .firstWhereOrNull((c) => c.id == projectController.project.value.clientId);
+        if (selectedClient != null) {
+          clientName = '${selectedClient.name} ${selectedClient.fatherLastName}';
+        }
       }
+
+      // Buscar y obtener el nombre del responsable seleccionado
+      if (projectController.project.value.managerId > 0) {
+        final selectedManager = projectController.managers
+            .firstWhereOrNull((m) => m.id == projectController.project.value.managerId);
+        if (selectedManager != null) {
+          managerName = '${selectedManager.name} ${selectedManager.fatherLastName}';
+        }
+      }
+
+      // Buscar y obtener el nombre del proveedor seleccionado
+      if (projectController.project.value.providerId != null && projectController.project.value.providerId! > 0) {
+        final selectedProvider = projectController.providers
+            .firstWhereOrNull((p) => p.id == projectController.project.value.providerId);
+        if (selectedProvider != null) {
+          providerName = selectedProvider.companyName;
+        }
+      }
+
       return Column(
         children: [
+          // Dropdown para seleccionar cliente
           DropdownForm(
             label: 'Cliente',
-            opciones: clients.map((item) => item.child.toString().substring(6,item.child.toString().length-2)).toList(),
-            value:  client.value, //projectController.clients[0].toString(), //projectController.project.value.clientId.toString(),
+            opciones: projectController.clients.map((c) => '${c.name} ${c.fatherLastName}').toList(),
+            value: clientName.isNotEmpty ? clientName : null,
             onChanged: (value) {
-              // print(projectController.project.value.clientId.toString());
-              // print('Cliente seleccionado: $value');
-              int idcliente = 0;
-              for (var i = 0; i < projectController.clients.length; i++) {
-                if (projectController.clients[i].name == value) {
-                  idcliente = int.parse(projectController.clients[i].id.toString());
-                  print('ID del cliente: $idcliente');
-                  break;
+              if (value != null) {
+                // Buscar el id del cliente por su nombre completo
+                final selectedClient = projectController.clients.firstWhereOrNull(
+                    (c) => '${c.name} ${c.fatherLastName}' == value);
+                if (selectedClient != null) {
+                  projectController.updateProject(clientId: selectedClient.id);
                 }
               }
-              projectController.updateProject(
-                clientId: idcliente,// int.tryParse(value ?? ''),
-              );
-
             },
-            // onChanged: (value) => projectController.updateProject(
-            //   clientId: int.tryParse(value ?? ''),
-            // ),
             validator: projectController.validateClientId,
           ),
           const SizedBox(height: 10),
+          
+          // Dropdown para seleccionar responsable
           DropdownForm(
             label: 'Responsable',
-            opciones: managers.map((item) => item.child.toString().substring(6,item.child.toString().length-2)).toList(),
-            value: projectController.project.value.managerId.toString(),
+            opciones: projectController.managers.map((m) => '${m.name} ${m.fatherLastName}').toList(),
+            value: managerName.isNotEmpty ? managerName : null,
             onChanged: (value) {
-              int idresponsable = 0;
-              // print(value);
-              // print(projectController.managers[0].fullName);
-              for (var i = 0; i < projectController.managers.length; i++) {
-                if (projectController.managers[i].fullName.contains(value.toString())) {
-                  idresponsable = int.parse(projectController.managers[i].id.toString());
-                  print('ID del responsable: $idresponsable');
-                  break;
+              if (value != null) {
+                // Buscar el id del responsable por su nombre completo
+                final selectedManager = projectController.managers.firstWhereOrNull(
+                    (m) => '${m.name} ${m.fatherLastName}' == value);
+                if (selectedManager != null) {
+                  projectController.updateProject(managerId: selectedManager.id);
                 }
               }
-              projectController.updateProject(
-                managerId: idresponsable,// int.tryParse(value ?? ''),
-              );
             },
             validator: projectController.validateManagerId,
           ),
           const SizedBox(height: 10),
+          
+          // Dropdown para seleccionar proveedor
           DropdownForm(
             label: 'Proveedor',
-            opciones: providers.map((item) => item.child.toString().substring(6,item.child.toString().length-2)).toList(),
-            value: projectController.project.value.providerId?.toString(),
+            opciones: projectController.providers.map((p) => p.companyName).toList(),
+            value: providerName.isNotEmpty ? providerName : null,
             onChanged: (value) {
-              int idproveedor = 0;
-              for (var i = 0; i < projectController.providers.length; i++) {
-                if (projectController.providers[i].companyName == value) {
-                  idproveedor = int.parse(projectController.providers[i].id.toString());
-                  print('ID del proveedor: $idproveedor');
-                  break;
+              if (value != null) {
+                // Buscar el id del proveedor por su nombre
+                final selectedProvider = projectController.providers.firstWhereOrNull(
+                    (p) => p.companyName == value);
+                if (selectedProvider != null) {
+                  projectController.updateProject(providerId: selectedProvider.id);
                 }
               }
-              projectController.updateProject(
-                providerId: idproveedor,// int.tryParse(value ?? ''),
-              );
             },
           ),
         ],
