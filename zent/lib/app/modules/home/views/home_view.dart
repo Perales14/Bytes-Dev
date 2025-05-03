@@ -12,370 +12,377 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    // Determinar si estamos en pantalla estrecha (para cambiar a 1 columna)
+    final isNarrowScreen = MediaQuery.of(context).size.width < 600;
+    final spacing = 12.0; // Espaciado estándar entre widgets
+
     return MainLayout(
       pageTitle: 'Inicio',
       textController: controller.textController,
-      child: SingleChildScrollView(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reducido el padding
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Saludo inicial
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Text(
                 'Bienvenido, ${controller.userName}!',
                 style: const TextStyle(
-                  fontSize: 20, // Reducido de 24 a 20
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16), // Reducido de 24 a 16
-              _buildStatisticsSection(),
-              const SizedBox(height: 16), // Reducido de 24 a 16
-              _buildRecentProjectsSection(),
-            ],
-          ),
+            ),
+            
+            // Grid responsivo principal
+            Expanded(
+              child: isNarrowScreen 
+                ? _buildSingleColumnLayout(spacing)
+                : _buildTwoColumnsLayout(spacing),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStatisticsSection() {
+  // Layout para pantallas estrechas - 1 columna con scroll
+  Widget _buildSingleColumnLayout(double spacing) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildStatisticsGrid(),
+          SizedBox(height: spacing),
+          _buildChartWidget(),
+          SizedBox(height: spacing),
+          _buildRecentProjectsPanel(),
+          SizedBox(height: spacing),
+          _buildQuickActionsGrid(),
+        ],
+      ),
+    );
+  }
+
+  // Layout para pantallas normales - Grid 2x2
+  Widget _buildTwoColumnsLayout(double spacing) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Estadísticas Generales',
-          style: TextStyle(
-            fontSize: 16, // Reducido de 20 a 16
-            fontWeight: FontWeight.bold,
+        // Primera fila
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Cuadrante superior izquierdo: Estadísticas
+              Expanded(child: _buildStatisticsGrid()),
+              SizedBox(width: spacing),
+              // Cuadrante superior derecho: Gráfica
+              Expanded(child: _buildChartWidget()),
+            ],
           ),
         ),
-        const SizedBox(height: 8), // Reducido de 16 a 8
-        Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return Column(
+        SizedBox(height: spacing),
+        // Segunda fila
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Columna izquierda: Cards de estadísticas
-                  Expanded(
-                    flex: 3,
-                    child: Wrap(
-                      spacing: 8, // Reducido de 16 a 8
-                      runSpacing: 8, // Reducido de 16 a 8
-                      children: [
-                        _DashboardCard(
-                          title: 'Total Proyectos',
-                          value: controller.totalProjects.value.toString(),
-                          color: Colors.blue,
-                          icon: Icons.folder,
-                        ),
-                        _DashboardCard(
-                          title: 'En Planificación',
-                          value: controller.planningProjects.value.toString(),
-                          color: Colors.orange,
-                          icon: Icons.pending_actions,
-                        ),
-                        _DashboardCard(
-                          title: 'En Ejecución',
-                          value: controller.inProgressProjects.value.toString(),
-                          color: Colors.green,
-                          icon: Icons.play_circle,
-                        ),
-                        _DashboardCard(
-                          title: 'Atrasados',
-                          value: controller.overdueProjects.value.toString(),
-                          color: Colors.red,
-                          icon: Icons.warning,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 16), // Reducido de 24 a 16
-                  // Columna derecha: Gráfica circular
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      height: 220, // Reducido de 280 a 220
-                      padding: const EdgeInsets.all(12), // Reducido de 16 a 12
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8), // Reducido de 12 a 8
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 1, // Reducido de 2 a 1
-                            blurRadius: 3, // Reducido de 4 a 3
-                            offset: const Offset(0, 1), // Reducido de 0,2 a 0,1
-                          ),
-                        ],
-                      ),
-                      child: _ProjectsPieChart(
-                        total: controller.totalProjects.value,
-                        planning: controller.planningProjects.value,
-                        inProgress: controller.inProgressProjects.value,
-                        delayed: controller.overdueProjects.value,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12), // Reducido de 20 a 12
-              // Comentado la sección antigua de accesos rápidos
-              /* ... existing code ... */
+              // Cuadrante inferior izquierdo: Proyectos recientes
+              Expanded(child: _buildRecentProjectsPanel()),
+              SizedBox(width: spacing),
+              // Cuadrante inferior derecho: Acciones rápidas
+              Expanded(child: _buildQuickActionsGrid()),
             ],
-          );
-        }),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildRecentProjectsSection() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Panel izquierdo: Lista de proyectos recientes
-        Expanded(
-          flex: 3,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Proyectos Recientes',
-                    style: TextStyle(
-                      fontSize: 16, // Reducido de 20 a 16
-                      fontWeight: FontWeight.bold,
-                    ),
+  // Cuadrante 1: Grid de tarjetas de estadísticas (3 columnas max)
+  Widget _buildStatisticsGrid() {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final List<DashboardStat> stats = [
+          DashboardStat(
+            title: 'Total Proyectos',
+            value: controller.totalProjects.value.toString(),
+            color: Colors.blue,
+            icon: Icons.folder,
+          ),
+          DashboardStat(
+            title: 'En Planificación',
+            value: controller.planningProjects.value.toString(),
+            color: Colors.orange,
+            icon: Icons.pending_actions,
+          ),
+          DashboardStat(
+            title: 'En Ejecución',
+            value: controller.inProgressProjects.value.toString(),
+            color: Colors.green,
+            icon: Icons.play_circle,
+          ),
+          DashboardStat(
+            title: 'Atrasados',
+            value: controller.overdueProjects.value.toString(),
+            color: Colors.red,
+            icon: Icons.warning,
+          ),
+        ];
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(8),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 150, // Máximo 3 columnas (basado en tamaño)
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 1.5,
+          ),
+          itemCount: stats.length,
+          itemBuilder: (context, index) => _DashboardCard(stat: stats[index]),
+        );
+      }),
+    );
+  }
+
+  // Cuadrante 2: Widget de gráfica circular
+  Widget _buildChartWidget() {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        return Padding(
+          padding: const EdgeInsets.all(12),
+          child: _ProjectsPieChart(
+            total: controller.totalProjects.value,
+            planning: controller.planningProjects.value,
+            inProgress: controller.inProgressProjects.value,
+            delayed: controller.overdueProjects.value,
+          ),
+        );
+      }),
+    );
+  }
+
+  // Cuadrante 3: Panel de proyectos recientes
+  Widget _buildRecentProjectsPanel() {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Barra superior con título y botón de refrescar
+          Container(
+            color: const Color.fromARGB(255, 49, 63, 85),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Proyectos Recientes',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.refresh, size: 18), // Reducido tamaño del icono
-                    onPressed: () => controller.refreshData(),
-                    tooltip: 'Refrescar datos',
-                    padding: EdgeInsets.zero, // Quitar padding del botón
-                    constraints: const BoxConstraints(
-                      minWidth: 36, minHeight: 36), // Reducir el tamaño del botón
+                ),
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 16, color: Colors.white),
+                  onPressed: () => controller.refreshData(),
+                  tooltip: 'Refrescar datos',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 30, minHeight: 30),
+                ),
+              ],
+            ),
+          ),
+          
+          // Contenido principal - lista de proyectos
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: SizedBox(
+                    height: 20, width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                ],
-              ),
-              const SizedBox(height: 4), // Reducido de 8 a 4
-              Obx(() {
-                if (controller.isLoading.value) {
-                  return const SizedBox(
-                    height: 120, // Reducido de 150 a 120
-                    child: Center(
-                      child: SizedBox(
-                        height: 20, width: 20, // Spinner más pequeño
-                        child: CircularProgressIndicator(strokeWidth: 2), // Más delgado
-                      ),
-                    ),
-                  );
-                }
-                
-                if (controller.recentProjects.isEmpty) {
-                  return SizedBox(
-                    height: 120, // Reducido de 150 a 120
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.folder_off, size: 24, color: Colors.grey), // Reducido de 32 a 24
-                          const SizedBox(height: 4), // Reducido de 8 a 4
-                          const Text(
-                            'No hay proyectos recientes',
-                            style: TextStyle(
-                              fontSize: 12, // Reducido de 14 a 12
-                              fontStyle: FontStyle.italic,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-                
-                return Container(
-                  height: 120, // Reducido de 150 a 120
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 49, 63, 85),
-                    borderRadius: BorderRadius.circular(8), // Reducido de 12 a 8
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1, // Reducido de 2 a 1
-                        blurRadius: 3, // Reducido de 4 a 3
-                        offset: const Offset(0, 1), // Reducido de 0,2 a 0,1
+                );
+              }
+              
+              if (controller.recentProjects.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.folder_off, size: 24, color: Colors.grey),
+                      SizedBox(height: 4),
+                      Text(
+                        'No hay proyectos recientes',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
-                  child: ListView.builder(
-                    // Aquí permitimos scroll
-                    shrinkWrap: true,
-                    itemCount: controller.recentProjects.length,
-                    itemBuilder: (context, index) {
-                      return _CompactProjectCard(
-                        project: controller.recentProjects[index],
-                      );
-                    },
-                  ),
                 );
-              }),
-            ],
+              }
+              
+              // Mostrar lista de proyectos más recientes (limitados a 5)
+              final projects = controller.recentProjects.take(5).toList();
+              return ListView.separated(
+                itemCount: projects.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) => _CompactProjectCard(
+                  project: projects[index],
+                ),
+              );
+            }),
           ),
-        ),
-        
-        const SizedBox(width: 12), // Reducido de 20 a 12
-        
-        // Panel derecho: Cuadrícula de acciones rápidas 2x2
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Acciones Rápidas',
-                style: TextStyle(
-                  fontSize: 16, // Reducido de 20 a 16
-                  fontWeight: FontWeight.bold,
-                ),
+        ],
+      ),
+    );
+  }
+
+  // Cuadrante 4: Grid de acciones rápidas (2 columnas max)
+  Widget _buildQuickActionsGrid() {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: GridView.count(
+          shrinkWrap: true,
+          //physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 4, // Siempre 2 columnas
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
+          children: [
+            _ActionShortcut(
+              icon: Icons.person_add,
+              label: 'Nuevo Empleado',
+              color: Colors.blue,
+              onTap: () => Get.snackbar(
+                'Acción pendiente', 
+                'Función para añadir empleado en desarrollo',
+                snackPosition: SnackPosition.BOTTOM,
               ),
-              const SizedBox(height: 4), // Reducido de 8 a 4
-              Container(
-                height: 120, // Reducido de 150 a 120
-                padding: const EdgeInsets.all(8), // Reducido de 12 a 8
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 45, 50, 78),
-                  borderRadius: BorderRadius.circular(8), // Reducido de 12 a 8
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1, // Reducido de 2 a 1
-                      blurRadius: 3, // Reducido de 4 a 3
-                      offset: const Offset(0, 1), // Reducido de 0,2 a 0,1
-                    ),
-                  ],
-                ),
-                child: GridView.count(
-                  //physics: const NeverScrollableScrollPhysics(), // Desactivamos scroll
-                  shrinkWrap: true,
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 4, // Reducido de 8 a 4
-                  crossAxisSpacing: 4, // Reducido de 8 a 4
-                  children: [
-                    _ActionShortcut(
-                      icon: Icons.person_add,
-                      label: 'Nuevo\nEmpleado',
-                      color: Colors.blue,
-                      onTap: () {
-                        Get.snackbar(
-                          'Acción pendiente', 
-                          'La función para añadir empleado será implementada próximamente',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
-                    ),
-                    _ActionShortcut(
-                      icon: Icons.people,
-                      label: 'Nuevo\nCliente',
-                      color: Colors.green,
-                      onTap: () {
-                        Get.snackbar(
-                          'Acción pendiente', 
-                          'La función para añadir cliente será implementada próximamente',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
-                    ),
-                    _ActionShortcut(
-                      icon: Icons.business,
-                      label: 'Nuevo\nProveedor',
-                      color: Colors.purple,
-                      onTap: () {
-                        Get.snackbar(
-                          'Acción pendiente', 
-                          'La función para añadir proveedor será implementada próximamente',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
-                    ),
-                    _ActionShortcut(
-                      icon: Icons.assignment,
-                      label: 'Nuevo\nProyecto',
-                      color: Colors.orange,
-                      onTap: () {
-                        Get.snackbar(
-                          'Acción pendiente', 
-                          'La función para añadir proyecto será implementada próximamente',
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
-                      },
-                    ),
-                  ],
-                ),
+            ),
+            _ActionShortcut(
+              icon: Icons.people,
+              label: 'Nuevo Cliente',
+              color: Colors.green,
+              onTap: () => Get.snackbar(
+                'Acción pendiente', 
+                'Función para añadir cliente en desarrollo',
+                snackPosition: SnackPosition.BOTTOM,
               ),
-            ],
-          ),
+            ),
+            _ActionShortcut(
+              icon: Icons.business,
+              label: 'Nuevo Proveedor',
+              color: Colors.purple,
+              onTap: () => Get.snackbar(
+                'Acción pendiente', 
+                'Función para añadir proveedor en desarrollo',
+                snackPosition: SnackPosition.BOTTOM,
+              ),
+            ),
+            _ActionShortcut(
+              icon: Icons.assignment,
+              label: 'Nuevo Proyecto',
+              color: Colors.orange,
+              onTap: () => Get.snackbar(
+                'Acción pendiente', 
+                'Función para añadir proyecto en desarrollo',
+                snackPosition: SnackPosition.BOTTOM,
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
 
-class _DashboardCard extends StatelessWidget {
+// Clase para encapsular los datos de estadísticas
+class DashboardStat {
   final String title;
   final String value;
   final Color color;
   final IconData icon;
 
-  const _DashboardCard({
-    required this.title,
-    required this.value,
-    required this.color,
-    required this.icon,
+  DashboardStat({
+    required this.title, 
+    required this.value, 
+    required this.color, 
+    required this.icon
   });
+}
+
+// Widget de tarjeta para estadísticas
+class _DashboardCard extends StatelessWidget {
+  final DashboardStat stat;
+
+  const _DashboardCard({required this.stat});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 160, // Reducido de 200 a 160
-      padding: const EdgeInsets.all(8), // Reducido de 12 a 8
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8), // Reducido de 12 a 8
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: stat.color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: stat.color.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  title,
+                  stat.title,
                   style: TextStyle(
-                    fontSize: 12, // Reducido de 14 a 12
-                    color: color,
+                    fontSize: 12,
+                    color: stat.color,
                     fontWeight: FontWeight.w500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Icon(icon, color: color, size: 16), // Reducido de 20 a 16
+              Icon(stat.icon, color: stat.color, size: 16),
             ],
           ),
-          const SizedBox(height: 4), // Reducido de 8 a 4
+          const Spacer(),
           Text(
-            value,
+            stat.value,
             style: TextStyle(
-              fontSize: 20, // Reducido de 24 a 20
-              color: color,
+              fontSize: 20,
+              color: stat.color,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -385,6 +392,7 @@ class _DashboardCard extends StatelessWidget {
   }
 }
 
+// Widget de gráfica circular
 class _ProjectsPieChart extends StatelessWidget {
   final int total;
   final int planning;
@@ -400,98 +408,98 @@ class _ProjectsPieChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text(
-          'Distribución de Proyectos',
+    // Solo mostrar la gráfica si hay datos
+    if (total == 0) {
+      return const Center(
+        child: Text(
+          'No hay proyectos para mostrar',
           style: TextStyle(
-            fontSize: 14, // Reducido de 16 a 14
-            fontWeight: FontWeight.bold,
-            color: Colors.black87
+            fontSize: 14,
+            fontStyle: FontStyle.italic,
+            color: Colors.grey,
           ),
         ),
-        const SizedBox(height: 8), // Reducido de 16 a 8
+      );
+    }
+
+    return Column(
+      children: [
         Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                child: PieChart(
-                  PieChartData(
-                    sectionsSpace: 1, // Reducido de 2 a 1
-                    centerSpaceRadius: 30, // Reducido de 40 a 30
-                    sections: [
-                      if (planning > 0)
-                        PieChartSectionData(
-                          color: Colors.orange,
-                          value: planning.toDouble(),
-                          title: '${(planning / total * 100).round()}%',
-                          radius: 40, // Reducido de 50 a 40
-                          titleStyle: const TextStyle(
-                            fontSize: 12, // Reducido de 14 a 12
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      if (inProgress > 0)
-                        PieChartSectionData(
-                          color: Colors.green,
-                          value: inProgress.toDouble(),
-                          title: '${(inProgress / total * 100).round()}%',
-                          radius: 40, // Reducido de 50 a 40
-                          titleStyle: const TextStyle(
-                            fontSize: 12, // Reducido de 14 a 12
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      if (delayed > 0)
-                        PieChartSectionData(
-                          color: Colors.red,
-                          value: delayed.toDouble(),
-                          title: '${(delayed / total * 100).round()}%',
-                          radius: 40, // Reducido de 50 a 40
-                          titleStyle: const TextStyle(
-                            fontSize: 12, // Reducido de 14 a 12
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12), // Reducido de 24 a 12
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _LegendItem(
-                    color: Colors.orange,
-                    label: 'Planificación',
-                    value: planning,
-                  ),
-                  const SizedBox(height: 4), // Reducido de 8 a 4
-                  _LegendItem(
-                    color: Colors.green,
-                    label: 'Ejecución',
-                    value: inProgress,
-                  ),
-                  const SizedBox(height: 4), // Reducido de 8 a 4
-                  _LegendItem(
-                    color: Colors.red,
-                    label: 'Atrasados',
-                    value: delayed,
-                  ),
-                ],
-              ),
-            ],
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 1,
+              centerSpaceRadius: 30,
+              sections: _generateSections(),
+              pieTouchData: PieTouchData(enabled: false),
+            ),
           ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            if (planning > 0) 
+              _LegendItem(color: Colors.orange, label: 'Planificación', value: planning),
+            if (inProgress > 0) 
+              _LegendItem(color: Colors.green, label: 'Ejecución', value: inProgress),
+            if (delayed > 0) 
+              _LegendItem(color: Colors.red, label: 'Atrasados', value: delayed),
+          ],
         ),
       ],
     );
   }
+
+  List<PieChartSectionData> _generateSections() {
+    final List<PieChartSectionData> sections = [];
+    
+    if (planning > 0) {
+      sections.add(PieChartSectionData(
+        color: Colors.orange,
+        value: planning.toDouble(),
+        title: '${(planning / total * 100).round()}%',
+        radius: 40,
+        titleStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ));
+    }
+    
+    if (inProgress > 0) {
+      sections.add(PieChartSectionData(
+        color: Colors.green,
+        value: inProgress.toDouble(),
+        title: '${(inProgress / total * 100).round()}%',
+        radius: 40,
+        titleStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ));
+    }
+    
+    if (delayed > 0) {
+      sections.add(PieChartSectionData(
+        color: Colors.red,
+        value: delayed.toDouble(),
+        title: '${(delayed / total * 100).round()}%',
+        radius: 40,
+        titleStyle: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ));
+    }
+    
+    return sections;
+  }
 }
 
+// Widget para elementos de leyenda
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
@@ -509,207 +517,35 @@ class _LegendItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 12, // Reducido de 16 a 12
-          height: 12, // Reducido de 16 a 12
+          width: 10,
+          height: 10,
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
           ),
         ),
-        const SizedBox(width: 4), // Reducido de 8 a 4
+        const SizedBox(width: 4),
         Text(
           '$label ($value)',
-          style: const TextStyle(fontSize: 10), // Texto más pequeño
+          style: const TextStyle(fontSize: 10),
         ),
       ],
     );
   }
 }
 
-class _RecentProjectCard extends StatelessWidget {
-  final ProjectModel project;
-
-  const _RecentProjectCard({
-    required this.project,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    // Determinar color según estado
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-    
-    switch(project.stateId) {
-      case 1: // Planificación
-        statusColor = Colors.orange;
-        statusText = 'En Planificación';
-        statusIcon = Icons.pending_actions;
-        break;
-      case 2: // Ejecución
-        statusColor = Colors.green;
-        statusText = 'En Ejecución';
-        statusIcon = Icons.play_circle;
-        break;
-      case 3: // Terminado
-        statusColor = Colors.blue;
-        statusText = 'Terminado';
-        statusIcon = Icons.check_circle;
-        break;
-      default:
-        // Verificar si está atrasado
-        if (project.estimatedEndDate != null && 
-            DateTime.now().isAfter(project.estimatedEndDate!) &&
-            project.actualEndDate == null) {
-          statusColor = Colors.red;
-          statusText = 'Atrasado';
-          statusIcon = Icons.warning;
-        } else {
-          statusColor = Colors.grey;
-          statusText = 'Desconocido';
-          statusIcon = Icons.help;
-        }
-    }
-    
-    // Formatear fecha
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    final startDate = project.startDate != null 
-        ? dateFormat.format(project.startDate!)
-        : 'No definida';
-    
-    return Card(
-      elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.dividerColor.withOpacity(0.2)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    project.name,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: statusColor),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(statusIcon, size: 16, color: statusColor),
-                      const SizedBox(width: 4),
-                      Text(
-                        statusText,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: statusColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              project.description ?? 'Sin descripción',
-              style: theme.textTheme.bodyMedium,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Inicio: $startDate',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-                if (project.estimatedBudget != null)
-                  Row(
-                    children: [
-                      const Icon(Icons.attach_money, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Presupuesto: \$${project.estimatedBudget?.toStringAsFixed(2)}',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
+// Widget para proyectos en lista compacta
 class _CompactProjectCard extends StatelessWidget {
   final ProjectModel project;
 
-  const _CompactProjectCard({
-    required this.project,
-  });
+  const _CompactProjectCard({required this.project});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     
     // Determinar color según estado
-    Color statusColor;
-    IconData statusIcon;
-    
-    switch(project.stateId) {
-      case 1: // Planificación
-        statusColor = Colors.orange;
-        statusIcon = Icons.pending_actions;
-        break;
-      case 2: // Ejecución
-        statusColor = Colors.green;
-        statusIcon = Icons.play_circle;
-        break;
-      case 3: // Terminado
-        statusColor = Colors.blue;
-        statusIcon = Icons.check_circle;
-        break;
-      default:
-        // Verificar si está atrasado
-        if (project.estimatedEndDate != null && 
-            DateTime.now().isAfter(project.estimatedEndDate!) &&
-            project.actualEndDate == null) {
-          statusColor = Colors.red;
-          statusIcon = Icons.warning;
-        } else {
-          statusColor = Colors.grey;
-          statusIcon = Icons.help;
-        }
-    }
+    final ProjectStatus status = _getProjectStatus(project);
     
     // Formatear fecha compacta
     final dateFormat = DateFormat('dd/MM/yy');
@@ -718,19 +554,18 @@ class _CompactProjectCard extends StatelessWidget {
         : 'N/D';
     
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), // Reducido de 12,4 a 8,2
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       dense: true,
-      visualDensity: const VisualDensity(horizontal: 0, vertical: -4), // Hacer el ListTile aún más compacto
+      visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
       leading: CircleAvatar(
-        radius: 14, // Reducido de 18 a 14
-        backgroundColor: statusColor.withOpacity(0.2),
-        child: Icon(statusIcon, size: 14, color: statusColor), // Reducido de 18 a 14
+        radius: 14,
+        backgroundColor: status.color.withOpacity(0.2),
+        child: Icon(status.icon, size: 14, color: status.color),
       ),
       title: Text(
         project.name,
-        style: theme.textTheme.bodyMedium?.copyWith( // Cambiado de bodyLarge a bodyMedium
+        style: theme.textTheme.bodyMedium?.copyWith(
           fontWeight: FontWeight.bold,
-          color: Colors.white,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -738,8 +573,7 @@ class _CompactProjectCard extends StatelessWidget {
       subtitle: Text(
         project.description ?? 'Sin descripción',
         style: theme.textTheme.bodySmall?.copyWith(
-          color: Colors.white70,
-          fontSize: 10, // Texto más pequeño
+          fontSize: 10,
         ),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -752,24 +586,66 @@ class _CompactProjectCard extends StatelessWidget {
           Text(
             startDate,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white70,
-              fontSize: 10, // Texto más pequeño
+              fontSize: 10,
             ),
           ),
           if (project.estimatedBudget != null)
             Text(
               '\$${project.estimatedBudget!.toStringAsFixed(0)}',
               style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.white70,
-                fontSize: 10, // Texto más pequeño
+                fontSize: 10,
               ),
             ),
         ],
       ),
     );
   }
+
+  // Método para determinar estado del proyecto
+  ProjectStatus _getProjectStatus(ProjectModel project) {
+    if (project.actualEndDate != null) {
+      return ProjectStatus(
+        color: Colors.blue,
+        icon: Icons.check_circle,
+        text: 'Terminado',
+      );
+    } else if (project.estimatedEndDate != null && 
+              DateTime.now().isAfter(project.estimatedEndDate!)) {
+      return ProjectStatus(
+        color: Colors.red,
+        icon: Icons.warning,
+        text: 'Atrasado',
+      );
+    } else if (project.stateId == 2 || project.startDate != null) {
+      return ProjectStatus(
+        color: Colors.green,
+        icon: Icons.play_circle,
+        text: 'En Ejecución',
+      );
+    } else {
+      return ProjectStatus(
+        color: Colors.orange,
+        icon: Icons.pending_actions,
+        text: 'Planificación',
+      );
+    }
+  }
 }
 
+// Clase para manejar estado del proyecto
+class ProjectStatus {
+  final Color color;
+  final IconData icon;
+  final String text;
+  
+  ProjectStatus({
+    required this.color,
+    required this.icon,
+    required this.text,
+  });
+}
+
+// Widget para acciones rápidas
 class _ActionShortcut extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -785,31 +661,39 @@ class _ActionShortcut extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(6), // Reducido de 8 a 6
-      child: Container(
-        padding: const EdgeInsets.all(4), // Reducido de 8 a 4
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(6), // Reducido de 8 a 6
-          border: Border.all(color: color.withOpacity(0.3), width: 0.5), // Borde más fino
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: color, size: 20), // Reducido de 24 a 20
-            const SizedBox(height: 2), // Reducido de 4 a 2
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 9, // Reducido de 10 a 9
-                fontWeight: FontWeight.bold,
-                color: color,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: color.withOpacity(0.3), width: 0.5),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
