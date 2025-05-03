@@ -55,69 +55,140 @@ class HomeView extends GetView<HomeController> {
           if (controller.isLoading.value) {
             return const Center(child: CircularProgressIndicator());
           }
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Column(
             children: [
-              // Columna izquierda: Cards de estadísticas
-              Expanded(
-                flex: 3,
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 16,
-                  children: [
-                    _DashboardCard(
-                      title: 'Total Proyectos',
-                      value: controller.totalProjects.value.toString(),
-                      color: Colors.blue,
-                      icon: Icons.folder,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Columna izquierda: Cards de estadísticas
+                  Expanded(
+                    flex: 3,
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      children: [
+                        _DashboardCard(
+                          title: 'Total Proyectos',
+                          value: controller.totalProjects.value.toString(),
+                          color: Colors.blue,
+                          icon: Icons.folder,
+                        ),
+                        _DashboardCard(
+                          title: 'En Planificación',
+                          value: controller.planningProjects.value.toString(),
+                          color: Colors.orange,
+                          icon: Icons.pending_actions,
+                        ),
+                        _DashboardCard(
+                          title: 'En Ejecución',
+                          value: controller.inProgressProjects.value.toString(),
+                          color: Colors.green,
+                          icon: Icons.play_circle,
+                        ),
+                        _DashboardCard(
+                          title: 'Atrasados',
+                          value: controller.overdueProjects.value.toString(),
+                          color: Colors.red,
+                          icon: Icons.warning,
+                        ),
+                      ],
                     ),
-                    _DashboardCard(
-                      title: 'En Planificación',
-                      value: controller.planningProjects.value.toString(),
-                      color: Colors.orange,
-                      icon: Icons.pending_actions,
-                    ),
-                    _DashboardCard(
-                      title: 'En Ejecución',
-                      value: controller.inProgressProjects.value.toString(),
-                      color: Colors.green,
-                      icon: Icons.play_circle,
-                    ),
-                    _DashboardCard(
-                      title: 'Atrasados',
-                      value: controller.overdueProjects.value.toString(),
-                      color: Colors.red,
-                      icon: Icons.warning,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 24),
-              // Columna derecha: Gráfica circular
-              Expanded(
-                flex: 2,
-                child: Container(
-                  height: 280,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 2,
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                  ),
+                  const SizedBox(width: 24),
+                  // Columna derecha: Gráfica circular
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      height: 280,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 2,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                    ],
+                      child: _ProjectsPieChart(
+                        total: controller.totalProjects.value,
+                        planning: controller.planningProjects.value,
+                        inProgress: controller.inProgressProjects.value,
+                        delayed: controller.overdueProjects.value,
+                      ),
+                    ),
                   ),
-                  child: _ProjectsPieChart(
-                    total: controller.totalProjects.value,
-                    planning: controller.planningProjects.value,
-                    inProgress: controller.inProgressProjects.value,
-                    delayed: controller.overdueProjects.value,
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Nueva sección de accesos rápidos
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _ActionShortcut(
+                          icon: Icons.person_add,
+                          label: 'Nuevo Empleado',
+                          color: Colors.blue,
+                          onTap: () {
+                            // Pendiente de implementar
+                            Get.snackbar(
+                              'Acción pendiente', 
+                              'La función para añadir empleado será implementada próximamente',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          },
+                        ),
+                        _ActionShortcut(
+                          icon: Icons.people,
+                          label: 'Nuevo Cliente',
+                          color: Colors.green,
+                          onTap: () {
+                            // Pendiente de implementar
+                            Get.snackbar(
+                              'Acción pendiente', 
+                              'La función para añadir cliente será implementada próximamente',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          },
+                        ),
+                        _ActionShortcut(
+                          icon: Icons.business,
+                          label: 'Nuevo Proveedor',
+                          color: Colors.purple,
+                          onTap: () {
+                            // Pendiente de implementar
+                            Get.snackbar(
+                              'Acción pendiente', 
+                              'La función para añadir proveedor será implementada próximamente',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          },
+                        ),
+                        _ActionShortcut(
+                          icon: Icons.assignment,
+                          label: 'Nuevo Proyecto',
+                          color: Colors.orange,
+                          onTap: () {
+                            // Pendiente de implementar
+                            Get.snackbar(
+                              'Acción pendiente', 
+                              'La función para añadir proyecto será implementada próximamente',
+                              snackPosition: SnackPosition.BOTTOM,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           );
@@ -550,6 +621,45 @@ class _RecentProjectCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActionShortcut extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionShortcut({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: color.withOpacity(0.1),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
