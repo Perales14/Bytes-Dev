@@ -53,13 +53,13 @@ class HomeView extends GetView<HomeController> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          _buildStatisticsGrid(),
-          SizedBox(height: spacing),
           _buildChartWidget(),
           SizedBox(height: spacing),
-          _buildRecentProjectsPanel(),
-          SizedBox(height: spacing),
           _buildQuickActionsGrid(),
+          SizedBox(height: spacing),
+          _buildStatisticsGrid(),
+          SizedBox(height: spacing),
+          _buildRecentProjectsPanel(),
         ],
       ),
     );
@@ -74,11 +74,15 @@ class HomeView extends GetView<HomeController> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Cuadrante superior izquierdo: Estadísticas
-              Expanded(child: _buildStatisticsGrid()),
-              SizedBox(width: spacing),
-              // Cuadrante superior derecho: Gráfica
+              // Cuadrante superior derecho: Acciones rápidas
+              Expanded(child: _buildQuickActionsGrid()),
+              // Cuadrante superior izquierdo: Gráfica
               Expanded(child: _buildChartWidget()),
+              SizedBox(width: spacing),
+              ///
+              // Cuadrante superior derecho: Acciones rápidas
+              //Expanded(child: _buildQuickActionsGrid()),
+              ///
             ],
           ),
         ),
@@ -91,8 +95,8 @@ class HomeView extends GetView<HomeController> {
               // Cuadrante inferior izquierdo: Proyectos recientes
               Expanded(child: _buildRecentProjectsPanel()),
               SizedBox(width: spacing),
-              // Cuadrante inferior derecho: Acciones rápidas
-              Expanded(child: _buildQuickActionsGrid()),
+              // Cuadrante inferior derecho: Estadísticas
+              Expanded(child: _buildStatisticsGrid()),
             ],
           ),
         ),
