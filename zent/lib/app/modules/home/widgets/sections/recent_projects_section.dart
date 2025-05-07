@@ -70,8 +70,8 @@ class RecentProjectsSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 2),
             itemCount: projects.length,
             separatorBuilder: (_, __) => const Divider(
-              height: 1, 
-              indent: 8, 
+              height: 1,
+              indent: 8,
               endIndent: 8,
             ),
             itemBuilder: (context, index) => CompactProjectCard(

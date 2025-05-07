@@ -37,7 +37,6 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
       print(widget.project!.managerId);
       print(widget.project!.providerId);
 
-
       controller.loadProject(widget.project!);
     }
   }
@@ -57,7 +56,7 @@ class _AddProjectDialogState extends State<AddProjectDialog> {
   Future<void> _handleSubmit() async {
     try {
       final isValid = controller.submitForm();
-      if (await isValid) {
+      if (isValid) {
         if (mounted && Navigator.canPop(context)) {
           Navigator.of(context).pop();
         }

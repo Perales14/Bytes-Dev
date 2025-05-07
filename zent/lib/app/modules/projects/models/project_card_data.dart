@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../data/models/project_model.dart';
 
 /// Modelo para los datos que se mostrarán en una tarjeta de proyecto.
 class ProjectCardData {
@@ -26,6 +27,9 @@ class ProjectCardData {
   /// Acción a ejecutar cuando se pulsa la tarjeta
   final VoidCallback? onTap;
 
+  /// Modelo completo del proyecto (opcional)
+  final ProjectModel? project;
+
   /// Crea un modelo de datos para una tarjeta de proyecto.
   const ProjectCardData({
     required this.name,
@@ -36,6 +40,7 @@ class ProjectCardData {
     this.statusColor,
     this.metrics,
     this.onTap,
+    this.project,
   });
 }
 

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:zent/app/data/services/project_context_service.dart';
 import 'package:zent/app/data/services/project_service.dart';
 import 'package:zent/app/shared/controllers/sidebar_controller.dart';
 import 'package:zent/app/shared/controllers/theme_controller.dart';
@@ -23,6 +24,8 @@ class AppBindings extends Bindings {
   void _initializeBaseServices() {
     Get.put(SessionService(), permanent: true);
     Get.put(ThemeController(), permanent: true);
+    Get.put(ProjectContextService(),
+        permanent: true); // Nuevo servicio de contexto de proyecto
   }
 
   // Inicializa controladores que dependen de servicios fundamentales

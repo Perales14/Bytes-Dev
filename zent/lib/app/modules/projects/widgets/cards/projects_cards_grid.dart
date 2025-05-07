@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/project_model.dart';
-import '../../../projects/controllers/projects_controller.dart';
+import '../../controllers/projects_controller.dart';
 import '../../models/project_card_data.dart';
 import 'add_project_card.dart';
 import 'project_card.dart';
@@ -63,31 +63,38 @@ class ProjectsCardsGrid extends StatelessWidget {
               String managerName =
                   projectsController.getManagerName(project.managerId);
 
-              return ProjectCard(
-                data: ProjectCardData(
-                  name: project.name,
-                  description: project.description ?? 'Sin descripción',
-                  status: _getProjectStatus(project),
-                  statusColor: _getStatusColor(context, project),
-                  clientName: clientName,
-                  managerName: managerName,
-                  metrics: [
-                    ProjectMetric(
-                      icon: Icons.task_alt_outlined,
-                      label: 'Progreso',
-                      value: _getCompletionPercentage(project),
-                      tooltip: 'Porcentaje de avance',
-                    ),
-                    if (project.estimatedBudget != null)
+              return GestureDetector(
+                // OnLongPress para editar el proyecto
+                onLongPress: () => onEditProject(project.id),
+                child: ProjectCard(
+                  data: ProjectCardData(
+                    name: project.name,
+                    description: project.description ?? 'Sin descripción',
+                    status: _getProjectStatus(project),
+                    statusColor: _getStatusColor(context, project),
+                    clientName: clientName,
+                    managerName: managerName,
+                    metrics: [
                       ProjectMetric(
-                        icon: Icons.monetization_on_outlined,
-                        label: 'Presupuesto',
-                        value:
-                            '\$${project.estimatedBudget?.toStringAsFixed(2)}',
-                        tooltip: 'Presupuesto estimado',
+                        icon: Icons.task_alt_outlined,
+                        label: 'Progreso',
+                        value: _getCompletionPercentage(project),
+                        tooltip: 'Porcentaje de avance',
                       ),
-                  ],
-                  onTap: () => onEditProject(project.id),
+                      if (project.estimatedBudget != null)
+                        ProjectMetric(
+                          icon: Icons.monetization_on_outlined,
+                          label: 'Presupuesto',
+                          value:
+                              '\$${project.estimatedBudget?.toStringAsFixed(2)}',
+                          tooltip: 'Presupuesto estimado',
+                        ),
+                    ],
+                    project: project, // Pasar el modelo de proyecto completo
+                    // OnTap para navegar al dashboard del proyecto
+                    onTap: () =>
+                        projectsController.navigateToProjectDashboard(project),
+                  ),
                 ),
               );
             });

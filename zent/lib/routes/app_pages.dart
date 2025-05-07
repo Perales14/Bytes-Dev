@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
+import '../app/data/models/project_model.dart';
 import '../app/modules/clients/bindings/clients_binding.dart';
 import '../app/modules/clients/views/clients_view.dart';
+import '../app/modules/projects/submodules/activities/bindings/project_activities_biding.dart';
+import '../app/modules/projects/submodules/dashboard/bindings/project_dashboard_biding.dart';
 import '../app/modules/projects/views/projects_view.dart';
 import '../app/modules/employees/bindings/employees_binding.dart';
 import '../app/modules/employees/views/employees_view.dart';
@@ -14,6 +17,13 @@ import '../app/modules/providers/views/providers_view.dart';
 import '../app/modules/splash/bindings/splash_binding.dart';
 import '../app/modules/splash/views/splash_view.dart';
 import '../app/data/services/session_service.dart';
+import '../app/modules/projects/submodules/dashboard/views/project_dashboard_view.dart';
+import '../app/modules/projects/submodules/activities/views/project_activities_view.dart';
+import '../app/modules/projects/submodules/documents/bindings/project_documents_binding.dart';
+import '../app/modules/projects/submodules/documents/views/project_documents_view.dart';
+import '../app/modules/projects/submodules/reports/bindings/project_reports_binding.dart';
+import '../app/modules/projects/submodules/reports/views/project_reports_view.dart';
+import '../app/modules/projects/controllers/projects_controller.dart';
 import 'route_guard.dart';
 
 part 'app_routes.dart';
@@ -94,6 +104,53 @@ class AppPages {
         ]),
       ],
     ),
+
+    // Submódulos de proyectos
+    GetPage(
+      name: _Paths.PROJECT_DASHBOARD,
+      page: () => ProjectDashboardView(),
+      binding: ProjectDashboardBinding(),
+      middlewares: [
+        RouteGuard(allowedRoles: [
+          SessionService.ROLE_ADMIN,
+          SessionService.ROLE_PROMOTOR
+        ]),
+      ],
+    ),
+    GetPage(
+      name: _Paths.PROJECT_ACTIVITIES,
+      page: () => ProjectActivitiesView(),
+      binding: ProjectActivitiesBinding(),
+      middlewares: [
+        RouteGuard(allowedRoles: [
+          SessionService.ROLE_ADMIN,
+          SessionService.ROLE_PROMOTOR
+        ]),
+      ],
+    ),
+    GetPage(
+      name: _Paths.PROJECT_DOCUMENTS,
+      page: () => ProjectDocumentsView(),
+      binding: ProjectDocumentsBinding(),
+      middlewares: [
+        RouteGuard(allowedRoles: [
+          SessionService.ROLE_ADMIN,
+          SessionService.ROLE_PROMOTOR
+        ]),
+      ],
+    ),
+    GetPage(
+      name: _Paths.PROJECT_REPORTS,
+      page: () => ProjectReportsView(),
+      binding: ProjectReportsBinding(),
+      middlewares: [
+        RouteGuard(allowedRoles: [
+          SessionService.ROLE_ADMIN,
+          SessionService.ROLE_PROMOTOR
+        ]),
+      ],
+    ),
+
     GetPage(
       name: '/access-denied',
       page: () => const AccessDeniedView(),

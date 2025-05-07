@@ -5,6 +5,8 @@ import '../../../data/services/project_service.dart';
 import '../../../data/services/client_service.dart';
 import '../../../data/services/user_service.dart';
 import '../../../data/services/session_service.dart';
+import '../../../data/services/project_context_service.dart';
+import '../../../shared/controllers/sidebar_controller.dart';
 import '../widgets/add_project_dialog.dart';
 
 class ProjectsController extends GetxController {
@@ -12,6 +14,9 @@ class ProjectsController extends GetxController {
   final ClientService _clientService = Get.find<ClientService>();
   final UserService _userService = Get.find<UserService>();
   final SessionService _sessionService = Get.find<SessionService>();
+  final SidebarController _sidebarController = Get.find<SidebarController>();
+  final ProjectContextService _projectContextService =
+      Get.find<ProjectContextService>();
 
   final RxList<ProjectModel> projects = <ProjectModel>[].obs;
   final RxString filter = ''.obs;
@@ -43,6 +48,7 @@ class ProjectsController extends GetxController {
   @override
   void onClose() {
     textController.dispose();
+    _projectContextService.clearCurrentProject();
     super.onClose();
   }
 
@@ -229,5 +235,96 @@ class ProjectsController extends GetxController {
         colorText: Get.theme.colorScheme.onError,
       );
     }
+  }
+
+  /// Navega al dashboard de un proyecto específico
+  void navigateToProjectDashboard(ProjectModel project) {
+    _navigateToProjectSubmenu(project, '/projects/${project.id}/dashboard');
+  }
+
+  /// Navega a la vista de actividades de un proyecto
+  void navigateToProjectActivities(ProjectModel project) {
+    _navigateToProjectSubmenu(project, '/projects/${project.id}/activities');
+  }
+
+  /// Navega a la vista de documentos de un proyecto
+  void navigateToProjectDocuments(ProjectModel project) {
+    _navigateToProjectSubmenu(project, '/projects/${project.id}/documents');
+  }
+
+  /// Navega a la vista de reportes de un proyecto
+  void navigateToProjectReports(ProjectModel project) {
+    _navigateToProjectSubmenu(project, '/projects/${project.id}/reports');
+  }
+
+  /// Método común para navegar a submódulos de proyectos
+  void _navigateToProjectSubmenu(ProjectModel project, String route) {
+    // Establecer el proyecto actual en el ProjectContextService
+    _projectContextService.setCurrentProject(project);
+
+    // Establecer el proyecto actual en el controlador de sidebar
+    _sidebarController.setCurrentProject(project);
+
+    // Navegar a la ruta del submódulo sin necesidad de pasar argumentos
+    Get.toNamed(route);
+  }
+
+  /// Muestra un menú de opciones para un proyecto
+  void showProjectOptions(BuildContext context, ProjectModel project) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.dashboard_customize),
+              title: const Text('Dashboard'),
+              onTap: () {
+                Navigator.pop(context);
+                navigateToProjectDashboard(project);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.event_note),
+              title: const Text('Actividades'),
+              onTap: () {
+                Navigator.pop(context);
+                navigateToProjectActivities(project);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.description),
+              title: const Text('Documentos'),
+              onTap: () {
+                Navigator.pop(context);
+                navigateToProjectDocuments(project);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.analytics),
+              title: const Text('Reportes'),
+              onTap: () {
+                Navigator.pop(context);
+                navigateToProjectReports(project);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Editar proyecto'),
+              onTap: () {
+                Navigator.pop(context);
+                showEditProjectDialog(project.id);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
