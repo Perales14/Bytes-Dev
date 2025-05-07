@@ -119,7 +119,12 @@ class ProjectActivitiesView extends GetView<ProjectActivitiesController> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => Get.offNamed('/projects'),
+            onPressed: () {
+              // Asegurar que el contexto del proyecto se limpie correctamente
+              Get.find<ProjectContextService>().clearCurrentProject();
+              // Navegar de vuelta a la lista de proyectos
+              Get.offNamed('/projects');
+            },
             child: const Text('Volver a Proyectos'),
           ),
         ],

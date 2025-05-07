@@ -6,10 +6,12 @@ import '../../../data/services/client_service.dart';
 import '../../../data/services/user_service.dart';
 import '../../../data/services/session_service.dart';
 import '../../../data/services/project_context_service.dart';
+import '../../../data/services/active_project_service.dart';
 import '../../../shared/controllers/sidebar_controller.dart';
 import '../widgets/add_project_dialog.dart';
 
-class ProjectsController extends GetxController {
+class ProjectsController extends GetxController
+    with GetSingleTickerProviderStateMixin {
   final ProjectService _projectService = Get.find<ProjectService>();
   final ClientService _clientService = Get.find<ClientService>();
   final UserService _userService = Get.find<UserService>();
@@ -32,6 +34,10 @@ class ProjectsController extends GetxController {
   final RxBool areClientNamesLoaded = false.obs;
   final RxBool areManagerNamesLoaded = false.obs;
 
+  // Variable para controlar los refrescos de la vista
+  final RxBool needsRefresh = false.obs;
+  late AnimationController refreshAnimationController;
+
   final textController = TextEditingController();
 
   @override
@@ -39,6 +45,38 @@ class ProjectsController extends GetxController {
     super.onInit();
     loadProjects();
     _setupTextListener();
+    _setupRefreshAnimation();
+    _setupObservers();
+
+    // Verificar si necesitamos refrescar al entrar (por ejemplo, al volver desde un proyecto)
+    _checkRefreshNeeded();
+  }
+
+  void _setupRefreshAnimation() {
+    refreshAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+  }
+
+  void _setupObservers() {
+    // Observar cuando se sale de un proyecto para actualizar la vista
+    ever(_projectContextService.rxJustExitedProject, (justExited) {
+      if (justExited) {
+        // Si acabamos de salir de un proyecto, necesitamos refrescar
+        needsRefresh(true);
+        refreshData();
+      }
+    });
+  }
+
+  void _checkRefreshNeeded() {
+    // Si estamos en la ruta de proyectos y hay un flag que indica que salimos de un proyecto
+    if (Get.currentRoute == '/projects' &&
+        _projectContextService.justExitedProject) {
+      needsRefresh(true);
+      refreshData();
+    }
   }
 
   void _setupTextListener() {
@@ -46,9 +84,18 @@ class ProjectsController extends GetxController {
   }
 
   @override
+  void onReady() {
+    super.onReady();
+    // Asegurarnos de que el sidebar está en modo de lista de proyectos
+    _projectContextService.clearCurrentProject();
+    _sidebarController
+        .updateSidebarItemsByRoleId(_sessionService.currentUser?.roleId ?? 0);
+  }
+
+  @override
   void onClose() {
     textController.dispose();
-    _projectContextService.clearCurrentProject();
+    refreshAnimationController.dispose();
     super.onClose();
   }
 
@@ -89,6 +136,8 @@ class ProjectsController extends GetxController {
       // Cargar todos los nombres en paralelo para mejor rendimiento
       await Future.wait(
           [_loadAllClientNames(clientIds), _loadAllManagerNames(managerIds)]);
+
+      needsRefresh(false); // Marca que ya se ha refrescado
     } catch (e) {
       hasError(true);
       errorMessage('Error al cargar proyectos: $e');
@@ -180,7 +229,22 @@ class ProjectsController extends GetxController {
     return managerNames[managerId] ?? 'Manager #$managerId';
   }
 
-  void refreshData() => loadProjects();
+  Future<void> refreshData() async {
+    // Iniciar animación de refresco
+    refreshAnimationController.forward(from: 0.0);
+
+    // Cargar los datos
+    await loadProjects();
+
+    // Asegurarse de que el sidebar esté actualizado
+    _sidebarController
+        .updateSidebarItemsByRoleId(_sessionService.currentUser?.roleId ?? 0);
+
+    // Limpiar contexto del proyecto si es necesario
+    if (_projectContextService.justExitedProject) {
+      _projectContextService.resetExitedProjectFlag();
+    }
+  }
 
   ProjectModel getProjectById(int id) {
     return projects.firstWhere(
@@ -257,16 +321,41 @@ class ProjectsController extends GetxController {
     _navigateToProjectSubmenu(project, '/projects/${project.id}/reports');
   }
 
-  /// Método común para navegar a submódulos de proyectos
+  /// Método común para navegar a submódulos de proyectos con verificación de estado
   void _navigateToProjectSubmenu(ProjectModel project, String route) {
-    // Establecer el proyecto actual en el ProjectContextService
+    // Verificar si el proyecto es válido
+    if (project.id <= 0) {
+      _showErrorSnackbar('El proyecto seleccionado no es válido.');
+      return;
+    }
+
+    // Establecer el proyecto actual en el ProjectContextService (mantener para compatibilidad)
     _projectContextService.setCurrentProject(project);
+
+    // Establecer el proyecto actual en el ActiveProjectService (nueva implementación)
+    Get.find<ActiveProjectService>().setActiveProject(project);
 
     // Establecer el proyecto actual en el controlador de sidebar
     _sidebarController.setCurrentProject(project);
 
     // Navegar a la ruta del submódulo sin necesidad de pasar argumentos
     Get.toNamed(route);
+  }
+
+  /// Muestra un mensaje de error
+  void _showErrorSnackbar(String message) {
+    final theme = Get.theme;
+    Get.snackbar(
+      'Error',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: theme.colorScheme.error,
+      colorText: theme.colorScheme.onError,
+      duration: const Duration(seconds: 4),
+      borderRadius: 8,
+      margin: const EdgeInsets.all(12),
+      icon: const Icon(Icons.error_outline, color: Colors.white),
+    );
   }
 
   /// Muestra un menú de opciones para un proyecto

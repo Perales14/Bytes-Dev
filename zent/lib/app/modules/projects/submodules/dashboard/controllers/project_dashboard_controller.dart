@@ -1,99 +1,117 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../data/models/project_model.dart';
 import '../../../../../data/services/project_service.dart';
+import '../../../../../data/services/project_context_service.dart';
 
-/// Controlador para el dashboard de un proyecto específico
 class ProjectDashboardController extends GetxController {
-  final ProjectService _projectService = Get.find<ProjectService>();
+  final ProjectService projectService;
+  final ProjectContextService projectContextService;
 
+  // Mantener el proyecto como observable
+  final Rx<ProjectModel?> _project = Rx<ProjectModel?>(null);
+
+  // Variables para estado de la UI
   final RxBool isLoading = true.obs;
   final RxBool hasError = false.obs;
   final RxString errorMessage = ''.obs;
 
-  // Datos del proyecto
-  final Rx<ProjectModel?> project = Rx<ProjectModel?>(null);
+  // Getters
+  ProjectModel? get project => _project.value;
 
-  // Métricas y estadísticas del proyecto
-  final RxInt totalActivities = 0.obs;
-  final RxInt completedActivities = 0.obs;
-  final RxInt pendingDocuments = 0.obs;
-  final RxDouble budget = 0.0.obs;
-  final RxDouble completion = 0.0.obs;
-  final RxInt daysLeft = 0.obs;
+  ProjectDashboardController({
+    required this.projectService,
+    required this.projectContextService,
+  });
 
-  /// Carga los datos del dashboard para un proyecto específico
-  void loadDashboard(int projectId) {
-    isLoading.value = true;
-    hasError.value = false;
+  @override
+  void onInit() {
+    super.onInit();
+    _loadProjectData();
+  }
 
+  @override
+  void onClose() {
+    // Limpieza adicional si es necesaria
+    super.onClose();
+  }
+
+  Future<void> _loadProjectData() async {
     try {
-      // Aquí se cargarían los datos reales desde el servicio
-      // Por ahora usamos datos de ejemplo
-      _loadMockDashboardData(projectId);
+      isLoading(true);
+      hasError(false);
+
+      // Intentar obtener el proyecto del contexto
+      ProjectModel? contextProject = projectContextService.currentProject;
+
+      // Si no hay proyecto en el contexto, intentar obtenerlo de la ruta
+      if (contextProject == null) {
+        final String currentRoute = Get.currentRoute;
+        final RegExp regex = RegExp(r'/projects/(\d+)/');
+        final match = regex.firstMatch(currentRoute);
+
+        if (match != null && match.groupCount >= 1) {
+          final String projectIdStr = match.group(1)!;
+          final int projectId = int.tryParse(projectIdStr) ?? 0;
+
+          if (projectId > 0) {
+            // Cargar el proyecto desde el servicio
+            contextProject = await projectService.getProjectById(projectId);
+
+            // Actualizar el contexto con este proyecto
+            if (contextProject != null) {
+              projectContextService.setCurrentProject(contextProject);
+            }
+          }
+        }
+      }
+
+      // Verificar si tenemos un proyecto válido
+      if (contextProject != null) {
+        _project.value = contextProject;
+      } else {
+        // No se pudo cargar el proyecto
+        hasError(true);
+        errorMessage('No se pudo obtener el proyecto actual.');
+        _showErrorAndNavigateBack();
+      }
     } catch (e) {
-      hasError.value = true;
-      errorMessage.value = 'Error cargando datos del dashboard: $e';
+      hasError(true);
+      errorMessage('Error al cargar datos del proyecto: $e');
+      _showErrorAndNavigateBack();
+    } finally {
+      isLoading(false);
     }
   }
 
-  /// Carga datos de ejemplo para el dashboard
-  void _loadMockDashboardData(int projectId) {
-    Future.delayed(const Duration(milliseconds: 800), () {
-      final now = DateTime.now();
-
-      // Simular proyecto
-      final mockProject = ProjectModel(
-        id: projectId,
-        name: 'Proyecto Demo',
-        description: 'Este es un proyecto de demostración',
-        clientId: 1,
-        managerId: 1,
-        startDate: now.subtract(const Duration(days: 30)),
-        estimatedEndDate: now.add(const Duration(days: 60)),
-        estimatedBudget: 50000.0,
-        stateId: 2,
-        commissionPercentage: 10.0,
+  void _showErrorAndNavigateBack() {
+    // Mostrar error y regresar a la lista de proyectos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.snackbar(
+        'Error',
+        errorMessage.value,
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Get.theme.colorScheme.error,
+        colorText: Get.theme.colorScheme.onError,
+        duration: const Duration(seconds: 3),
       );
 
-      // Actualizar proyecto
-      project.value = mockProject;
-
-      // Calcular días restantes
-      if (mockProject.estimatedEndDate != null) {
-        daysLeft.value = mockProject.estimatedEndDate!.difference(now).inDays;
-      }
-
-      // Actualizar métricas simuladas
-      totalActivities.value = 12;
-      completedActivities.value = 5;
-      pendingDocuments.value = 3;
-      budget.value = mockProject.estimatedBudget ?? 0.0;
-      completion.value = 42.0; // Porcentaje de avance
-
-      isLoading.value = false;
+      // Regresar a la lista de proyectos después de mostrar el error
+      Future.delayed(const Duration(seconds: 2), () {
+        Get.offNamed('/projects');
+      });
     });
   }
 
-  /// Refresca los datos del dashboard
-  void refreshData(int projectId) {
-    loadDashboard(projectId);
+  void refreshData() {
+    _loadProjectData();
   }
 
-  /// Calcula el porcentaje de actividades completadas
-  double getActivitiesCompletionRate() {
-    if (totalActivities.value == 0) return 0.0;
-    return (completedActivities.value / totalActivities.value) * 100;
-  }
+  void navigateBack() {
+    // Limpiar el proyecto actual al salir
+    projectContextService.clearCurrentProject();
 
-  /// Obtiene el estado de salud del proyecto basado en diversas métricas
-  String getProjectHealthStatus() {
-    // Aquí se podría implementar lógica más compleja
-    if (completion.value < 20) {
-      return 'En riesgo';
-    } else if (completion.value < 50) {
-      return 'Atención requerida';
-    } else {
-      return 'Saludable';
-    }
+    // Navegar a la vista de proyectos
+    Get.offNamed('/projects');
   }
 }

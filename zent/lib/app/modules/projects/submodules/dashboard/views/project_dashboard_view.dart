@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../../data/services/active_project_service.dart';
 import '../controllers/project_dashboard_controller.dart';
 import '../../../../../../app/data/models/project_model.dart';
-import '../../../../../../app/data/services/project_context_service.dart';
 import '../../../../../../app/shared/widgets/main_layout.dart';
 
 /// Vista para el dashboard de un proyecto específico
@@ -11,72 +11,70 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
 
   @override
   Widget build(BuildContext context) {
-    final projectContextService = Get.find<ProjectContextService>();
+    // Obtenemos el proyecto del controlador
+    return Obx(() {
+      // Si estamos cargando o hay error
+      if (controller.isLoading.value) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
 
-    // Verificamos que exista un proyecto en el contexto
-    if (projectContextService.currentProject == null) {
-      return _buildErrorState('No se ha seleccionado un proyecto');
-    }
+      if (controller.hasError.value) {
+        return _buildErrorState(controller.errorMessage.value);
+      }
 
-    final ProjectModel project = projectContextService.currentProject!;
+      // Si no tenemos proyecto
+      if (controller.project == null) {
+        return _buildErrorState('No se ha seleccionado un proyecto');
+      }
 
-    // Cargamos los datos cuando se construye la vista
-    controller.loadDashboard(project.id);
+      // Si todo está bien, mostramos el dashboard
+      return _buildDashboardContent(context, controller.project!);
+    });
+  }
 
+  /// Construye el contenido principal del dashboard
+  Widget _buildDashboardContent(BuildContext context, ProjectModel project) {
     return MainLayout(
       pageTitle: 'Dashboard: ${project.name}',
       textController:
           TextEditingController(), // Controlador vacío ya que no se usa búsqueda aquí
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Obx(() {
-          if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Indicadores de estado
+              _buildStatusIndicators(project),
+              const SizedBox(height: 24),
 
-          if (controller.hasError.value) {
-            return _buildErrorState(controller.errorMessage.value);
-          }
+              // Tarjetas de métricas principales
+              _buildMetricsCards(),
+              const SizedBox(height: 24),
 
-          return _buildDashboardContent(context, project);
-        }),
-      ),
-    );
-  }
+              // Gráfica de avance (placeholder)
+              _buildProgressChart(),
+              const SizedBox(height: 24),
 
-  /// Construye el contenido principal del dashboard
-  Widget _buildDashboardContent(BuildContext context, ProjectModel project) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Indicadores de estado
-          _buildStatusIndicators(),
-          const SizedBox(height: 24),
-
-          // Tarjetas de métricas principales
-          _buildMetricsCards(),
-          const SizedBox(height: 24),
-
-          // Gráfica de avance (placeholder)
-          _buildProgressChart(),
-          const SizedBox(height: 24),
-
-          // Información adicional
-          _buildAdditionalInfo(),
-        ],
+              // Información adicional
+              _buildAdditionalInfo(project),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   /// Construye los indicadores de estado del proyecto
-  Widget _buildStatusIndicators() {
+  Widget _buildStatusIndicators(ProjectModel project) {
     return Row(
       children: [
         Expanded(
           child: _buildIndicatorCard(
             title: 'Presupuesto',
-            value: '\$${controller.budget.value.toStringAsFixed(2)}',
+            value: '\$${project.estimatedBudget?.toStringAsFixed(2) ?? "0.00"}',
             icon: Icons.monetization_on_outlined,
             color: Colors.green,
           ),
@@ -85,9 +83,9 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
         Expanded(
           child: _buildIndicatorCard(
             title: 'Días restantes',
-            value: '${controller.daysLeft.value} días',
+            value: _calcularDiasRestantes(project),
             icon: Icons.calendar_today,
-            color: _getDaysLeftColor(),
+            color: _getDaysLeftColor(project),
           ),
         ),
       ],
@@ -106,8 +104,7 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
             Expanded(
               child: _buildMetricCard(
                 title: 'Actividades',
-                value:
-                    '${controller.completedActivities.value}/${controller.totalActivities.value}',
+                value: 'Por implementar',
                 icon: Icons.task_alt,
                 color: Colors.blue,
               ),
@@ -116,7 +113,7 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
             Expanded(
               child: _buildMetricCard(
                 title: 'Documentos Pendientes',
-                value: '${controller.pendingDocuments.value}',
+                value: 'Por implementar',
                 icon: Icons.description,
                 color: Colors.amber,
               ),
@@ -144,9 +141,9 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                '${controller.completion.value.toStringAsFixed(1)}%',
-                style: const TextStyle(
+              const Text(
+                'Próximamente',
+                style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
@@ -163,18 +160,18 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
                 child: Row(
                   children: [
                     Container(
-                      width: 200 * (controller.completion.value / 100),
-                      color: _getCompletionColor(),
+                      width: 100, // 50% de avance como ejemplo
+                      color: Colors.blue,
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                'Estado: ${controller.getProjectHealthStatus()}',
+              const Text(
+                'Estado: En desarrollo',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
-                  color: _getHealthStatusColor(),
+                  color: Colors.blue,
                 ),
               ),
             ],
@@ -185,11 +182,7 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
   }
 
   /// Construye información adicional del proyecto
-  Widget _buildAdditionalInfo() {
-    // Obtenemos el proyecto del contexto para poder pasarlo a los métodos
-    final ProjectModel project =
-        Get.find<ProjectContextService>().currentProject!;
-
+  Widget _buildAdditionalInfo(ProjectModel project) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -312,33 +305,51 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
 
   /// Muestra el estado de error
   Widget _buildErrorState(String message) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 48,
-            color: Get.theme.colorScheme.error,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Error',
-            style: Get.textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => Get.offNamed('/projects'),
-            child: const Text('Volver a Proyectos'),
-          ),
-        ],
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Get.theme.colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error',
+              style: Get.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // Usar el nuevo ActiveProjectService para navegar de vuelta a proyectos
+                // y asegurar que el sidebar se actualice correctamente
+                Get.find<ActiveProjectService>().navigateBackToProjects();
+              },
+              child: const Text('Volver a Proyectos'),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  /// Calcula días restantes del proyecto
+  String _calcularDiasRestantes(ProjectModel project) {
+    if (project.estimatedEndDate == null) {
+      return 'No definido';
+    }
+
+    final now = DateTime.now();
+    final daysLeft = project.estimatedEndDate!.difference(now).inDays;
+
+    return '$daysLeft días';
   }
 
   /// Obtiene una representación textual del estado del proyecto
@@ -359,27 +370,14 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     }
   }
 
-  /// Obtiene el color según el estado del proyecto
-  Color _getStateColor(ProjectModel project) {
-    switch (project.stateId) {
-      case 1:
-        return Colors.blue;
-      case 2:
-        return Colors.green;
-      case 3:
-        return Colors.purple;
-      case 4:
-        return Colors.orange;
-      case 5:
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
   /// Obtiene el color según los días restantes
-  Color _getDaysLeftColor() {
-    final days = controller.daysLeft.value;
+  Color _getDaysLeftColor(ProjectModel project) {
+    if (project.estimatedEndDate == null) {
+      return Colors.grey;
+    }
+
+    final now = DateTime.now();
+    final days = project.estimatedEndDate!.difference(now).inDays;
 
     if (days < 0) {
       return Colors.red; // Vencido
@@ -387,34 +385,6 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
       return Colors.orange; // Próximo a vencer
     } else {
       return Colors.blue; // A tiempo
-    }
-  }
-
-  /// Obtiene el color según el porcentaje de avance
-  Color _getCompletionColor() {
-    final completion = controller.completion.value;
-
-    if (completion < 25) {
-      return Colors.red;
-    } else if (completion < 50) {
-      return Colors.orange;
-    } else if (completion < 75) {
-      return Colors.blue;
-    } else {
-      return Colors.green;
-    }
-  }
-
-  /// Obtiene el color según el estado de salud del proyecto
-  Color _getHealthStatusColor() {
-    final status = controller.getProjectHealthStatus();
-
-    if (status == 'En riesgo') {
-      return Colors.red;
-    } else if (status == 'Atención requerida') {
-      return Colors.orange;
-    } else {
-      return Colors.green;
     }
   }
 
