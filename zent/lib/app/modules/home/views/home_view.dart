@@ -43,46 +43,60 @@ class HomeView extends GetView<HomeController> {
 
   /// Construye el banner de bienvenida con el nombre del usuario
   Widget _buildWelcomeBanner() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Obx(() => Text(
-                'Bienvenido, ${controller.userName}!',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
-          IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              size: 18,
-              color: Color.fromARGB(255, 49, 63, 85),
+    return LayoutBuilder(builder: (context, constraints) {
+      final double maxWidth = constraints.maxWidth;
+      final double fontSize = (maxWidth * 0.03).clamp(16.0, 22.0);
+      final double iconSize = (maxWidth * 0.03).clamp(16.0, 20.0);
+      final double paddingBottom = (maxWidth * 0.025).clamp(16.0, 24.0);
+
+      final theme = Theme.of(context);
+
+      return Padding(
+        padding: EdgeInsets.only(bottom: paddingBottom, left: 10, right: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Obx(() => Text(
+                  'Bienvenido, ${controller.userName}!',
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                )),
+            IconButton(
+              icon: Icon(
+                Icons.refresh,
+                size: iconSize,
+                color: theme.colorScheme.onSurface,
+              ),
+              onPressed: () => controller.refreshData(),
+              tooltip: 'Refrescar datos',
+              padding: EdgeInsets.zero,
+              constraints: BoxConstraints(
+                  minWidth: iconSize + 10, minHeight: iconSize + 10),
             ),
-            onPressed: () => controller.refreshData(),
-            tooltip: 'Refrescar datos',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   /// Layout para pantallas estrechas - 1 columna con scroll
   Widget _buildSingleColumnLayout(double spacing) {
+    // Aumentamos el espaciado entre elementos
+    final double enhancedSpacing = spacing * 1.5;
+
     return SingleChildScrollView(
       child: Column(
         children: [
           // Cambiamos el orden en la vista de columna única
           const QuickActionsSection(),
-          SizedBox(height: spacing),
+          SizedBox(height: enhancedSpacing),
           _buildChartSectionWithCard(),
-          SizedBox(height: spacing),
+          SizedBox(height: enhancedSpacing),
           StatisticsGridSection(controller: controller),
-          SizedBox(height: spacing),
+          SizedBox(height: enhancedSpacing),
           SizedBox(
             height: 300, // Altura fija para la sección de proyectos
             child: _buildRecentProjectsWithCard(),
@@ -94,6 +108,9 @@ class HomeView extends GetView<HomeController> {
 
   /// Layout para pantallas normales - Grid 2x2
   Widget _buildTwoColumnsLayout(double spacing) {
+    // Aumentamos el espaciado entre elementos
+    final double enhancedSpacing = spacing * 1.5;
+
     return Column(
       children: [
         // Primera fila - Intercambiamos las posiciones
@@ -103,13 +120,13 @@ class HomeView extends GetView<HomeController> {
             children: [
               // Cuadrante superior izquierdo: ACCIONES RÁPIDAS (antes era la gráfica)
               const Expanded(child: QuickActionsSection()),
-              SizedBox(width: spacing),
+              SizedBox(width: enhancedSpacing),
               // Cuadrante superior derecho: GRÁFICA (antes eran las acciones rápidas)
               Expanded(child: _buildChartSectionWithCard()),
             ],
           ),
         ),
-        SizedBox(height: spacing),
+        SizedBox(height: enhancedSpacing),
         // Segunda fila (se mantiene igual)
         Expanded(
           child: Row(
@@ -117,7 +134,7 @@ class HomeView extends GetView<HomeController> {
             children: [
               // Cuadrante inferior izquierdo: Proyectos recientes
               Expanded(child: _buildRecentProjectsWithCard()),
-              SizedBox(width: spacing),
+              SizedBox(width: enhancedSpacing),
               // Cuadrante inferior derecho: Estadísticas
               Expanded(child: StatisticsGridSection(controller: controller)),
             ],

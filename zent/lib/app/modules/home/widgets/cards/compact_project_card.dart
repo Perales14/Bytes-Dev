@@ -35,9 +35,12 @@ class CompactProjectCard extends StatelessWidget {
       final double iconSize = (maxWidth * 0.038).clamp(14.0, 20.0);
       final double titleFontSize = (maxWidth * 0.033).clamp(12.0, 15.0);
       final double subtitleFontSize = (maxWidth * 0.025).clamp(10.0, 12.0);
+      
+      // Calculamos el padding horizontal proporcional al ancho disponible
+      final double horizontalPadding = (maxWidth * 0.05).clamp(12.0, 20.0);
 
       return ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        contentPadding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 2),
         dense: true,
         visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
         leading: CircleAvatar(
@@ -47,7 +50,7 @@ class CompactProjectCard extends StatelessWidget {
         ),
         title: Text(
           project.name,
-          style: theme.textTheme.bodyMedium?.copyWith(
+          style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.bold,
             fontSize: titleFontSize,
           ),

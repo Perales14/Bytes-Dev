@@ -64,11 +64,19 @@ class RecentProjectsSection extends StatelessWidget {
         }
 
         final projects = controller.recentProjects.take(5).toList();
-        return ListView.separated(
-          itemCount: projects.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
-          itemBuilder: (context, index) => CompactProjectCard(
-            project: projects[index],
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0),
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            itemCount: projects.length,
+            separatorBuilder: (_, __) => const Divider(
+              height: 1, 
+              indent: 8, 
+              endIndent: 8,
+            ),
+            itemBuilder: (context, index) => CompactProjectCard(
+              project: projects[index],
+            ),
           ),
         );
       }),
