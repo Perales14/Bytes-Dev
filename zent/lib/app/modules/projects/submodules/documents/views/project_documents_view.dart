@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/modules/projects/submodules/documents/widgets/file_drag.dart';
 import '../controllers/project_documents_controller.dart';
 import '../../../../../../app/data/models/project_model.dart';
 import '../../../../../../app/data/services/project_context_service.dart';
 import '../../../../../../app/shared/widgets/form/widgets/file_upload_panel.dart';
 import '../../../../../../app/shared/widgets/main_layout.dart';
+import '../widgets/file_cards.dart';
 
 /// Vista para la sección de documentos de un proyecto
 class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
@@ -33,11 +35,17 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-
+            SizedBox(
+              width: double.infinity,
+              height: 240,
+              child: const FileDragWidget(),
+            ),
             // Listado de documentos
             Expanded(
               child: Stack(
                 children: [
+                  // Drag and drop area
+
                   Obx(() {
                     if (controller.isLoading.value) {
                       return const Center(child: CircularProgressIndicator());
@@ -51,17 +59,6 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
 
                     return _buildDocumentsList(documents);
                   }),
-
-                  // Botón flotante dentro del Stack
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: FloatingActionButton(
-                      onPressed: _showUploadDialog,
-                      tooltip: 'Subir documento',
-                      child: const Icon(Icons.upload_file),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -104,14 +101,39 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
 
   /// Construye la lista de documentos
   Widget _buildDocumentsList(List<FileData> documents) {
-    return ListView.separated(
-      itemCount: documents.length,
-      separatorBuilder: (context, index) => const Divider(),
-      itemBuilder: (context, index) {
-        final doc = documents[index];
-        return _buildDocumentItem(doc);
+    return FileCardsGrid(
+      files: documents,
+      onDownload: (file) {
+        // Aquí se manejaría el evento de tap en el archivo
+        //para la descaga del archivo, de momento mostrar un snackbar
+        Get.snackbar(
+          'Información',
+          'Descargando archivo: ${file.name}',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        // Handle file tap here
+      },
+      onDelete: (file) {
+        // Aquí se manejaría el evento de tap en el archivo
+        //para la descaga del archivo, de momento mostrar un snackbar
+        Get.snackbar(
+          'Información',
+          'Descargando archivo: ${file.name}',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+        // Handle file tap here
       },
     );
+    // return ListView.separated(
+    //   itemCount: documents.length,
+    //   separatorBuilder: (context, index) => const Divider(),
+    //   itemBuilder: (context, index) {
+    //     final doc = documents[index];
+    //     return _buildDocumentItem(doc);
+    //   },
+    // );
   }
 
   /// Construye un elemento de documento
