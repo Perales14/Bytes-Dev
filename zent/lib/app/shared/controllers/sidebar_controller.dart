@@ -5,9 +5,6 @@ import 'package:zent/app/data/services/session_service.dart';
 import 'package:zent/app/shared/models/sidebar_item.dart';
 import 'package:zent/app/shared/widgets/dialogs/confirmation_dialog.dart';
 
-/// Controlador para manejar el estado y comportamiento de la barra lateral.
-/// Gestiona los elementos visibles según el rol del usuario y controla
-/// la navegación entre diferentes rutas de la aplicación.
 class SidebarController extends GetxController {
   final SessionService _sessionService = Get.find<SessionService>();
 
