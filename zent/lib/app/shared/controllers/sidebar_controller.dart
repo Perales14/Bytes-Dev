@@ -10,23 +10,16 @@ import 'package:zent/app/shared/widgets/dialogs/confirmation_dialog.dart';
 /// Controlador responsable de gestionar los elementos de la barra lateral
 /// y su comportamiento según el rol del usuario.
 class SidebarController extends GetxController {
-  // Inyección de dependencias
   final SessionService _sessionService = Get.find<SessionService>();
   final ProjectContextService _projectContextService =
       Get.find<ProjectContextService>();
 
-  // Variables reactivas
   final RxList<SidebarItem> _visibleSidebarItems = <SidebarItem>[].obs;
   final RxList<SidebarItem> _staticSidebarItems = <SidebarItem>[].obs;
   final RxBool isOpen = true.obs;
-
-  // Variable para controlar cuando estamos en un submódulo de proyecto
   final Rx<ProjectModel?> _currentProject = Rx<ProjectModel?>(null);
-
-  // Variable reactiva para la ruta actual
   final RxString _currentRoute = ''.obs;
 
-  // Getters
   List<SidebarItem> get visibleSidebarItems => _visibleSidebarItems;
   List<SidebarItem> get staticSidebarItems => _staticSidebarItems;
   ProjectModel? get currentProject => _currentProject.value;
@@ -38,22 +31,13 @@ class SidebarController extends GetxController {
     _setupObservers();
   }
 
-  /// Configura los observers para reaccionar a cambios relevantes
   void _setupObservers() {
-    // Observer para cambios de proyecto en el ProjectContextService
     ever(_projectContextService.rxCurrentProject, _handleProjectContextChange);
-
-    // Observer para detectar cuando salimos de un proyecto
     ever(_projectContextService.rxJustExitedProject, _handleProjectExit);
 
-    // Configurar el observer de rutas
-    // Actualizar el valor inicial
     _currentRoute.value = Get.currentRoute;
-
-    // Registrar un observer para escuchar cambios de ruta
     ever(_currentRoute, _handleRouteChange);
 
-    // Usar GetMaterialApp.navigatorKey para suscribirse a los cambios de ruta
     Get.rootController.addListener(() {
       if (Get.currentRoute != _currentRoute.value) {
         _currentRoute.value = Get.currentRoute;
@@ -61,33 +45,24 @@ class SidebarController extends GetxController {
     });
   }
 
-  /// Maneja cambios en el contexto de proyecto
   void _handleProjectContextChange(ProjectModel? project) {
     _currentProject.value = project;
     _updateSidebarBasedOnCurrentState();
   }
 
-  /// Maneja la salida de un proyecto
   void _handleProjectExit(bool justExited) {
     if (justExited) {
       _currentProject.value = null;
-      // Restauramos el menú según el rol del usuario
       _updateSidebarIfAuthenticated();
-      // Reiniciamos el flag para evitar que se ejecute múltiples veces
       _projectContextService.resetExitedProjectFlag();
     }
   }
 
-  /// Maneja cambios de ruta para actualizar el sidebar según corresponda
   void _handleRouteChange(String route) {
-    // Si la nueva ruta es /projects, asegurarse de restaurar el menú principal
     if (route == '/projects') {
       _currentProject.value = null;
       _updateSidebarIfAuthenticated();
-    }
-    // Si entramos a una ruta de proyecto específico y no tenemos proyecto activo,
-    // intentar obtenerlo del contexto
-    else if (route.contains('/projects/') && _currentProject.value == null) {
+    } else if (route.contains('/projects/') && _currentProject.value == null) {
       final projectFromContext = _projectContextService.currentProject;
       if (projectFromContext != null) {
         _currentProject.value = projectFromContext;
@@ -96,20 +71,17 @@ class SidebarController extends GetxController {
     }
   }
 
-  /// Actualiza los elementos del submenu del proyecto actual
   void _updateProjectSubmenuItems() {
     if (_currentProject.value != null) {
       _loadProjectSubmenuItems(_currentProject.value!);
     }
   }
 
-  /// Inicializa la barra lateral y configura los observers
   void _initializeSidebarItems() {
     try {
       _loadDefaultSidebarItems();
       _updateSidebarIfAuthenticated();
 
-      // Configurar observers para cambios de autenticación y usuario
       ever(_sessionService.rxIsAuthenticated,
           (_) => _updateSidebarIfAuthenticated());
       ever(_sessionService.rxCurrentUser,
@@ -122,7 +94,6 @@ class SidebarController extends GetxController {
     }
   }
 
-  /// Actualiza la barra lateral si hay un usuario autenticado
   void _updateSidebarIfAuthenticated() {
     if (_sessionService.isAuthenticated &&
         _sessionService.currentUser != null) {
@@ -132,37 +103,29 @@ class SidebarController extends GetxController {
     }
   }
 
-  /// Establece el proyecto actual para mostrar su submenú
   void setCurrentProject(ProjectModel? project) {
     _currentProject.value = project;
     _updateSidebarBasedOnCurrentState();
   }
 
-  /// Actualiza el sidebar basado en el estado actual
   void _updateSidebarBasedOnCurrentState() {
-    // Si tenemos un proyecto activo, mostrar su menú
     if (_currentProject.value != null) {
       _loadProjectSubmenuItems(_currentProject.value!);
     } else {
-      // Si no hay proyecto activo, restaurar el menú según el rol
       _updateSidebarIfAuthenticated();
     }
   }
 
-  /// Carga los elementos del submenú para un proyecto específico
   void _loadProjectSubmenuItems(ProjectModel project) {
     final int projectId = project.id;
     final String projectName = project.name;
 
     _visibleSidebarItems.value = [
-      // Botón para volver a la lista de proyectos
       SidebarItem(
         icon: Icons.arrow_back,
         label: 'Volver a Proyectos',
         routeName: '/projects',
       ),
-
-      // Título del proyecto (no navegable)
       SidebarItem(
         icon: Icons.business_center_rounded,
         label: 'Proyecto: ${_truncateText(projectName, 15)}',
@@ -186,15 +149,12 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Trunca un texto si excede la longitud especificada
   String _truncateText(String text, int maxLength) {
     if (text.length <= maxLength) return text;
     return '${text.substring(0, maxLength)}...';
   }
 
-  /// Carga los elementos predeterminados de la barra lateral
   void _loadDefaultSidebarItems() {
-    // Elementos dinámicos según el caso predeterminado
     _visibleSidebarItems.value = [
       SidebarItem(
         icon: Icons.dashboard,
@@ -223,14 +183,7 @@ class SidebarController extends GetxController {
       ),
     ];
 
-    // Elementos estáticos
     _staticSidebarItems.value = [
-      SidebarItem(
-        icon: Icons.settings,
-        label: 'Configuración',
-        routeName: '/settings',
-        isStatic: true,
-      ),
       SidebarItem(
         icon: Icons.logout,
         label: 'Cerrar Sesión',
@@ -242,7 +195,6 @@ class SidebarController extends GetxController {
 
   /// Actualiza los elementos de la barra lateral según el ID del rol
   void updateSidebarItemsByRoleId(int roleId) {
-    // Si hay un proyecto activo, priorizamos mostrar su menú
     if (_currentProject.value != null) {
       _loadProjectSubmenuItems(_currentProject.value!);
       return;
@@ -267,9 +219,7 @@ class SidebarController extends GetxController {
     update();
   }
 
-  /// Actualiza los elementos de la barra lateral según el nombre del rol
   void updateSidebarItemsByRole(String role) {
-    // Si hay un proyecto activo, priorizamos mostrar su menú
     if (_currentProject.value != null) {
       _loadProjectSubmenuItems(_currentProject.value!);
       return;
@@ -294,7 +244,6 @@ class SidebarController extends GetxController {
     update();
   }
 
-  /// Carga los elementos de la barra lateral para el rol de administrador
   void _loadAdminSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -323,14 +272,13 @@ class SidebarController extends GetxController {
         routeName: '/providers',
       ),
       SidebarItem(
-        icon: Icons.analytics,
-        label: 'Reportes',
-        routeName: '/reports',
+        icon: Icons.description_rounded,
+        label: 'Documentos',
+        routeName: '/documents',
       ),
     ];
   }
 
-  /// Carga los elementos de la barra lateral para el rol de recursos humanos
   void _loadRRHHSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -356,7 +304,6 @@ class SidebarController extends GetxController {
     ];
   }
 
-  /// Carga los elementos de la barra lateral para el rol de promotor
   void _loadPromotorSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -374,15 +321,9 @@ class SidebarController extends GetxController {
         label: 'Clientes',
         routeName: '/clients',
       ),
-      SidebarItem(
-        icon: Icons.analytics,
-        label: 'Reportes',
-        routeName: '/reports',
-      ),
     ];
   }
 
-  /// Carga los elementos de la barra lateral para el rol de captador
   void _loadCaptadorSidebarItems() {
     _visibleSidebarItems.value = [
       SidebarItem(
@@ -393,41 +334,33 @@ class SidebarController extends GetxController {
       SidebarItem(
         icon: Icons.business_center_rounded,
         label: 'Proyectos Asignados',
-        routeName: '/assigned-projects',
+        routeName: '/projects',
       ),
     ];
   }
 
-  /// Verifica si la ruta actual está activa
   bool isRouteActive(String routeName) {
-    // Si acabamos de salir de un proyecto y estamos verificando la ruta de proyectos,
-    // marcar como activa independientemente de la ruta actual
     if (routeName == '/projects' && _projectContextService.justExitedProject) {
       return true;
     }
 
-    // Priorizar la ruta '/projects' cuando estamos en esa vista
     if (Get.currentRoute == '/projects' && routeName == '/projects') {
       return true;
     }
 
-    // Para otras rutas, verificación estándar
     return Get.currentRoute == routeName;
   }
 
-  /// Navega a la ruta especificada o maneja el cierre de sesión
   void navigateTo(String routeName) {
     if (routeName == '/logout') {
       _handleLogout();
     } else if (routeName == '/projects' && _currentProject.value != null) {
-      // Si estamos en un proyecto y hacemos clic en "Volver a Proyectos"
       navigateBackToProjects();
     } else {
       Get.toNamed(routeName);
     }
   }
 
-  /// Maneja el proceso de cierre de sesión con confirmación
   Future<void> _handleLogout() async {
     try {
       final bool? confirmLogout = await ConfirmationDialog.show(
@@ -448,7 +381,6 @@ class SidebarController extends GetxController {
     }
   }
 
-  /// Muestra un mensaje de error al cerrar sesión
   void _showLogoutErrorSnackbar() {
     final theme = Get.theme;
     Get.snackbar(
@@ -464,35 +396,20 @@ class SidebarController extends GetxController {
     );
   }
 
-  /// Alterna la visibilidad de la barra lateral
   void toggleSidebar() {
     isOpen.value = !isOpen.value;
   }
 
-  /// Actualiza el sidebar cuando se sale de un proyecto
   void updateForProjectExit() {
-    // Limpiar el proyecto actual
     _currentProject.value = null;
-
-    // Restaurar el menú principal según el rol del usuario
     _updateSidebarIfAuthenticated();
-
-    // Forzar actualización de la UI
     update();
   }
 
-  /// Método para manejar la navegación desde "Volver a Proyectos"
   void navigateBackToProjects() {
-    // Navegar a la vista de proyectos
     Get.offNamed('/projects');
-
-    // Limpiar el proyecto actual del sidebar
     _currentProject.value = null;
-
-    // Restaurar el menú correspondiente al rol del usuario
     _updateSidebarIfAuthenticated();
-
-    // Forzar actualización de la UI
     update();
   }
 }

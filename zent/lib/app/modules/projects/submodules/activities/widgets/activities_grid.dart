@@ -113,14 +113,6 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
                       stateId: 4,
                       color: Colors.orange,
                     ),
-                  if (controller.showStateId(5))
-                    _buildColumn(
-                      context: context,
-                      title: 'Archivado',
-                      activities: controller.getActivitiesByState(5),
-                      stateId: 5,
-                      color: Colors.purple,
-                    ),
 
                   // Columna invisible extra para forzar scroll
                   Container(

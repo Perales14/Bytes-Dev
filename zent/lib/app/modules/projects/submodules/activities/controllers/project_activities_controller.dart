@@ -30,7 +30,6 @@ class ProjectActivitiesController extends GetxController {
     2: true, // En progreso
     3: true, // Finalizado
     4: true, // Cancelado
-    5: true, // Archivado
   }.obs;
 
   /// Nombres de estados para UI
@@ -39,7 +38,6 @@ class ProjectActivitiesController extends GetxController {
     2: 'En progreso',
     3: 'Finalizado',
     4: 'Cancelado',
-    5: 'Archivado',
   };
 
   /// Obtiene texto para el selector de filtros

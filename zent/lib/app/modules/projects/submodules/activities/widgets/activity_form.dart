@@ -164,7 +164,6 @@ class ActivityForm extends BaseForm {
       2: 'En progreso',
       3: 'Finalizado',
       4: 'Cancelado',
-      5: 'Archivado',
     };
 
     final stateOptions = states.values.toList();
