@@ -12,7 +12,6 @@ import '../../../data/services/user_service.dart';
 import '../../../data/services/provider_service.dart';
 import '../../../shared/controllers/base_form_controller.dart';
 import '../../../shared/validators/validators.dart' as validators;
-import '../views/projects_view.dart';
 import 'projects_controller.dart';
 import '../../../data/services/session_service.dart';
 

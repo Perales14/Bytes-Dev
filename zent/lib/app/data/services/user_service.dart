@@ -26,6 +26,18 @@ class UserService extends GetxService {
   Future<List<UserModel>> getEmployeesByDepartment(String department) =>
       _provider.getEmployeesByDepartment(department);
 
+  // Método para obtener usuarios por roles específicos y que estén activos
+  Future<List<UserModel>> getUsersByRoles(List<int> roleIds) async {
+    try {
+      final allUsers =
+          await getActiveEmployees(); // Solo usuarios activos (stateId = 1)
+      return allUsers.where((user) => roleIds.contains(user.roleId)).toList();
+    } catch (e) {
+      print('Error al obtener usuarios por roles: $e');
+      return [];
+    }
+  }
+
   Future<UserModel> setEmployeeInactive(int id) async {
     try {
       final employee = await getUserById(id);

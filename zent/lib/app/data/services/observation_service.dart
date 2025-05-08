@@ -47,6 +47,19 @@ class ObservationService extends GetxService {
     return await createObservation(observation);
   }
 
+  // Formats observation text with bullet points
+  String formatObservation(String text) {
+    if (text.isEmpty) return '';
+
+    List<String> lines = text.split('\n');
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].isNotEmpty && !lines[i].startsWith('• ')) {
+        lines[i] = '• ${lines[i]}';
+      }
+    }
+    return lines.join('\n');
+  }
+
   // Get formatted date for display
   String getFormattedCreationDate(ObservationModel observation) {
     final now = DateTime.now();

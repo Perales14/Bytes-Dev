@@ -2,6 +2,7 @@ import 'base_model.dart';
 
 class ActivityModel extends BaseModel {
   int projectId;
+  String? title;
   String description;
   int? managerId;
   DateTime? startDate;
@@ -12,6 +13,7 @@ class ActivityModel extends BaseModel {
 
   ActivityModel({
     super.id = 0,
+    this.title,
     required this.projectId,
     required this.description,
     this.managerId,
@@ -27,7 +29,7 @@ class ActivityModel extends BaseModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      'title': title,
       'project_id': projectId,
       'description': description,
       'manager_id': managerId,
@@ -46,6 +48,7 @@ class ActivityModel extends BaseModel {
   ActivityModel fromMap(Map<String, dynamic> map) {
     return ActivityModel(
       id: map['id'] ?? 0,
+      title: map['title'] ?? '',
       projectId: map['project_id'] ?? 0,
       description: map['description'] ?? '',
       managerId: map['manager_id'],
@@ -63,6 +66,7 @@ class ActivityModel extends BaseModel {
   factory ActivityModel.fromJson(Map<String, dynamic> map) {
     return ActivityModel(
       id: map['id'] ?? 0,
+      title: map['title'] ?? '',
       projectId: map['project_id'] ?? 0,
       description: map['description'] ?? '',
       managerId: map['manager_id'],
@@ -79,6 +83,7 @@ class ActivityModel extends BaseModel {
 
   ActivityModel copyWith({
     int? id,
+    String? title,
     int? projectId,
     String? description,
     int? managerId,
@@ -92,6 +97,7 @@ class ActivityModel extends BaseModel {
   }) {
     return ActivityModel(
       id: id ?? this.id,
+      title: title ?? this.title,
       projectId: projectId ?? this.projectId,
       description: description ?? this.description,
       managerId: managerId ?? this.managerId,
