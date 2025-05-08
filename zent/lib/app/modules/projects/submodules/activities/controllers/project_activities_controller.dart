@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../data/models/activity_model.dart';
-import '../../../../../data/models/user_model.dart';
 import '../../../../../data/services/activity_service.dart';
 import '../../../../../data/services/project_context_service.dart';
 import '../../../../../data/services/user_service.dart';

@@ -21,7 +21,9 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
 
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: IntrinsicHeight(
+        child: SizedBox(
+          // Usar SizedBox con altura específica en lugar de IntrinsicHeight
+          height: MediaQuery.of(context).size.height * 0.75,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -115,10 +117,10 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
                         : _buildActivityList(activities),
                   );
                 },
-                onWillAcceptWithDetails: (details) =>
-                    details.data.stateId != stateId,
-                onAcceptWithDetails: (details) {
-                  _handleActivityDrop(details.data, stateId);
+                onWillAccept: (activity) => 
+                    activity != null && activity.stateId != stateId,
+                onAccept: (activity) {
+                  controller.updateActivityState(activity, stateId);
                 },
               ),
             ),
@@ -183,65 +185,45 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
     );
   }
 
-  /// Maneja el evento cuando una actividad es soltada en una columna
-  void _handleActivityDrop(ActivityModel activity, int stateId) async {
-    // Mostrar indicador de carga durante la actualización
-    final overlay = LoadingOverlay.show(
-      'Actualizando actividad...',
-    );
-
-    try {
-      final success = await controller.updateActivityState(activity, stateId);
-
-      if (!success) {
-        // El controlador ya muestra un snackbar de error si falla
-      }
-    } finally {
-      overlay.hide();
-    }
-  }
-
   /// Construye la lista de actividades dentro de una columna
   Widget _buildActivityList(List<ActivityModel> activities) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      itemCount: activities.length,
-      itemBuilder: (context, index) {
-        final activity = activities[index];
-        return _buildDraggableActivity(activity);
-      },
+    // Usar un SingleChildScrollView con Column en lugar de ListView.builder
+    // para evitar conflictos de scroll anidados
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      child: Column(
+        children: activities.map((activity) => _buildDraggableActivity(activity)).toList(),
+      ),
     );
   }
 
   /// Construye una actividad arrastrable para el tablero Kanban
   Widget _buildDraggableActivity(ActivityModel activity) {
-    return Obx(() => Draggable<ActivityModel>(
-          data: activity,
-          feedback: SizedBox(
-            width: 280,
-            child: Opacity(
-              opacity: 0.8,
-              child: ActivityCard(
-                activity: activity,
-                managerName: controller.getManagerName(activity.managerId),
-              ),
-            ),
-          ),
-          childWhenDragging: Opacity(
-            opacity: 0.3,
-            child: ActivityCard(
-              activity: activity,
-              managerName: controller.getManagerName(activity.managerId),
-            ),
-          ),
+    return Draggable<ActivityModel>(
+      data: activity,
+      feedback: SizedBox(
+        width: 280,
+        child: Opacity(
+          opacity: 0.8,
           child: ActivityCard(
             activity: activity,
             managerName: controller.getManagerName(activity.managerId),
-            onTap: () => controller.onActivityTap(activity),
           ),
-        ));
+        ),
+      ),
+      childWhenDragging: Opacity(
+        opacity: 0.3,
+        child: ActivityCard(
+          activity: activity,
+          managerName: controller.getManagerName(activity.managerId),
+        ),
+      ),
+      child: ActivityCard(
+        activity: activity,
+        managerName: controller.getManagerName(activity.managerId),
+        onTap: () => controller.onActivityTap(activity),
+      ),
+    );
   }
 
   /// Construye un indicador cuando una columna está vacía
