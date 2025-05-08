@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import '../app/data/models/project_model.dart';
 import '../app/modules/clients/bindings/clients_binding.dart';
 import '../app/modules/clients/views/clients_view.dart';
+import '../app/modules/documents/bindings/documents_bindings.dart';
+import '../app/modules/documents/views/documents_view.dart';
 import '../app/modules/projects/submodules/activities/bindings/project_activities_biding.dart';
 import '../app/modules/projects/submodules/dashboard/bindings/project_dashboard_biding.dart';
 import '../app/modules/projects/views/projects_view.dart';
@@ -35,6 +37,19 @@ class AppPages {
   static const INITIAL = Routes.SPLASH;
 
   static final routes = [
+    GetPage(
+      name: _Paths.DOCUMENTS,
+      page: () => const DocumentsView(),
+      binding: DocumentsBinding(),
+      middlewares: [
+        // Solo administradores y recursos humanos
+        RouteGuard(allowedRoles: [
+          SessionService.ROLE_ADMIN,
+          SessionService.ROLE_RRHH
+        ]),
+      ],
+    ),
+
     // Ruta de Splash (nueva)
     GetPage(
       name: _Paths.SPLASH,

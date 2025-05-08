@@ -61,113 +61,106 @@ class FileCardsGrid extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 48,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius:
-                  const BorderRadius.horizontal(left: Radius.circular(12)),
-              border: Border(
-                right: BorderSide(
-                  color: theme.dividerColor.withOpacity(0.2),
-                ),
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton(
-                  onPressed: () => onDownload(file),
-                  icon: Icons.download_rounded,
-                  label: 'Descargar',
-                  context: context,
-                  showLabel: false,
-                ),
-                Container(
-                  height: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                  color: theme.dividerColor.withOpacity(0.2),
-                ),
-                _buildActionButton(
-                  onPressed: () => onDelete(file),
-                  icon: Icons.delete_rounded,
-                  label: 'Eliminar',
-                  context: context,
-                  isDestructive: true,
-                  showLabel: false,
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: () => onFileTap?.call(file),
-                borderRadius:
-                    const BorderRadius.horizontal(right: Radius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: file.type.color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          file.type.icon,
-                          size: 32,
-                          color: file.type.color,
-                        ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: file.type.color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              file.name,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w500,
+                      child: Icon(
+                        file.type.icon,
+                        size: 32,
+                        color: file.type.color,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            file.name,
+                            style: theme.textTheme.titleMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Text(
+                                file.formattedSize,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.hintColor,
+                                ),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(
-                                  file.formattedSize,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.hintColor,
-                                  ),
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: 6),
+                                width: 4,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: theme.hintColor,
+                                  shape: BoxShape.circle,
                                 ),
-                                Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 6),
-                                  width: 4,
-                                  height: 4,
-                                  decoration: BoxDecoration(
-                                    color: theme.hintColor,
-                                    shape: BoxShape.circle,
-                                  ),
+                              ),
+                              Text(
+                                _formatDate(file.uploadDate),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.hintColor,
                                 ),
-                                Text(
-                                  _formatDate(file.uploadDate),
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.hintColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: 48,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(12)),
+                        border: Border(
+                          left: BorderSide(
+                            color: theme.dividerColor.withOpacity(0.2),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildActionButton(
+                            onPressed: () => onDownload(file),
+                            icon: Icons.download_rounded,
+                            label: 'Descargar',
+                            context: context,
+                            showLabel: false,
+                          ),
+                          Container(
+                            height: 1,
+                            margin: const EdgeInsets.symmetric(horizontal: 8),
+                            color: theme.dividerColor.withOpacity(0.2),
+                          ),
+                          _buildActionButton(
+                            onPressed: () => onDelete(file),
+                            icon: Icons.delete_rounded,
+                            label: 'Eliminar',
+                            context: context,
+                            isDestructive: true,
+                            showLabel: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

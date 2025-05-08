@@ -100,4 +100,37 @@ class FileRepository extends BaseRepository<FileModel> {
       throw Exception('Error marking file as sent: $e');
     }
   }
+
+  // Get file URL by entity type and entity id
+  // Future<String?> getFileUrl(int id, String entityType, int entityId) async {
+  //   try {
+  //     final files = await query('entity_id = ? AND entity_type = ? id = ?',
+  //         [entityId, entityType, id]);
+
+  //     if (files.isNotEmpty) {
+  //       return files.first.url;
+  //     }
+  //     return null;
+  //   } catch (e) {
+  //     throw Exception('Error getting file URL: $e');
+  //   }
+  // }
+
+  Future<List<String>> getFileUrlById(String id) async {
+    try {
+      final files = await query('id = ?', [id]);
+
+      if (files.isNotEmpty) {
+        // regresar first.url, y first.storagePath
+        return [
+          files.first.url,
+          files.first.storagePath,
+        ];
+        // return files.first.url;
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Error getting file URL: $e');
+    }
+  }
 }

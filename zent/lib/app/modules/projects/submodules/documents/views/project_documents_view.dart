@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:zent/app/data/models/file_model.dart';
+import 'package:zent/app/data/repositories/file_repository.dart';
 import 'package:zent/app/modules/projects/submodules/documents/widgets/file_drag.dart';
 import '../controllers/project_documents_controller.dart';
 import '../../../../../../app/data/models/project_model.dart';
@@ -28,7 +32,7 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
 
     return MainLayout(
       pageTitle: 'Documentos: ${project.name}',
-      textController: TextEditingController(),
+      textController: controller.textController,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -38,7 +42,21 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
             SizedBox(
               width: double.infinity,
               height: 240,
-              child: const FileDragWidget(),
+              child: FileDragWidget(
+                onFilesDropped: (files) =>
+                    controller.handleDroppedFiles(files, project),
+                onSelectFiles: () {
+                  controller.selectFiles(project);
+                  controller.loadDocuments(project);
+                },
+              ),
+              // child: FileDragWidget(
+              //   onFilesDropped: (files) => (),
+              //   onSelectFiles: () {
+              //     controller.selectFiles(project);
+              //     controller.loadDocuments(project);
+              //   },
+              // ),
             ),
             // Listado de documentos
             Expanded(
@@ -51,7 +69,7 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
                       return const Center(child: CircularProgressIndicator());
                     }
 
-                    final documents = controller.documents;
+                    final documents = controller.filteredDocuments;
 
                     if (documents.isEmpty) {
                       return _buildEmptyState();
@@ -100,40 +118,104 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
   }
 
   /// Construye la lista de documentos
-  Widget _buildDocumentsList(List<FileData> documents) {
+  Widget _buildDocumentsList(List<FileModel> documents) {
+    // Convertir los documentos a FileData
+    final fileDataList = documents.map((file) {
+      return FileData(
+        id: file.id.toString(),
+        name: file.name,
+        type: FileType.pdf,
+        uploadDate: file.uploadDate,
+        size: file.size,
+      );
+    }).toList();
     return FileCardsGrid(
-      files: documents,
-      onDownload: (file) {
-        // Aquí se manejaría el evento de tap en el archivo
-        //para la descaga del archivo, de momento mostrar un snackbar
-        Get.snackbar(
-          'Información',
-          'Descargando archivo: ${file.name}',
-          snackPosition: SnackPosition.BOTTOM,
+      files: fileDataList,
+      onDownload: (file) async {
+        String url =
+            (await controller.getFileUrlbyid(file.id))[0]; //0 es el url
+        if (url.isEmpty) {
+          Get.snackbar(
+            'Error',
+            'No se pudo obtener la URL del archivo',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return ();
+        }
+        FileModel fileModel = FileModel(
+          name: file.name,
+          type: file.type.name,
+          url: url,
+          storagePath: "",
+          uploadDate: DateTime.now(),
+          entityId: int.tryParse(file.id) ?? 0,
+          entityType: "project",
         );
+        controller.downloadFile(fileModel);
+        print("Descargando archivo: ${file.name}");
 
-        // Handle file tap here
+        final projectContextService = Get.find<ProjectContextService>();
+
+        // Verificamos que exista un proyecto en el contexto
+        if (projectContextService.currentProject == null) {
+          return _buildErrorState('No se ha seleccionado un proyecto');
+        }
+
+        final ProjectModel project = projectContextService.currentProject!;
+
+        controller.loadDocuments(project);
       },
-      onDelete: (file) {
-        // Aquí se manejaría el evento de tap en el archivo
-        //para la descaga del archivo, de momento mostrar un snackbar
-        Get.snackbar(
-          'Información',
-          'Descargando archivo: ${file.name}',
-          snackPosition: SnackPosition.BOTTOM,
+      onDelete: (file) async {
+        String storagePath = (await controller
+            .getFileUrlbyid(file.id))[1]; //1 es el storage_path
+        if (storagePath.isEmpty) {
+          Get.snackbar(
+            'Error',
+            'No se pudo obtener el storage_path del archivo',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return ();
+        }
+        FileModel fileModel = FileModel(
+          id: int.tryParse(file.id) ?? 0,
+          name: file.name,
+          type: file.type.name,
+          url: "",
+          storagePath: storagePath,
+          uploadDate: DateTime.now(),
+          entityId: int.tryParse(file.id) ?? 0,
+          entityType: "project",
         );
+        try {
+          await controller.deleteFile(fileModel);
+          final projectContextService = Get.find<ProjectContextService>();
 
-        // Handle file tap here
+          // Verificamos que exista un proyecto en el contexto
+          if (projectContextService.currentProject == null) {
+            return _buildErrorState('No se ha seleccionado un proyecto');
+          }
+
+          final ProjectModel project = projectContextService.currentProject!;
+
+          controller.loadDocuments(project);
+          // print("no error");
+          // Get.snackbar(
+          //   'Éxito',
+          //   'Archivo eliminado correctamente',
+          //   snackPosition: SnackPosition.BOTTOM,
+          // );
+        } catch (e) {
+          print("Error al eliminar el archivo: $e");
+          // Get.snackbar(
+          //   'Error',
+          //   'No se pudo eliminar el archivo',
+          //   snackPosition: SnackPosition.BOTTOM,
+          // );
+        }
+        print("Eliminando archivo: ${file.name}");
+        // deleteFile
       },
     );
-    // return ListView.separated(
-    //   itemCount: documents.length,
-    //   separatorBuilder: (context, index) => const Divider(),
-    //   itemBuilder: (context, index) {
-    //     final doc = documents[index];
-    //     return _buildDocumentItem(doc);
-    //   },
-    // );
   }
 
   /// Construye un elemento de documento
@@ -299,31 +381,31 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
   }
 
   /// Muestra el diálogo para subir un nuevo documento
-  void _showUploadDialog() {
-    // Aquí se implementaría el diálogo para subir un nuevo documento
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Subir nuevo documento'),
-        content: const Text('Funcionalidad por implementar'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              Get.back();
-              controller.addNewDocument();
-              Get.snackbar(
-                'Información',
-                'Documento subido correctamente',
-                snackPosition: SnackPosition.BOTTOM,
-              );
-            },
-            child: const Text('Subir'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showUploadDialog() {
+  //   // Aquí se implementaría el diálogo para subir un nuevo documento
+  //   Get.dialog(
+  //     AlertDialog(
+  //       title: const Text('Subir nuevo documento'),
+  //       content: const Text('Funcionalidad por implementar'),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Get.back(),
+  //           child: const Text('Cancelar'),
+  //         ),
+  //         TextButton(
+  //           onPressed: () {
+  //             Get.back();
+  //             controller.addNewDocument();
+  //             Get.snackbar(
+  //               'Información',
+  //               'Documento subido correctamente',
+  //               snackPosition: SnackPosition.BOTTOM,
+  //             );
+  //           },
+  //           child: const Text('Subir'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }
