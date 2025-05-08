@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class FileDragWidget extends StatefulWidget {
-  const FileDragWidget({super.key});
+  final VoidCallback onSelectFiles;
+
+  const FileDragWidget({
+    super.key,
+    required this.onSelectFiles,
+  });
 
   @override
   State<FileDragWidget> createState() => _FileDragWidgetState();
@@ -65,9 +70,7 @@ class _FileDragWidgetState extends State<FileDragWidget> {
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
-                  onPressed: () {
-                    // Aquí iría la lógica para seleccionar archivos
-                  },
+                  onPressed: widget.onSelectFiles,
                   child: const Text('Seleccionar archivos'),
                 ),
               ],
