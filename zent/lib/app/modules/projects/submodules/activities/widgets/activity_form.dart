@@ -158,12 +158,13 @@ class ActivityForm extends BaseForm {
 
   // Dropdown para seleccionar estado
   Widget _buildStateDropdown() {
+    // Usando IDs unificados para los estados
     final states = {
       1: 'Sin comenzar',
       2: 'En progreso',
-      3: 'Finalizada',
-      4: 'Cancelada',
-      5: 'Archivada',
+      3: 'Finalizado',
+      4: 'Cancelado',
+      5: 'Archivado',
     };
 
     final stateOptions = states.values.toList();

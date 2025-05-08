@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import '../app/data/models/project_model.dart';
 import '../app/modules/clients/bindings/clients_binding.dart';
 import '../app/modules/clients/views/clients_view.dart';
 import '../app/modules/documents/bindings/documents_bindings.dart';
@@ -23,9 +22,6 @@ import '../app/modules/projects/submodules/dashboard/views/project_dashboard_vie
 import '../app/modules/projects/submodules/activities/views/project_activities_view.dart';
 import '../app/modules/projects/submodules/documents/bindings/project_documents_binding.dart';
 import '../app/modules/projects/submodules/documents/views/project_documents_view.dart';
-import '../app/modules/projects/submodules/reports/bindings/project_reports_binding.dart';
-import '../app/modules/projects/submodules/reports/views/project_reports_view.dart';
-import '../app/modules/projects/controllers/projects_controller.dart';
 import 'route_guard.dart';
 
 part 'app_routes.dart';
@@ -154,18 +150,6 @@ class AppPages {
         ]),
       ],
     ),
-    GetPage(
-      name: _Paths.PROJECT_REPORTS,
-      page: () => ProjectReportsView(),
-      binding: ProjectReportsBinding(),
-      middlewares: [
-        RouteGuard(allowedRoles: [
-          SessionService.ROLE_ADMIN,
-          SessionService.ROLE_PROMOTOR
-        ]),
-      ],
-    ),
-
     GetPage(
       name: '/access-denied',
       page: () => const AccessDeniedView(),

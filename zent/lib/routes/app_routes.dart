@@ -16,7 +16,6 @@ abstract class Routes {
   static const PROJECT_DASHBOARD = _Paths.PROJECT_DASHBOARD;
   static const PROJECT_ACTIVITIES = _Paths.PROJECT_ACTIVITIES;
   static const PROJECT_DOCUMENTS = _Paths.PROJECT_DOCUMENTS;
-  static const PROJECT_REPORTS = _Paths.PROJECT_REPORTS;
 }
 
 abstract class _Paths {
@@ -34,5 +33,4 @@ abstract class _Paths {
   static const PROJECT_DASHBOARD = '/projects/:id/dashboard';
   static const PROJECT_ACTIVITIES = '/projects/:id/activities';
   static const PROJECT_DOCUMENTS = '/projects/:id/documents';
-  static const PROJECT_REPORTS = '/projects/:id/reports';
 }

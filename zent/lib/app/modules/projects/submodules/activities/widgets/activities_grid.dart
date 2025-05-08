@@ -4,7 +4,7 @@ import '../../../../../data/models/activity_model.dart';
 import '../controllers/project_activities_controller.dart';
 import 'activity_card.dart';
 
-/// Widget que implementa un tablero Kanban para mostrar actividades agrupadas por estados
+/// Widget que implementa un tablero Kanban para actividades
 class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
   const ActivitiesGrid({super.key});
 
@@ -15,67 +15,128 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
         return const Center(child: CircularProgressIndicator());
       }
 
-      if (controller.filteredActivities.isEmpty) {
-        return _buildEmptyState();
+      // Mostrar mensaje cuando no hay actividades
+      if (controller.activities.isEmpty) {
+        return ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 100.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.event_note,
+                        size: 64, color: Colors.grey.shade400),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No hay actividades',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Agrega una nueva actividad usando el botón "Nueva Actividad"',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => controller.onAddActivityPressed(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Nueva Actividad'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
       }
 
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          // Usar SizedBox con altura específica en lugar de IntrinsicHeight
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Columnas para cada estado filtrado
-              if (controller.showStateId(1))
-                _buildColumn(
-                  context: context,
-                  title: 'Sin comenzar',
-                  activities: controller.getActivitiesByState(1),
-                  stateId: 1,
-                  color: Colors.grey,
-                ),
-              if (controller.showStateId(2))
-                _buildColumn(
-                  context: context,
-                  title: 'En progreso',
-                  activities: controller.getActivitiesByState(2),
-                  stateId: 2,
-                  color: Colors.blue,
-                ),
-              if (controller.showStateId(3))
-                _buildColumn(
-                  context: context,
-                  title: 'Finalizadas',
-                  activities: controller.getActivitiesByState(3),
-                  stateId: 3,
-                  color: Colors.green,
-                ),
-              if (controller.showStateId(4))
-                _buildColumn(
-                  context: context,
-                  title: 'Canceladas',
-                  activities: controller.getActivitiesByState(4),
-                  stateId: 4,
-                  color: Colors.orange,
-                ),
-              if (controller.showStateId(5))
-                _buildColumn(
-                  context: context,
-                  title: 'Archivadas',
-                  activities: controller.getActivitiesByState(5),
-                  stateId: 5,
-                  color: Colors.purple,
-                ),
-            ],
+      // Para que el RefreshIndicator funcione con scroll horizontal
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            // Altura fija para el tablero
+            height: MediaQuery.of(context).size.height * 0.75,
+            // Contenedor para el scroll horizontal con tamaño forzado
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Espacio al inicio para estética
+                  const SizedBox(width: 8),
+
+                  // Columnas para cada estado usando IDs unificados
+                  if (controller.showStateId(1))
+                    _buildColumn(
+                      context: context,
+                      title: 'Sin comenzar',
+                      activities: controller.getActivitiesByState(1),
+                      stateId: 1,
+                      color: Colors.grey,
+                    ),
+                  if (controller.showStateId(2))
+                    _buildColumn(
+                      context: context,
+                      title: 'En progreso',
+                      activities: controller.getActivitiesByState(2),
+                      stateId: 2,
+                      color: Colors.blue,
+                    ),
+                  if (controller.showStateId(3))
+                    _buildColumn(
+                      context: context,
+                      title: 'Finalizado',
+                      activities: controller.getActivitiesByState(3),
+                      stateId: 3,
+                      color: Colors.green,
+                    ),
+                  if (controller.showStateId(4))
+                    _buildColumn(
+                      context: context,
+                      title: 'Cancelado',
+                      activities: controller.getActivitiesByState(4),
+                      stateId: 4,
+                      color: Colors.orange,
+                    ),
+                  if (controller.showStateId(5))
+                    _buildColumn(
+                      context: context,
+                      title: 'Archivado',
+                      activities: controller.getActivitiesByState(5),
+                      stateId: 5,
+                      color: Colors.purple,
+                    ),
+
+                  // Columna invisible extra para forzar scroll
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.2,
+                    color: Colors.transparent,
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       );
     });
   }
 
-  /// Construye una columna para un estado específico en el tablero Kanban
+  /// Construye una columna para el tablero Kanban
   Widget _buildColumn({
     required BuildContext context,
     required String title,
@@ -94,15 +155,14 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Título de la columna
+            // Título y contador
             _buildColumnHeader(title, activities.length, color),
 
-            // Lista de actividades para arrastrar y soltar
+            // Lista de actividades con soporte para drag & drop
             Expanded(
               child: DragTarget<ActivityModel>(
                 builder: (context, candidateData, rejectedData) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     decoration: BoxDecoration(
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(12),
@@ -117,10 +177,10 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
                         : _buildActivityList(activities),
                   );
                 },
-                onWillAccept: (activity) => 
-                    activity != null && activity.stateId != stateId,
-                onAccept: (activity) {
-                  controller.updateActivityState(activity, stateId);
+                onWillAcceptWithDetails: (details) =>
+                    details.data.stateId != stateId,
+                onAcceptWithDetails: (details) {
+                  controller.updateActivityState(details.data, stateId);
                 },
               ),
             ),
@@ -130,7 +190,7 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
     );
   }
 
-  /// Construye el encabezado de una columna del tablero
+  /// Construye el encabezado de una columna
   Widget _buildColumnHeader(String title, int count, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -144,7 +204,7 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Título con punto de color
+          // Título con indicador de color
           Row(
             children: [
               Container(
@@ -185,19 +245,19 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
     );
   }
 
-  /// Construye la lista de actividades dentro de una columna
+  /// Construye la lista de actividades
   Widget _buildActivityList(List<ActivityModel> activities) {
-    // Usar un SingleChildScrollView con Column en lugar de ListView.builder
-    // para evitar conflictos de scroll anidados
-    return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(),
-      child: Column(
-        children: activities.map((activity) => _buildDraggableActivity(activity)).toList(),
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      physics: const BouncingScrollPhysics(),
+      itemCount: activities.length,
+      itemBuilder: (context, index) {
+        return _buildDraggableActivity(activities[index]);
+      },
     );
   }
 
-  /// Construye una actividad arrastrable para el tablero Kanban
+  /// Construye una actividad arrastrable
   Widget _buildDraggableActivity(ActivityModel activity) {
     return Draggable<ActivityModel>(
       data: activity,
@@ -226,7 +286,7 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
     );
   }
 
-  /// Construye un indicador cuando una columna está vacía
+  /// Construye un indicador para columnas vacías
   Widget _buildEmptyColumnIndicator(BuildContext context) {
     return Center(
       child: Padding(
@@ -252,77 +312,5 @@ class ActivitiesGrid extends GetWidget<ProjectActivitiesController> {
         ),
       ),
     );
-  }
-
-  /// Construye el estado vacío cuando no hay actividades
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.assignment_outlined,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No hay actividades',
-            style: Get.textTheme.titleLarge?.copyWith(
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Agrega una nueva actividad o ajusta los filtros',
-            style: Get.textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Clase de utilidad para mostrar un overlay de carga durante operaciones
-class LoadingOverlay {
-  final OverlayEntry _overlayEntry;
-
-  LoadingOverlay._(this._overlayEntry);
-
-  /// Muestra un overlay de carga con el mensaje especificado
-  static LoadingOverlay show(String message) {
-    final overlay = OverlayEntry(
-      builder: (context) => Material(
-        color: Colors.black.withOpacity(0.5),
-        child: Center(
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(message),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(Get.overlayContext!).insert(overlay);
-    return LoadingOverlay._(overlay);
-  }
-
-  /// Oculta el overlay de carga
-  void hide() {
-    _overlayEntry.remove();
   }
 }

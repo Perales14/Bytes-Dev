@@ -2,10 +2,11 @@ import 'package:get/get.dart';
 import '../models/activity_model.dart';
 import '../providers/activity_provider.dart';
 
+/// Servicio para gestionar operaciones de actividades
 class ActivityService extends GetxService {
   final ActivityProvider _provider = ActivityProvider();
 
-  // Basic CRUD operations
+  // CRUD básico
   Future<List<ActivityModel>> getAllActivities() => _provider.getAll();
   Future<ActivityModel?> getActivityById(int id) => _provider.getById(id);
   Future<ActivityModel> createActivity(ActivityModel activity) =>
@@ -14,7 +15,7 @@ class ActivityService extends GetxService {
       _provider.update(activity);
   Future<void> deleteActivity(int id) => _provider.delete(id);
 
-  // Specific operations
+  // Operaciones específicas
   Future<List<ActivityModel>> getActivitiesByProject(int projectId) =>
       _provider.getByProject(projectId);
   Future<List<ActivityModel>> getActivitiesByManager(int managerId) =>
@@ -33,57 +34,55 @@ class ActivityService extends GetxService {
   Future<List<ActivityModel>> getActivitiesWithEvidences() =>
       _provider.getActivitiesWithEvidences();
 
-  // Business logic methods
+  /// Lógica de negocio
+
+  /// Verifica si una actividad está atrasada
   bool isActivityOverdue(ActivityModel activity) {
-    if (activity.endDate == null) {
-      return false;
-    }
+    if (activity.endDate == null) return false;
     return DateTime.now().isAfter(activity.endDate!);
   }
 
+  /// Verifica si una actividad está completa
   bool isActivityCompleted(ActivityModel activity) {
-    // Assuming state_id 3 is 'Completed'
+    // Usando ID 3 para estado "Finalizado"
     return activity.stateId == 3;
   }
 
+  /// Verifica si una actividad está pendiente
   bool isActivityPending(ActivityModel activity) {
     return activity.endDate == null;
   }
 
+  /// Verifica si una actividad puede iniciar
   bool canActivityStart(ActivityModel activity) {
-    if (activity.dependencyId == null) {
-      return true;
-    }
+    if (activity.dependencyId == null) return true;
 
-    // This would need to check if the dependency is completed
-    // In a real implementation, you'd fetch the dependency activity and check its state
+    // En una implementación real, se verificaría que la dependencia esté completa
     return false;
   }
 
-  // Calculate days remaining
+  /// Calcula días restantes
   int? daysRemaining(ActivityModel activity) {
-    if (activity.endDate == null || isActivityCompleted(activity)) {
-      return null;
-    }
+    if (activity.endDate == null || isActivityCompleted(activity)) return null;
 
     final today = DateTime.now();
     final difference = activity.endDate!.difference(today);
     return difference.inDays;
   }
 
-  // Get activities blocking others
+  /// Obtiene actividades que bloquean otras
   Future<List<ActivityModel>> getBlockingActivities() async {
     final allActivities = await getAllActivities();
     List<int> dependencyIds = [];
 
-    // Get all dependency IDs
+    // Obtener IDs de dependencias
     for (var activity in allActivities) {
       if (activity.dependencyId != null) {
         dependencyIds.add(activity.dependencyId!);
       }
     }
 
-    // Filter activities that are dependencies and not completed
+    // Filtrar actividades que son dependencias y no están completadas
     return allActivities
         .where((activity) =>
             dependencyIds.contains(activity.id) &&

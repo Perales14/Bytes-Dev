@@ -6,6 +6,7 @@ import '../../../../../data/services/project_context_service.dart';
 import '../../../../../data/services/user_service.dart';
 import '../widgets/add_activity_dialog.dart';
 
+/// Controlador principal para la vista de actividades del proyecto
 class ProjectActivitiesController extends GetxController {
   // Servicios
   final ActivityService _activityService = Get.find<ActivityService>();
@@ -13,30 +14,26 @@ class ProjectActivitiesController extends GetxController {
       Get.find<ProjectContextService>();
   final UserService _userService = Get.find<UserService>();
 
-  // Controlador de texto para la barra de búsqueda
+  // Controladores y datos reactivos
   final textController = TextEditingController();
-
-  // Listas reactivas de actividades
   final RxList<ActivityModel> activities = <ActivityModel>[].obs;
   final RxList<ActivityModel> filteredActivities = <ActivityModel>[].obs;
-
-  // Mapa reactivo para almacenar nombres de responsables
   final RxMap<int, String> managerNames = <int, String>{}.obs;
 
-  // Estados reactivos para UI
+  // Estados UI
   final RxBool isLoading = false.obs;
   final RxBool isStateFilterDropdownOpen = false.obs;
 
-  // Mapa para controlar qué estados se muestran (todos por defecto)
+  /// Mapa unificado de IDs de estado (compatible con todos los componentes)
   final RxMap<int, bool> stateFilters = {
-    1: true, // SIN COMENZAR
-    2: true, // EN PROGRESO
-    3: true, // FINALIZADO
-    4: true, // CANCELADO
-    5: true, // ARCHIVADO
+    1: true, // Sin comenzar
+    2: true, // En progreso
+    3: true, // Finalizado
+    4: true, // Cancelado
+    5: true, // Archivado
   }.obs;
 
-  // Nombres de los estados para mostrar en UI
+  /// Nombres de estados para UI
   final Map<int, String> stateNames = {
     1: 'Sin comenzar',
     2: 'En progreso',
@@ -45,36 +42,24 @@ class ProjectActivitiesController extends GetxController {
     5: 'Archivado',
   };
 
-  // Getter para texto de estados seleccionados
+  /// Obtiene texto para el selector de filtros
   String get selectedStateFiltersText {
     final selected = stateFilters.entries
         .where((entry) => entry.value)
         .map((entry) => stateNames[entry.key])
         .toList();
 
-    if (selected.length == stateFilters.length) {
-      return 'Todos los estados';
-    } else if (selected.isEmpty) {
-      return 'Ningún estado seleccionado';
-    } else {
-      return selected.join(', ');
-    }
+    if (selected.length == stateFilters.length) return 'Todos los estados';
+    if (selected.isEmpty) return 'Ningún estado seleccionado';
+    return selected.join(', ');
   }
 
   @override
   void onInit() {
     super.onInit();
-
-    // Cargar actividades cuando se inicia el controlador
     _loadActivities();
-
-    // Escuchar cambios en el filtro de búsqueda
     ever(stateFilters, (_) => _applyFilters());
-
-    // Agregar listener al campo de búsqueda
-    textController.addListener(() {
-      _applyFilters();
-    });
+    textController.addListener(() => _applyFilters());
   }
 
   @override
@@ -84,7 +69,7 @@ class ProjectActivitiesController extends GetxController {
     super.onClose();
   }
 
-  // Carga las actividades del proyecto actual
+  /// Carga las actividades del proyecto actual
   Future<void> _loadActivities() async {
     isLoading.value = true;
 
@@ -95,10 +80,7 @@ class ProjectActivitiesController extends GetxController {
         final projectActivities =
             await _activityService.getActivitiesByProject(projectId);
         activities.assignAll(projectActivities);
-
-        // Cargar nombres de responsables
         await _loadManagerNames();
-
         _applyFilters();
       } else {
         activities.clear();
@@ -117,7 +99,7 @@ class ProjectActivitiesController extends GetxController {
     }
   }
 
-  // Carga los nombres de los responsables de las actividades
+  /// Carga los nombres de los responsables
   Future<void> _loadManagerNames() async {
     try {
       final managerIds = activities
@@ -126,26 +108,22 @@ class ProjectActivitiesController extends GetxController {
           .toSet()
           .toList();
 
-      if (managerIds.isNotEmpty) {
-        for (final managerId in managerIds) {
-          final manager = await _userService.getUserById(managerId);
-          if (manager != null) {
-            managerNames[managerId] = manager.fullName;
-          }
-        }
+      for (final managerId in managerIds) {
+        final manager = await _userService.getUserById(managerId);
+        if (manager != null) managerNames[managerId] = manager.fullName;
       }
     } catch (e) {
-      print('Error al cargar nombres de responsables: $e');
+      debugPrint('Error al cargar nombres de responsables: $e');
     }
   }
 
-  // Obtiene el nombre del responsable para una actividad
+  /// Obtiene el nombre del responsable
   String getManagerName(int? managerId) {
     if (managerId == null) return 'Sin asignar';
     return managerNames[managerId] ?? 'Responsable ID: $managerId';
   }
 
-  // Aplica los filtros seleccionados a la lista de actividades
+  /// Aplica filtros por estado y texto
   void _applyFilters() {
     final searchText = textController.text.toLowerCase();
     final activeStateIds = stateFilters.entries
@@ -155,32 +133,29 @@ class ProjectActivitiesController extends GetxController {
 
     if (activeStateIds.isEmpty) {
       filteredActivities.clear();
-    } else {
-      filteredActivities.assignAll(activities.where((activity) {
-        // Filtro por estado
-        final matchesState = activeStateIds.contains(activity.stateId);
-
-        // Filtro por texto de búsqueda (titulo y descripción)
-        final matchesSearch = searchText.isEmpty ||
-            (activity.title?.toLowerCase().contains(searchText) ?? false) ||
-            activity.description.toLowerCase().contains(searchText);
-
-        return matchesState && matchesSearch;
-      }));
+      return;
     }
+
+    filteredActivities.assignAll(activities.where((activity) {
+      // Filtro por estado
+      final matchesState = activeStateIds.contains(activity.stateId);
+
+      // Filtro por texto de búsqueda
+      final matchesSearch = searchText.isEmpty ||
+          (activity.title?.toLowerCase().contains(searchText) ?? false) ||
+          activity.description.toLowerCase().contains(searchText);
+
+      return matchesState && matchesSearch;
+    }));
   }
 
-  // Toggle del dropdown de filtros de estado
+  /// Muestra/oculta el popup de filtros
   void toggleStateFilterDropdown() {
     isStateFilterDropdownOpen.value = !isStateFilterDropdownOpen.value;
-
-    if (isStateFilterDropdownOpen.value) {
-      // Aquí se mostraría el popup con checkboxes
-      _showStateFilterPopup();
-    }
+    if (isStateFilterDropdownOpen.value) _showStateFilterPopup();
   }
 
-  // Muestra el popup para filtrar por estados
+  /// Muestra el popup de filtros de estado
   void _showStateFilterPopup() {
     Get.dialog(
       AlertDialog(
@@ -193,9 +168,7 @@ class ProjectActivitiesController extends GetxController {
                     title: Text(stateNames[entry.key] ?? 'Desconocido'),
                     value: stateFilters[entry.key],
                     onChanged: (bool? value) {
-                      if (value != null) {
-                        stateFilters[entry.key] = value;
-                      }
+                      if (value != null) stateFilters[entry.key] = value;
                     },
                     activeColor: Get.theme.colorScheme.primary,
                   ));
@@ -212,26 +185,23 @@ class ProjectActivitiesController extends GetxController {
           ),
         ],
       ),
-    ).then((_) {
-      isStateFilterDropdownOpen.value = false;
-    });
+    ).then((_) => isStateFilterDropdownOpen.value = false);
   }
 
-  // Actualiza el estado de una actividad (usado en drag & drop)
+  /// Actualiza el estado de una actividad (drag & drop)
   Future<bool> updateActivityState(
       ActivityModel activity, int newStateId) async {
     try {
       if (activity.stateId == newStateId) return true;
 
-      // Actualiza el estado localmente primero para UI responsiva
+      // Actualiza localmente primero
       final index = activities.indexWhere((a) => a.id == activity.id);
       if (index >= 0) {
-        final updatedActivity = activity.copyWith(stateId: newStateId);
-        activities[index] = updatedActivity;
-        _applyFilters(); // Re-aplicar filtros
+        activities[index] = activity.copyWith(stateId: newStateId);
+        _applyFilters();
       }
 
-      // Luego actualiza en el backend
+      // Actualiza en backend
       await _activityService
           .updateActivity(activity.copyWith(stateId: newStateId));
 
@@ -246,9 +216,7 @@ class ProjectActivitiesController extends GetxController {
 
       return true;
     } catch (e) {
-      // Revertir cambio local si falla
       await _loadActivities();
-
       Get.snackbar(
         'Error',
         'No se pudo actualizar el estado: $e',
@@ -256,14 +224,12 @@ class ProjectActivitiesController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );
-
       return false;
     }
   }
 
-  // Maneja el tap en una actividad
+  /// Maneja el tap en una actividad
   void onActivityTap(ActivityModel activity) {
-    // Mostrar diálogo con detalles y opción de editar
     Get.dialog(
       AddActivityDialog(
         activity: activity,
@@ -275,15 +241,13 @@ class ProjectActivitiesController extends GetxController {
     );
   }
 
-  // Maneja el botón de añadir actividad
+  /// Maneja el botón de añadir actividad
   void onAddActivityPressed() {
     final projectId = _projectContextService.currentProject?.id;
     if (projectId != null) {
       Get.dialog(
         AddActivityDialog(
-          onSaveSuccess: () {
-            refreshActivities();
-          },
+          onSaveSuccess: () => refreshActivities(),
         ),
         barrierDismissible: true,
         barrierColor: Colors.black.withOpacity(0.5),
@@ -299,18 +263,14 @@ class ProjectActivitiesController extends GetxController {
     }
   }
 
-  // Comprueba si se debe mostrar un estado según los filtros
-  bool showStateId(int stateId) {
-    return stateFilters[stateId] ?? false;
-  }
+  /// Verifica si debe mostrarse un estado
+  bool showStateId(int stateId) => stateFilters[stateId] ?? false;
 
-  // Obtiene actividades filtradas por estado
+  /// Obtiene actividades por estado
   List<ActivityModel> getActivitiesByState(int stateId) {
     return filteredActivities.where((a) => a.stateId == stateId).toList();
   }
 
-  // Recarga las actividades (útil para pull-to-refresh)
-  Future<void> refreshActivities() async {
-    await _loadActivities();
-  }
+  /// Recarga las actividades
+  Future<void> refreshActivities() async => await _loadActivities();
 }

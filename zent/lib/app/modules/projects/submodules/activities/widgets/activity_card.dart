@@ -194,15 +194,15 @@ class ActivityCard extends StatelessWidget {
   // Obtiene el color del borde según el estado
   Color _getBorderColor() {
     switch (activity.stateId) {
-      case 1: // SIN COMENZAR
+      case 3: // SIN COMENZAR
         return Colors.grey;
-      case 2: // EN PROGRESO
+      case 4: // EN PROGRESO
         return Colors.blue;
-      case 3: // FINALIZADA
+      case 5: // FINALIZADA
         return Colors.green;
-      case 4: // CANCELADA
+      case 6: // CANCELADA
         return Colors.orange;
-      case 5: // ARCHIVADA
+      case 7: // ARCHIVADA
         return Colors.purple;
       default:
         return Colors.grey;
@@ -212,15 +212,15 @@ class ActivityCard extends StatelessWidget {
   // Obtiene el texto del estado
   String _getStateText() {
     switch (activity.stateId) {
-      case 1:
-        return 'Sin comenzar';
-      case 2:
-        return 'En progreso';
       case 3:
-        return 'Finalizada';
+        return 'Sin comenzar';
       case 4:
-        return 'Cancelada';
+        return 'En progreso';
       case 5:
+        return 'Finalizada';
+      case 6:
+        return 'Cancelada';
+      case 7:
         return 'Archivada';
       default:
         return 'Desconocido';

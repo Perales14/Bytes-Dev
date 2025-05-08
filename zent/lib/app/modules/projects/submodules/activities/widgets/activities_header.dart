@@ -9,24 +9,28 @@ class ActivitiesHeader extends GetWidget<ProjectActivitiesController> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
         children: [
           // Botón para añadir nueva actividad y filtros
           Row(
+            mainAxisAlignment: MainAxisAlignment
+                .spaceBetween, // Espacio máximo entre elementos
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Botón de nueva actividad
-              Expanded(
-                flex: 2,
-                child: _buildAddButton(),
+              // Botón de nueva actividad con tamaño fijo
+              SizedBox(
+                width: 200, // Ancho fijo
+                child: _buildAddButton(theme),
               ),
-              const SizedBox(width: 16),
 
-              // Filtros de estados
-              Expanded(
-                flex: 3,
-                child: _buildFiltersSection(),
+              // Filtros de estados con tamaño fijo
+              SizedBox(
+                width: 200, // Ancho fijo
+                child: _buildFiltersSection(theme),
               ),
             ],
           ),
@@ -40,93 +44,87 @@ class ActivitiesHeader extends GetWidget<ProjectActivitiesController> {
   }
 
   /// Construye el botón para añadir nueva actividad
-  Widget _buildAddButton() {
+  Widget _buildAddButton(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return ElevatedButton.icon(
       onPressed: () => controller.onAddActivityPressed(),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Get.theme.colorScheme.primary,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        fixedSize:
+            const Size.fromHeight(48), // Altura fija para igualar al filtro
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
+        elevation: 2,
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
       ),
-      icon: const Icon(Icons.add_circle_outline, size: 20),
+      icon: Icon(
+        Icons.add_circle_outline,
+        size: 20,
+        color: colorScheme.onSurface,
+      ),
       label: const Text(
         'NUEVA ACTIVIDAD',
         style: TextStyle(
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
+          fontSize: 13,
         ),
       ),
     );
   }
 
   /// Construye la sección de filtros
-  Widget _buildFiltersSection() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      decoration: BoxDecoration(
-        color: Get.theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Etiqueta de filtros
-          Row(
-            children: [
-              Icon(
-                Icons.filter_list,
-                size: 18,
-                color: Get.theme.colorScheme.secondary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Filtrar por estado:',
-                style: Get.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Get.theme.colorScheme.secondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+  Widget _buildFiltersSection(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
 
-          // Dropdown con checkboxes para filtrar estados
-          Obx(() => _buildStateFilter()),
-        ],
-      ),
-    );
-  }
-
-  /// Construye el filtro de estados usando un dropdown con checkboxes
-  Widget _buildStateFilter() {
     return InkWell(
       onTap: () => controller.toggleStateFilterDropdown(),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        height: 48, // Altura fija
+        padding: const EdgeInsets.symmetric(horizontal: 12.0),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: theme.shadowColor.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
+            // Icono de filtro
+            Icon(
+              Icons.filter_list,
+              size: 20,
+              color: colorScheme.secondary,
+            ),
+            const SizedBox(width: 8),
+
+            // Texto de filtro seleccionado
             Expanded(
               child: Text(
                 controller.selectedStateFiltersText,
-                style: Get.textTheme.bodyMedium,
+                style: theme.textTheme.bodyMedium,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(
-              controller.isStateFilterDropdownOpen.value
-                  ? Icons.arrow_drop_up
-                  : Icons.arrow_drop_down,
-              color: Get.theme.colorScheme.primary,
-            ),
+
+            // Icono de dropdown
+            Obx(() => Icon(
+                  controller.isStateFilterDropdownOpen.value
+                      ? Icons.arrow_drop_up
+                      : Icons.arrow_drop_down,
+                  color: colorScheme.primary,
+                  size: 20,
+                )),
           ],
         ),
       ),
