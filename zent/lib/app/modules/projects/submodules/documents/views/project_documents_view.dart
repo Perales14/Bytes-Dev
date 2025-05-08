@@ -43,11 +43,20 @@ class ProjectDocumentsView extends GetView<ProjectDocumentsController> {
               width: double.infinity,
               height: 240,
               child: FileDragWidget(
+                onFilesDropped: (files) =>
+                    controller.handleDroppedFiles(files, project),
                 onSelectFiles: () {
                   controller.selectFiles(project);
                   controller.loadDocuments(project);
                 },
               ),
+              // child: FileDragWidget(
+              //   onFilesDropped: (files) => (),
+              //   onSelectFiles: () {
+              //     controller.selectFiles(project);
+              //     controller.loadDocuments(project);
+              //   },
+              // ),
             ),
             // Listado de documentos
             Expanded(

@@ -63,19 +63,6 @@ class ProjectDocumentsController extends GetxController {
     //     )).toList();
   }
 
-  /// Carga los documentos del proyecto actual
-  void loadDocuments(ProjectModel project) {
-    isLoading.value = true;
-
-    try {
-      _loadDocuments(project);
-    } catch (e) {
-      print('Error cargando documentos del proyecto: $e');
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
   /// Carga datos de ejemplo para la vista previa
   void _loadDocuments([ProjectModel? project]) {
     Future.delayed(const Duration(milliseconds: 700), () async {
@@ -105,6 +92,116 @@ class ProjectDocumentsController extends GetxController {
       }
     }
     return filtered;
+  }
+
+  Future<void> handleDroppedFiles(
+      List<File> droppedFiles, ProjectModel project) async {
+    print('Archivos arrastrados: $droppedFiles');
+
+    // Filtrar solo archivos .pdf (ignorando mayúsculas)
+    final pdfFiles = droppedFiles.where((file) {
+      final ext = path.extension(file.path).toLowerCase();
+      return ext == '.pdf';
+    }).toList();
+
+    if (pdfFiles.isEmpty) {
+      Get.snackbar(
+        'Advertencia',
+        'Solo se permiten archivos PDF',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    try {
+      files.assignAll(pdfFiles);
+
+      _showLoadingDialog('Subiendo archivos...');
+
+      final uploadedFiles = await uploadFilesToSupabase(
+        pdfFiles,
+        project.id.toString(),
+      );
+
+      if (uploadedFiles.isNotEmpty) {
+        await saveFileReferences(uploadedFiles, project.id, 'project');
+        refreshDocuments(project);
+
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+
+        Get.snackbar(
+          'Éxito',
+          'Archivos PDF subidos correctamente',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } else {
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+      }
+    } catch (e) {
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+      }
+      _showErrorSnackbar('Error al subir archivos', e);
+    }
+  }
+
+  // Future<void> handleDroppedFiles(
+  //     List<File> droppedFiles, ProjectModel project) async {
+  //   print('Archivos arrastrados: $droppedFiles');
+  //   try {
+  //     files.assignAll(
+  //         droppedFiles); // ← Usamos droppedFiles (el parámetro) y files (el RxList del controller)
+
+  //     _showLoadingDialog('Subiendo archivos...');
+
+  //     final uploadedFiles = await uploadFilesToSupabase(
+  //       droppedFiles,
+  //       project.id.toString(),
+  //     );
+
+  //     if (uploadedFiles.isNotEmpty) {
+  //       await saveFileReferences(uploadedFiles, project.id, 'project');
+  //       refreshDocuments(project);
+
+  //       if (Get.isDialogOpen ?? false) {
+  //         Get.back();
+  //       }
+
+  //       Get.snackbar(
+  //         'Éxito',
+  //         'Archivos subidos correctamente',
+  //         snackPosition: SnackPosition.BOTTOM,
+  //       );
+  //     } else {
+  //       if (Get.isDialogOpen ?? false) {
+  //         Get.back();
+  //       }
+  //     }
+  //   } catch (e) {
+  //     if (Get.isDialogOpen ?? false) {
+  //       Get.back();
+  //     }
+  //     _showErrorSnackbar('Error al subir archivos', e);
+  //   }
+  // }
+
+  /// Carga los documentos del proyecto actual
+  void loadDocuments(ProjectModel project) {
+    isLoading.value = true;
+
+    try {
+      _loadDocuments(project);
+    } catch (e) {
+      print('Error cargando documentos del proyecto: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   /// Selecciona archivos para subir al proyecto
