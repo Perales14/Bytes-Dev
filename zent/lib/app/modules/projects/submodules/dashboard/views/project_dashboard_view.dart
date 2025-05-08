@@ -50,9 +50,9 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
               const SizedBox(height: 24),
               _buildProjectDetails(project, theme),
               const SizedBox(height: 24),
-              _buildTeamSection(project, theme),
+              _buildAddressSection(project, theme),
               const SizedBox(height: 24),
-              _buildProgressSection(project, theme),
+              _buildActionButtons(context, project),
             ],
           ),
         ),
@@ -60,76 +60,108 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     );
   }
 
-  /// Cabecera con información y botón de edición
+  /// Cabecera con información y barra de progreso
   Widget _buildProjectHeader(BuildContext context, ProjectModel project) {
+    final progressPercentage = _calcularPorcentajeActividades(project);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.name,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Get.theme.primaryColor,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (project.description != null &&
-                      project.description!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        project.description!,
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          fontSize: 14,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  Chip(
-                    backgroundColor:
-                        _getStateColor(project.stateId).withOpacity(0.2),
-                    label: Text(
-                      _getProjectState(project),
-                      style: TextStyle(
-                        color: _getStateColor(project.stateId),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    avatar: Icon(
-                      _getStateIcon(project.stateId),
-                      size: 16,
-                      color: _getStateColor(project.stateId),
-                    ),
-                  ),
-                ],
+            Text(
+              project.name,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Get.theme.primaryColor,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            ElevatedButton.icon(
-              onPressed: () => _showEditProjectDialog(context, project),
-              icon: const Icon(Icons.edit),
-              label: const Text('Editar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Get.theme.primaryColor,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            if (project.description != null && project.description!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  project.description!,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Progreso del Proyecto',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      LinearProgressIndicator(
+                        value: progressPercentage / 100,
+                        minHeight: 8,
+                        backgroundColor: Colors.grey[200],
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            _getProgressColor(progressPercentage)),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${progressPercentage.toStringAsFixed(1)}%',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            _getProgressStatus(progressPercentage, project),
+                            style: TextStyle(
+                              color: _getProgressStatusColor(
+                                  progressPercentage, project),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Chip(
+                  backgroundColor:
+                      _getStateColor(project.stateId).withOpacity(0.2),
+                  label: Text(
+                    _getProjectState(project),
+                    style: TextStyle(
+                      color: _getStateColor(project.stateId),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  avatar: Icon(
+                    _getStateIcon(project.stateId),
+                    size: 16,
+                    color: _getStateColor(project.stateId),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -196,7 +228,7 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     );
   }
 
-  /// Detalles del proyecto (fechas, etc.)
+  /// Detalles del proyecto (fechas, equipo, etc.)
   Widget _buildProjectDetails(ProjectModel project, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,67 +277,22 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
                 ],
                 const Divider(height: 24),
                 _buildInfoRow(
-                  'ID del Proyecto',
-                  '#${project.id}',
-                  icon: Icons.tag,
-                ),
-                if (project.addressId != null) ...[
-                  const Divider(height: 24),
-                  _buildInfoRow(
-                    'Dirección',
-                    'Ver Detalles',
-                    icon: Icons.location_on,
-                    onTap: () => _showAddressDetails(project.addressId!),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Sección de equipo del proyecto
-  Widget _buildTeamSection(ProjectModel project, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Equipo de Trabajo',
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          elevation: 1,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildTeamMemberTile(
-                  title: 'Cliente',
-                  subtitle: 'ID: ${project.clientId}',
+                  'Cliente',
+                  _getClientName(),
                   icon: Icons.person,
-                  onTap: () => _navigateToClientDetails(project.clientId),
                 ),
                 const Divider(height: 24),
-                _buildTeamMemberTile(
-                  title: 'Responsable',
-                  subtitle: 'ID: ${project.managerId}',
+                _buildInfoRow(
+                  'Responsable',
+                  _getManagerName(),
                   icon: Icons.person_pin_circle,
-                  onTap: () => _navigateToManagerDetails(project.managerId),
                 ),
-                if (project.providerId != null) ...[
+                if (controller.provider.value != null) ...[
                   const Divider(height: 24),
-                  _buildTeamMemberTile(
-                    title: 'Proveedor',
-                    subtitle: 'ID: ${project.providerId}',
+                  _buildInfoRow(
+                    'Proveedor',
+                    controller.provider.value!.companyName,
                     icon: Icons.business,
-                    onTap: () =>
-                        _navigateToProviderDetails(project.providerId!),
                   ),
                 ],
               ],
@@ -316,112 +303,173 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     );
   }
 
-  /// Sección de progreso del proyecto
-  Widget _buildProgressSection(ProjectModel project, ThemeData theme) {
-    // Calcular progreso basado en días transcurridos vs. días totales estimados
-    final progressPercentage = _calcularPorcentajeProgreso(project);
+  /// Obtiene el nombre del cliente
+  String _getClientName() {
+    if (controller.client.value != null) {
+      return controller.client.value!.fullName;
+    }
+    return 'Cliente ID: ${controller.project!.clientId}';
+  }
 
+  /// Obtiene el nombre del responsable
+  String _getManagerName() {
+    if (controller.manager.value != null) {
+      return controller.manager.value!.fullName;
+    }
+    return 'Responsable ID: ${controller.project!.managerId}';
+  }
+
+  /// Sección de dirección
+  Widget _buildAddressSection(ProjectModel project, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Progreso del Proyecto',
+          'Dirección',
           style: theme.textTheme.titleMedium
               ?.copyWith(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Card(
-          elevation: 1,
+          elevation: 2,
+          margin: EdgeInsets.zero,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                LinearProgressIndicator(
-                  value: progressPercentage / 100,
-                  minHeight: 10,
-                  backgroundColor: Colors.grey[200],
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                      _getProgressColor(progressPercentage)),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '${progressPercentage.toStringAsFixed(1)}%',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: controller.address.value != null
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Get.theme.primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              Icons.location_on,
+                              color: Get.theme.primaryColor,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              'Dirección del Proyecto',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      _getProgressStatus(progressPercentage, project),
-                      style: TextStyle(
-                        color: _getProgressStatusColor(
-                            progressPercentage, project),
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 20),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 20,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 5,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.home_work_outlined,
+                              color: theme.colorScheme.secondary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                controller.address.value!.fullAddress,
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                )
+              : Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(30.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.location_off,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Este proyecto no tiene una dirección asociada',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
         ),
       ],
     );
   }
 
-  /// Tile para miembro del equipo
-  Widget _buildTeamMemberTile({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: Get.theme.primaryColor.withOpacity(0.1),
-              child: Icon(icon, color: Get.theme.primaryColor),
+  /// Botones de acción (editar, eliminar)
+  Widget _buildActionButtons(BuildContext context, ProjectModel project) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () => _showEditProjectDialog(context, project),
+            icon: const Icon(Icons.edit, color: Colors.white),
+            label: const Text('Editar Proyecto'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Get.theme.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(width: 16),
+          OutlinedButton.icon(
+            onPressed: () => _showDeleteConfirmation(context, project),
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            label: const Text('Eliminar Proyecto'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey[400],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -432,9 +480,8 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     String value, {
     IconData? icon,
     Color? valueColor,
-    VoidCallback? onTap,
   }) {
-    final row = Row(
+    return Row(
       children: [
         if (icon != null) ...[
           Icon(icon, size: 18, color: Get.theme.primaryColor.withOpacity(0.7)),
@@ -453,29 +500,7 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
             color: valueColor,
           ),
         ),
-        if (onTap != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Icon(Icons.arrow_forward_ios,
-                size: 14, color: Colors.grey[400]),
-          ),
       ],
-    );
-
-    if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4.0),
-          child: row,
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: row,
     );
   }
 
@@ -610,14 +635,22 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     return '\$${comision.toStringAsFixed(2)}';
   }
 
-  /// Calcula el porcentaje de progreso del proyecto
-  double _calcularPorcentajeProgreso(ProjectModel project) {
-    if (project.startDate == null || project.estimatedEndDate == null) {
-      return 0.0;
-    }
+  /// Calcula el porcentaje de progreso del proyecto basado en actividades finalizadas
+  double _calcularPorcentajeActividades(ProjectModel project) {
+    // Simulación de porcentaje basado en actividades terminadas (ID 5)
+    // Idealmente, este método obtendría datos reales del controlador
+    // En un caso real, consultaríamos:
+    // - Total de actividades del proyecto
+    // - Número de actividades con estado 5 (terminadas)
 
+    // Por ahora, asumimos un porcentaje basado en un cálculo simple
     if (project.actualEndDate != null) {
       return 100.0;
+    }
+
+    // Simulación: porcentaje basado en el tiempo transcurrido
+    if (project.startDate == null || project.estimatedEndDate == null) {
+      return 0.0;
     }
 
     final totalDias =
@@ -779,7 +812,7 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  // Métodos de navegación y acción
+  // Métodos de acción
 
   /// Muestra el diálogo de edición de proyecto
   void _showEditProjectDialog(BuildContext context, ProjectModel project) {
@@ -802,43 +835,42 @@ class ProjectDashboardView extends GetView<ProjectDashboardController> {
     );
   }
 
-  /// Navegación a detalles del cliente
-  void _navigateToClientDetails(int clientId) {
-    Get.snackbar(
-      'Información',
-      'Navegando a detalles del cliente ID: $clientId',
-      snackPosition: SnackPosition.BOTTOM,
+  /// Muestra confirmación para eliminar proyecto
+  void _showDeleteConfirmation(BuildContext context, ProjectModel project) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Eliminar Proyecto'),
+        content: Text(
+            '¿Está seguro que desea eliminar el proyecto "${project.name}"? Esta acción no puede deshacerse.'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              // Aquí iría la lógica para eliminar el proyecto
+              Get.snackbar(
+                'Proyecto eliminado',
+                'El proyecto "${project.name}" ha sido eliminado',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red,
+                colorText: Colors.white,
+              );
+              Get.offNamed('/projects');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+      barrierDismissible: true,
     );
-    // Get.toNamed('/clients/$clientId');
-  }
-
-  /// Navegación a detalles del responsable
-  void _navigateToManagerDetails(int managerId) {
-    Get.snackbar(
-      'Información',
-      'Navegando a detalles del responsable ID: $managerId',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-    // Get.toNamed('/employees/$managerId');
-  }
-
-  /// Navegación a detalles del proveedor
-  void _navigateToProviderDetails(int providerId) {
-    Get.snackbar(
-      'Información',
-      'Navegando a detalles del proveedor ID: $providerId',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-    // Get.toNamed('/providers/$providerId');
-  }
-
-  /// Muestra los detalles de la dirección
-  void _showAddressDetails(int addressId) {
-    Get.snackbar(
-      'Información',
-      'Mostrando detalles de la dirección ID: $addressId',
-      snackPosition: SnackPosition.BOTTOM,
-    );
-    // Implementar mostrar detalles de dirección
   }
 }
